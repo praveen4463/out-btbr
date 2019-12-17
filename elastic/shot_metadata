@@ -1,0 +1,63 @@
+# index definition for index shot_metadata
+
+curl -X PUT "localhost:9200/shot_metadata?pretty" -H 'Content-Type: application/json' -d'
+{
+  "mappings": {
+    "properties": {
+      "shotName": {
+        "type": "keyword"
+      },
+      "buildId": {
+        "type": "keyword"
+      },
+      "sessionId": {
+        "type": "keyword"
+      },
+      "time": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss.SSS zzz"
+      },
+      "method": {
+        "type": "keyword",
+        "index": false
+      },
+      "webDriverCommand": {
+        "type": "keyword",
+        "index": false
+      },
+      "commandId": {
+        "type": "integer"
+      }
+    }
+  },
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 1
+  }
+}
+'
+# TODO: we might need to setup more things into the index for production
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html
+
+# Example document indexing
+curl -X POST "localhost:9200/shot_metadata/_doc?pretty" -H 'Content-Type: application/json' -d '
+{
+  "shotName": "2C425549-3E04-4BBA-A03A-52F66CCA46A5-1.png",
+  "buildId": "dhd2333hdh33",
+  "sessionId": "2C425549-3E04-4BBA-A03A-52F66CCA46A5",
+  "time": "2019-11-23 07:54:01.456 UTC",
+  "method": "GET",
+  "webDriverCommand": "get",
+  "commandId": 1
+}
+'
+
+# Example document retrieval
+curl -XGET "localhost:9200/shot_metadata/_search?pretty" -H 'Content-Type: application/json' -d '
+{
+  "query": {
+    "match_all": {}
+  },
+  "size": 1000
+}
+'

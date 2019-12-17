@@ -1,0 +1,14 @@
+---
+api-core:
+  project-id: zl-win-nodes
+  cloud-kms:
+    key-ring: zl-apps-auth-secret
+    key: default-prod
+    key-bucket: zl-secrets
+  esdb:
+    auth-user: elastic
+    auth-user-secret-cloud-file: zl-esdb-auth.encrypt
+    max-retries: 6
+    shot-metadata-index: shot_metadata
+    bt-build-result-index: bt_build_command_result
+---
