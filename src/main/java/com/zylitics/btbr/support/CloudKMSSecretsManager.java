@@ -5,17 +5,18 @@ import com.google.cloud.kms.v1.DecryptResponse;
 import com.google.cloud.kms.v1.KeyManagementServiceClient;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
+import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
 import com.zylitics.btbr.SecretsManager;
-import com.zylitics.btbr.resource.APICoreProperties;
+import com.zylitics.btbr.config.APICoreProperties;
+import org.elasticsearch.common.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
-@Component
-public class CloudKMSSecretsManager implements SecretsManager {
+@Service
+class CloudKMSSecretsManager implements SecretsManager {
   
   private final APICoreProperties apiCoreProperties;
   private final Storage storage;
@@ -25,13 +26,11 @@ public class CloudKMSSecretsManager implements SecretsManager {
   @Autowired
   CloudKMSSecretsManager(APICoreProperties apiCoreProperties, Storage storage)
       throws IOException {
-    this.apiCoreProperties = apiCoreProperties;
-    this.storage = storage;
-    client = KeyManagementServiceClient.create();
+    this(apiCoreProperties, storage, KeyManagementServiceClient.create());
   }
   
   CloudKMSSecretsManager(APICoreProperties apiCoreProperties, Storage storage,
-                                KeyManagementServiceClient client) {
+                         KeyManagementServiceClient client) {
     this.apiCoreProperties = apiCoreProperties;
     this.storage = storage;
     this.client = client;
@@ -39,14 +38,16 @@ public class CloudKMSSecretsManager implements SecretsManager {
   
   @Override
   public String getSecretAsPlainText(String secretCloudFileName) {
-    Assert.hasLength(secretCloudFileName, "secret cloud file name can't be empty");
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(secretCloudFileName),
+        "secret cloud file name can't be empty");
   
-    BlobId blobId = BlobId.of(apiCoreProperties.getKeyBucket(), secretCloudFileName);
+    APICoreProperties.CloudKms kms = apiCoreProperties.getCloudKms();
+    BlobId blobId = BlobId.of(kms.getKeyBucket(), secretCloudFileName);
     // we'll throw if there is any error for now as storage and kms both have retry built-in and
     // i don't expect storage to throw any error that needs retry from user while 'getting' blob.
     byte[] content = storage.readAllBytes(blobId);
     String resourceName = CryptoKeyName.format(apiCoreProperties.getProjectId(), "global",
-        apiCoreProperties.getKeyRing(), apiCoreProperties.getKey());
+        kms.getKeyRing(), kms.getKey());
     DecryptResponse decrypt = client.decrypt(resourceName, ByteString.copyFrom(content));
     // trim is important to remove unintended whitespaces.
     return decrypt.getPlaintext().toStringUtf8().trim();

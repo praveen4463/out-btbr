@@ -11,4 +11,16 @@ api-core:
     max-retries: 6
     shot-metadata-index: shot_metadata
     bt-build-result-index: bt_build_command_result
+    env-var-host: ESDB_HOST
+  data-source:
+    db-name: zbtp
+    user-name: zbtp
+    user-secret-cloud-file: zbtp-auth.encrypt
+    conn-name-cloud-file: zl-pgdb-conn-name.encrypt
+    # small idle connections because this app works for a single session only and mostly just one
+    # thread will seek synchronous access to pgdb. see
+    # https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing
+    min-idle-conn-pool: 2
+  runner:
+    max-test-command-load: 500
 ---

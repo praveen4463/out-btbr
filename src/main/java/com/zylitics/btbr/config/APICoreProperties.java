@@ -36,6 +36,11 @@ public class APICoreProperties {
   }
   
   @Valid
+  private DataSource dataSource = new DataSource();
+  
+  public DataSource getDataSource() { return dataSource; }
+  
+  @Valid
   private CloudKms cloudKms = new CloudKms();
   
   public CloudKms getCloudKms() { return cloudKms; }
@@ -44,6 +49,79 @@ public class APICoreProperties {
   private Esdb esdb = new Esdb();
   
   public Esdb getEsdb() { return esdb; }
+  
+  @Valid
+  private Runner runner = new Runner();
+  
+  public Runner getRunner() { return runner; }
+  
+  public static class DataSource {
+    
+    @NotBlank
+    private String dbName;
+  
+    @NotBlank
+    private String userName;
+  
+    @NotBlank
+    private String userSecretCloudFile;
+  
+    @NotBlank
+    private String connNameCloudFile;
+    
+    @Min(1)
+    private Short minIdleConnPool;
+  
+    public String getDbName() {
+      return dbName;
+    }
+  
+    public void setDbName(String dbName) {
+      if (this.dbName == null) {
+        this.dbName = dbName;
+      }
+    }
+  
+    public String getUserName() {
+      return userName;
+    }
+  
+    public void setUserName(String userName) {
+      if (this.userName == null) {
+        this.userName = userName;
+      }
+    }
+  
+    public String getUserSecretCloudFile() {
+      return userSecretCloudFile;
+    }
+  
+    public void setUserSecretCloudFile(String userSecretCloudFile) {
+      if (this.userSecretCloudFile == null) {
+        this.userSecretCloudFile = userSecretCloudFile;
+      }
+    }
+  
+    public String getConnNameCloudFile() {
+      return connNameCloudFile;
+    }
+  
+    public void setConnNameCloudFile(String connNameCloudFile) {
+      if (this.connNameCloudFile == null) {
+        this.connNameCloudFile = connNameCloudFile;
+      }
+    }
+  
+    public Short getMinIdleConnPool() {
+      return minIdleConnPool;
+    }
+  
+    public void setMinIdleConnPool(Short minIdleConnPool) {
+      if (this.minIdleConnPool == null) {
+        this.minIdleConnPool = minIdleConnPool;
+      }
+    }
+  }
   
   public static class CloudKms {
   
@@ -96,13 +174,16 @@ public class APICoreProperties {
     private String authUserSecretCloudFile;
     
     @Min(1)
-    private Integer maxRetries;
+    private Short maxRetries;
     
     @NotBlank
     private String shotMetadataIndex;
     
     @NotBlank
     private String btBuildResultIndex;
+    
+    @NotBlank
+    private String envVarHost;
   
     public String getAuthUser() {
       return authUser;
@@ -124,11 +205,11 @@ public class APICoreProperties {
       }
     }
   
-    public int getMaxRetries() {
+    public Short getMaxRetries() {
       return maxRetries;
     }
   
-    public void setMaxRetries(int maxRetries) {
+    public void setMaxRetries(Short maxRetries) {
       if (this.maxRetries == null) {
         this.maxRetries = maxRetries;
       }
@@ -151,6 +232,32 @@ public class APICoreProperties {
     public void setBtBuildResultIndex(String btBuildResultIndex) {
       if (this.btBuildResultIndex == null) {
         this.btBuildResultIndex = btBuildResultIndex;
+      }
+    }
+  
+    public String getEnvVarHost() {
+      return envVarHost;
+    }
+  
+    public void setEnvVarHost(String envVarHost) {
+      if (this.envVarHost == null) {
+        this.envVarHost = envVarHost;
+      }
+    }
+  }
+  
+  public static class Runner {
+    
+    @Min(10)
+    private Integer maxTestCommandLoad;
+  
+    public Integer getMaxTestCommandLoad() {
+      return maxTestCommandLoad;
+    }
+  
+    public void setMaxTestCommandLoad(Integer maxTestCommandLoad) {
+      if (this.maxTestCommandLoad == null) {
+        this.maxTestCommandLoad = maxTestCommandLoad;
       }
     }
   }
