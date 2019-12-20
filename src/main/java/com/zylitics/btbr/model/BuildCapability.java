@@ -8,6 +8,10 @@ public class BuildCapability {
   
   private boolean shotTakeTestShot;
   
+  private int commandResultFlushRecords;
+  
+  private long commandResultFlushMillis;
+  
   private String serverScreenSize;
   
   private String serverTimeZoneWithDst;
@@ -64,6 +68,25 @@ public class BuildCapability {
   
   public BuildCapability setShotTakeTestShot(boolean shotTakeTestShot) {
     this.shotTakeTestShot = shotTakeTestShot;
+    return this;
+  }
+  
+  public int getCommandResultFlushRecords() {
+    return commandResultFlushRecords;
+  }
+  
+  public BuildCapability setCommandResultFlushRecords(int commandResultFlushRecords) {
+    this.commandResultFlushRecords = commandResultFlushRecords;
+    return this;
+  }
+  
+  /** Should be used only when {@link BuildCapability#getCommandResultFlushRecords()} is not given */
+  public long getCommandResultFlushMillis() {
+    return commandResultFlushMillis;
+  }
+  
+  public BuildCapability setCommandResultFlushMillis(long commandResultFlushMillis) {
+    this.commandResultFlushMillis = commandResultFlushMillis;
     return this;
   }
   

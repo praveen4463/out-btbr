@@ -8,9 +8,9 @@ api-core:
   esdb:
     auth-user: elastic
     auth-user-secret-cloud-file: zl-esdb-auth.encrypt
-    max-retries: 6
-    shot-metadata-index: shot_metadata
-    bt-build-result-index: bt_build_command_result
+    max-retries: 10
+    shot-metadata-index: bt_shot_metadata
+    bcr-index: bt_build_command_result
     env-var-host: ESDB_HOST
   data-source:
     db-name: zbtp
@@ -23,4 +23,6 @@ api-core:
     min-idle-conn-pool: 2
   runner:
     max-test-command-load: 500
+    command_result_flush_records: 10
+    shot_metadata_flush_records: 100
 ---

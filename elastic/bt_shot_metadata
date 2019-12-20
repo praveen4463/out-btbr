@@ -1,0 +1,67 @@
+# index definition for index shot_metadata
+
+curl -X PUT "localhost:9200/bt_shot_metadata?pretty" -H 'Content-Type: application/json' -d'
+{
+  "mappings": {
+    "properties": {
+      "shot_name": {
+        "type": "keyword"
+      },
+      "bt_build_id": {
+        "type": "integer"
+      },
+      "build_key": {
+        "type": "keyword"
+      },
+      "session_key": {
+        "type": "keyword"
+      },
+      "bt_test_command_id": {
+        "type": "long"
+      },
+      "method": {
+        "type": "keyword",
+        "index": false
+      },
+      "web_driver_command": {
+        "type": "keyword",
+        "index": false
+      },
+      "create_date": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss.SSS zzz"
+      }
+    }
+  },
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 1
+  }
+}
+'
+# TODO: we might need to setup more things into the index for production
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html
+
+# Example document indexing
+curl -X POST "localhost:9200/bt_shot_metadata/_doc?pretty" -H 'Content-Type: application/json' -d '
+{
+  "shot_name": "2C425549-3E04-4BBA-A03A-52F66CCA46A5-1.png",
+  "bt_build_id": "121",
+  "build_key": "dhd2333hdh33",
+  "session_key": "2C425549-3E04-4BBA-A03A-52F66CCA46A5",
+  "bt_test_command_id": 1,
+  "method": "GET",
+  "web_driver_command": "get",
+  "create_date": "2019-11-23 07:54:01.456 UTC"
+}
+'
+
+# Example document retrieval
+curl -XGET "localhost:9200/bt_shot_metadata/_search?pretty" -H 'Content-Type: application/json' -d '
+{
+  "query": {
+    "match_all": {}
+  },
+  "size": 1000
+}
+'

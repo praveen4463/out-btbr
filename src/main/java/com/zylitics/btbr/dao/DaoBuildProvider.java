@@ -27,8 +27,8 @@ public class DaoBuildProvider implements BuildProvider {
   
   @Override
   public Optional<Build> getBuild(int buildId) {
-    String sql = "SELECT bt_build_id, key, bt_build_capability_id, bt_build_wd_session_id FROM " +
-        " bt_build where bt_build_id = :bt_build_id;";
+    String sql = "SELECT bt_build_id, build_key, bt_build_capability_id, bt_build_wd_session_id" +
+        " FROM bt_build where bt_build_id = :bt_build_id;";
     
     SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_id",
         new SqlParameterValue(Types.INTEGER, buildId));
@@ -36,7 +36,7 @@ public class DaoBuildProvider implements BuildProvider {
     Build build = jdbc.queryForObject(sql, namedParams, (rs, rowNum) ->
         new Build()
             .setBuildId(buildId)
-            .setKey(rs.getString("key"))
+            .setBuildKey(rs.getString("build_key"))
             .setBuildCapabilityId(rs.getInt("bt_build_capability_id"))
             .setBuildWdSessionId(rs.getInt("bt_build_wd_session_id")));
     return Optional.ofNullable(build);

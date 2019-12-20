@@ -6,7 +6,7 @@ public class Build {
 
   private int buildId;
   
-  private String key;
+  private String buildKey;
   
   private int buildCapabilityId;
   
@@ -27,12 +27,12 @@ public class Build {
     return this;
   }
   
-  public String getKey() {
-    return key;
+  public String getBuildKey() {
+    return buildKey;
   }
   
-  public Build setKey(String key) {
-    this.key = key;
+  public Build setBuildKey(String buildKey) {
+    this.buildKey = buildKey;
     return this;
   }
   
@@ -85,7 +85,7 @@ public class Build {
   public String toString() {
     return "Build{" +
         "buildId=" + buildId +
-        ", key='" + key + '\'' +
+        ", key='" + buildKey + '\'' +
         ", buildCapabilityId=" + buildCapabilityId +
         ", buildWdSessionId=" + buildWdSessionId +
         ", endDate=" + endDate +

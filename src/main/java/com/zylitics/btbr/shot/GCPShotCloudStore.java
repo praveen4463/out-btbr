@@ -4,6 +4,7 @@ import com.google.cloud.WriteChannel;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
+import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.runner.ShotCloudStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,18 +49,18 @@ public class GCPShotCloudStore implements ShotCloudStore {
   /**
    * Should be set before using methods in this class, this should've been in constructor but
    * following is the reason why it's presented as a setter:
-   * bucket is contained in db table having all request capabilities, to get that we might have to:
+   * buildCapability is contained in db table, to get that we might have to:
    * "create another RequestScoped bean that may have dependency on the current HttpServletRequest.
    * From the request it can fetch it's body, where a table key is sent. From key it can load
    * capabilities data and load into the bean." Now this bean will have to be injected here. This
    * is ok but we might want to perform some db operations together in controller and not in a
    * separate bean to save round trips. This is much work, we can alternatively and less elegantly
-   * use this setter, upon receipt of request, this can be set on the request's own object, future
-   * calls will use the same bucket.
-   * @param bucket the GCP bucket where shots will be stored
+   * use this setter, upon receipt of request, future calls will use the same object.
+   * @param buildCapability the build capability object of the currently running build
    */
-  public void setBucket(String bucket) {
-    this.bucket = bucket;
+  @Override
+  public void setBuildCapability(BuildCapability buildCapability) {
+    this.bucket = buildCapability.getShotBucketSessionStorage();
   }
   
   // don't check for null references as this is called so rapidly, assume parameters are valid.

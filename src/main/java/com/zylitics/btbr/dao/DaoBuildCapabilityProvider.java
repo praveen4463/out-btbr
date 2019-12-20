@@ -24,12 +24,13 @@ public class DaoBuildCapabilityProvider implements BuildCapabilityProvider {
   
   @Override
   public Optional<BuildCapability> getBuildCapability(int buildCapabilityId) {
-    String sql = "SELECT shot_bucket_session_storage, shot_take_test_shot, server_screen_size" +
-        " , server_timezone_with_dst, wd_browser_name, wd_browser_version" +
-        " , wd_platform_name, wd_accept_insecure_certs, wd_page_load_strategy, wd_set_window_rect" +
-        " , wd_timeouts_script, wd_timeouts_page_load, wd_timeouts_implicit" +
-        " , wd_strict_file_interactability, wd_unhandled_prompt_behavior, brw_is_full_screen" +
-        " , chrome_enable_network, chrome_enable_page FROM bt_build_capability WHERE " +
+    String sql = "SELECT shot_bucket_session_storage, shot_take_test_shot" +
+        ", command_result_flush_records, command_result_flush_millis, server_screen_size" +
+        ", server_timezone_with_dst, wd_browser_name, wd_browser_version" +
+        ", wd_platform_name, wd_accept_insecure_certs, wd_page_load_strategy, wd_set_window_rect" +
+        ", wd_timeouts_script, wd_timeouts_page_load, wd_timeouts_implicit" +
+        ", wd_strict_file_interactability, wd_unhandled_prompt_behavior, brw_is_full_screen" +
+        ", chrome_enable_network, chrome_enable_page FROM bt_build_capability WHERE" +
         " bt_build_capability_id = :bt_build_capability_id;";
   
     SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_capability_id"
@@ -40,6 +41,8 @@ public class DaoBuildCapabilityProvider implements BuildCapabilityProvider {
             .setShotBucketSessionStorage(rs.getString("shot_bucket_session_storage"))
             .setShotTakeTestShot(rs.getBoolean("shot_take_test_shot"))
             .setServerScreenSize(rs.getString("server_screen_size"))
+            .setCommandResultFlushRecords(rs.getInt("command_result_flush_records"))
+            .setCommandResultFlushMillis(rs.getLong("command_result_flush_millis"))
             .setServerTimeZoneWithDst(rs.getString("server_timezone_with_dst"))
             .setWdBrowserName(rs.getString("wd_browser_name"))
             .setWdBrowserVersion(rs.getString("wd_browser_version"))

@@ -1,5 +1,6 @@
 package com.zylitics.btbr.config;
 
+import com.zylitics.btbr.model.BuildCapability;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -180,7 +181,7 @@ public class APICoreProperties {
     private String shotMetadataIndex;
     
     @NotBlank
-    private String btBuildResultIndex;
+    private String bcrIndex;
     
     @NotBlank
     private String envVarHost;
@@ -225,13 +226,13 @@ public class APICoreProperties {
       }
     }
   
-    public String getBtBuildResultIndex() {
-      return btBuildResultIndex;
+    public String getBcrIndex() {
+      return bcrIndex;
     }
   
-    public void setBtBuildResultIndex(String btBuildResultIndex) {
-      if (this.btBuildResultIndex == null) {
-        this.btBuildResultIndex = btBuildResultIndex;
+    public void setBcrIndex(String bcrIndex) {
+      if (this.bcrIndex == null) {
+        this.bcrIndex = bcrIndex;
       }
     }
   
@@ -258,6 +259,36 @@ public class APICoreProperties {
     public void setMaxTestCommandLoad(Integer maxTestCommandLoad) {
       if (this.maxTestCommandLoad == null) {
         this.maxTestCommandLoad = maxTestCommandLoad;
+      }
+    }
+    
+    @Min(1)
+    private Integer commandResultFlushRecords;
+  
+    /**
+     * The default value to use when {@link BuildCapability#getCommandResultFlushRecords()} or
+     * {@link BuildCapability#getCommandResultFlushMillis()} are not provided (are equals to 0)
+     */
+    public Integer getCommandResultFlushRecords() {
+      return commandResultFlushRecords;
+    }
+  
+    public void setCommandResultFlushRecords(Integer commandResultFlushRecords) {
+      if (this.commandResultFlushRecords == null) {
+        this.commandResultFlushRecords = commandResultFlushRecords;
+      }
+    }
+  
+    @Min(10)
+    private Integer shotMetadataFlushRecords;
+  
+    public Integer getShotMetadataFlushRecords() {
+      return shotMetadataFlushRecords;
+    }
+  
+    public void setShotMetadataFlushRecords(Integer shotMetadataFlushRecords) {
+      if (this.shotMetadataFlushRecords == null) {
+        this.shotMetadataFlushRecords = shotMetadataFlushRecords;
       }
     }
   }

@@ -1,0 +1,59 @@
+# index definition for index bt_build_command_result
+
+curl -X PUT "localhost:9200/bt_build_command_result?pretty" -H 'Content-Type: application/json' -d'
+{
+  "mappings": {
+    "properties": {
+      "bt_build_id": {
+        "type": "integer"
+      },
+      "bt_test_version_id": {
+        "type": "integer"
+      },
+      "bt_test_command_id": {
+        "type": "long"
+      },
+      "took_millis": {
+        "type": "integer",
+        "index": false
+      },
+      "is_success": {
+        "type": "boolean",
+        "index": false
+      },
+      "error": {
+        "type": "text",
+        "index": false
+      }
+    }
+  },
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 1
+  }
+}
+'
+# TODO: we might need to setup more things into the index for production
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html
+
+# Example document indexing
+curl -X POST "localhost:9200/bt_build_command_result/_doc?pretty" -H 'Content-Type: application/json' -d '
+{
+  "bt_build_id": 456,
+  "bt_test_version_id": 32,
+  "bt_test_command_id": 1237,
+  "took_millis": 1002,
+  "is_success": true,
+  "error": "ElementNotFound exception on a[name=hgx]"
+}
+'
+
+# Example document retrieval
+curl -XGET "localhost:9200/bt_build_command_result/_search?pretty" -H 'Content-Type: application/json' -d '
+{
+  "query": {
+    "match_all": {}
+  },
+  "size": 1000
+}
+'
