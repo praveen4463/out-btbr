@@ -36,4 +36,13 @@ public class SuiteTestBuild {
     this.buildId = buildId;
     return this;
   }
+  
+  @Override
+  public String toString() {
+    return "SuiteTestBuild{" +
+        "suiteTestBuildId=" + suiteTestBuildId +
+        ", testVersionIds=" + testVersionIds +
+        ", buildId=" + buildId +
+        '}';
+  }
 }

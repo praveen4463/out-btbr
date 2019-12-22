@@ -25,4 +25,10 @@ api-core:
     max-test-command-load: 500
     command_result_flush_records: 10
     shot_metadata_flush_records: 100
+  shot:
+    ext: png
+    content-type: image/png
+    max-shot-finish-sec: 7200
+    error-shot: ERROR
+    eos-shot: EOS
 ---

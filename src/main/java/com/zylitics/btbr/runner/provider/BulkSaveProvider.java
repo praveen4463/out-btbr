@@ -1,4 +1,4 @@
-package com.zylitics.btbr.runner;
+package com.zylitics.btbr.runner.provider;
 
 public interface BulkSaveProvider<T> {
   

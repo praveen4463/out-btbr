@@ -1,6 +1,7 @@
 package com.zylitics.btbr.config;
 
 import com.zylitics.btbr.model.BuildCapability;
+import jnr.ffi.annotations.In;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -55,6 +56,11 @@ public class APICoreProperties {
   private Runner runner = new Runner();
   
   public Runner getRunner() { return runner; }
+  
+  @Valid
+  private Shot shot = new Shot();
+  
+  public Shot getShot() { return shot; }
   
   public static class DataSource {
     
@@ -252,6 +258,12 @@ public class APICoreProperties {
     @Min(10)
     private Integer maxTestCommandLoad;
   
+    @Min(1)
+    private Integer commandResultFlushRecords;
+  
+    @Min(10)
+    private Integer shotMetadataFlushRecords;
+  
     public Integer getMaxTestCommandLoad() {
       return maxTestCommandLoad;
     }
@@ -261,9 +273,6 @@ public class APICoreProperties {
         this.maxTestCommandLoad = maxTestCommandLoad;
       }
     }
-    
-    @Min(1)
-    private Integer commandResultFlushRecords;
   
     /**
      * The default value to use when {@link BuildCapability#getCommandResultFlushRecords()} or
@@ -278,10 +287,7 @@ public class APICoreProperties {
         this.commandResultFlushRecords = commandResultFlushRecords;
       }
     }
-  
-    @Min(10)
-    private Integer shotMetadataFlushRecords;
-  
+    
     public Integer getShotMetadataFlushRecords() {
       return shotMetadataFlushRecords;
     }
@@ -289,6 +295,74 @@ public class APICoreProperties {
     public void setShotMetadataFlushRecords(Integer shotMetadataFlushRecords) {
       if (this.shotMetadataFlushRecords == null) {
         this.shotMetadataFlushRecords = shotMetadataFlushRecords;
+      }
+    }
+  }
+  
+  public static class Shot {
+    
+    @NotBlank
+    private String ext;
+  
+    @NotBlank
+    private String contentType;
+    
+    @Min(60)
+    private Integer maxShotFinishSec;
+    
+    @NotBlank
+    private String errorShot;
+  
+    @NotBlank
+    private String eosShot;
+  
+    public String getExt() {
+      return ext;
+    }
+  
+    public void setExt(String ext) {
+      if (this.ext == null) {
+        this.ext = ext;
+      }
+    }
+  
+    public String getContentType() {
+      return contentType;
+    }
+  
+    public void setContentType(String contentType) {
+      if (this.contentType == null) {
+        this.contentType = contentType;
+      }
+    }
+  
+    public int getMaxShotFinishSec() {
+      return maxShotFinishSec;
+    }
+  
+    public void setMaxShotFinishSec(Integer maxShotFinishSec) {
+      if (this.maxShotFinishSec == null) {
+        this.maxShotFinishSec = maxShotFinishSec;
+      }
+    }
+  
+    public String getErrorShot() {
+      return errorShot;
+    }
+  
+    public void setErrorShot(String errorShot) {
+      if (this.errorShot == null) {
+        this.errorShot = errorShot;
+      }
+    }
+  
+    public String getEosShot() {
+      return eosShot;
+    }
+  
+    public void setEosShot(String eosShot) {
+      if (this.eosShot == null) {
+        this.eosShot = eosShot;
       }
     }
   }

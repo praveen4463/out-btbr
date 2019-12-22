@@ -1,6 +1,6 @@
 package com.zylitics.btbr.esdb;
 
-public interface ShotMetadataIndexFields {
+interface ShotMetadataIndexFields {
   
   String SHOT_NAME = "shot_name";
   

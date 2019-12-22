@@ -10,7 +10,7 @@ import com.zylitics.btbr.model.BuildWdSession;
  */
 // Note: Autowire all implementations using a list type in main handler class and use only in async
 // methods.
-public interface BuildCompleteCallback {
+interface BuildCompleteCallback {
   
   void onBuildComplete(Build build, BuildWdSession buildWdSession);
 }

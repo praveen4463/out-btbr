@@ -233,4 +233,31 @@ public class BuildCapability {
     this.chromeEnablePage = chromeEnablePage;
     return this;
   }
+  
+  @Override
+  public String toString() {
+    return "BuildCapability{" +
+        "buildCapabilityId=" + buildCapabilityId +
+        ", shotBucketSessionStorage='" + shotBucketSessionStorage + '\'' +
+        ", shotTakeTestShot=" + shotTakeTestShot +
+        ", commandResultFlushRecords=" + commandResultFlushRecords +
+        ", commandResultFlushMillis=" + commandResultFlushMillis +
+        ", serverScreenSize='" + serverScreenSize + '\'' +
+        ", serverTimeZoneWithDst='" + serverTimeZoneWithDst + '\'' +
+        ", wdBrowserName='" + wdBrowserName + '\'' +
+        ", wdBrowserVersion='" + wdBrowserVersion + '\'' +
+        ", wdPlatformName='" + wdPlatformName + '\'' +
+        ", wdAcceptInsecureCerts=" + wdAcceptInsecureCerts +
+        ", wdPageLoadStrategy='" + wdPageLoadStrategy + '\'' +
+        ", wdSetWindowRect=" + wdSetWindowRect +
+        ", wdTimeoutsScript=" + wdTimeoutsScript +
+        ", wdTimeoutsPageLoad=" + wdTimeoutsPageLoad +
+        ", wdTimeoutsImplicit=" + wdTimeoutsImplicit +
+        ", wdStrictFileInteractability=" + wdStrictFileInteractability +
+        ", wdUnhandledPromptBehavior='" + wdUnhandledPromptBehavior + '\'' +
+        ", brwIsFullScreen=" + brwIsFullScreen +
+        ", chromeEnableNetwork=" + chromeEnableNetwork +
+        ", chromeEnablePage=" + chromeEnablePage +
+        '}';
+  }
 }

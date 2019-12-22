@@ -2,8 +2,7 @@ package com.zylitics.btbr.dao;
 
 import com.google.common.base.Splitter;
 import com.zylitics.btbr.model.SuiteTestBuild;
-import com.zylitics.btbr.runner.SuiteTestBuildProvider;
-import jdk.jfr.internal.Options;
+import com.zylitics.btbr.runner.provider.SuiteTestBuildProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -16,7 +15,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
-public class DaoSuiteTestBuildProvider implements SuiteTestBuildProvider {
+class DaoSuiteTestBuildProvider implements SuiteTestBuildProvider {
   
   private final NamedParameterJdbcTemplate jdbc;
   

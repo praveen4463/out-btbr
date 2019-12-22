@@ -1,4 +1,4 @@
-package com.zylitics.btbr.runner;
+package com.zylitics.btbr.runner.provider;
 
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.model.BuildCommandResult;

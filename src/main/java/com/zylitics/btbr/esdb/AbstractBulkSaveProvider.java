@@ -1,12 +1,11 @@
 package com.zylitics.btbr.esdb;
 
-import com.zylitics.btbr.runner.BulkSaveProvider;
+import com.zylitics.btbr.runner.provider.BulkSaveProvider;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

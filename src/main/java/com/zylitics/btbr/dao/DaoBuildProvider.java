@@ -2,7 +2,7 @@ package com.zylitics.btbr.dao;
 
 import com.google.common.base.Strings;
 import com.zylitics.btbr.model.Build;
-import com.zylitics.btbr.runner.BuildProvider;
+import com.zylitics.btbr.runner.provider.BuildProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
-public class DaoBuildProvider implements BuildProvider {
+class DaoBuildProvider implements BuildProvider {
   
   private final NamedParameterJdbcTemplate jdbc;
   

@@ -3,7 +3,7 @@ package com.zylitics.btbr.esdb;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.model.BuildCommandResult;
-import com.zylitics.btbr.runner.BuildCommandResultProvider;
+import com.zylitics.btbr.runner.provider.BuildCommandResultProvider;
 import org.elasticsearch.action.bulk.*;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -17,6 +17,13 @@ import org.springframework.web.context.annotation.RequestScope;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+/*
+ * A RequestScoped bean, this will be injected into the controller once but will act as a proxy
+ * whenever a new request comes, a new instance of this bean will be created with a reference to the
+ * incoming request. Every call on the injected proxy will be delegated to it's own target instance
+ * by matching the current request.
+ * https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-scopes-other-injection
+ */
 @Component
 @RequestScope
 // BulkProcessor https://www.elastic.co/guide/en/elasticsearch/client/java-rest/7.4/java-rest-high-document-bulk.html

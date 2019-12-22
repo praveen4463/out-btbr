@@ -4,69 +4,46 @@ import com.google.cloud.WriteChannel;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
-import com.zylitics.btbr.model.BuildCapability;
-import com.zylitics.btbr.runner.ShotCloudStore;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.zylitics.btbr.config.APICoreProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.context.annotation.RequestScope;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-/**
- * A RequestScoped bean, this will be injected into the controller once but will act as a proxy
- * whenever a new request comes, a new instance of this bean will be created with a reference to the
- * incoming request. Every call on the injected proxy will be delegated to it's own target instance
- * by matching the current request.
- * https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-scopes-other-injection
- */
-@Service
-@RequestScope
-public class GCPShotCloudStore implements ShotCloudStore {
+class GCPShotCloudStore implements ShotCloudStore {
   
   private static final Logger LOG = LoggerFactory.getLogger(GCPShotCloudStore.class);
-  
-  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types#PNG
-  static final String SHOT_CONTENT_TYPE = "image/png";
   
   private static final int MAX_BACKOFF_SEC = 32;
   
   private static final int MAX_REATTEMPTS = 10;
   
+  private final String bucket;
+  private final APICoreProperties.Shot shotProps;
   private final Storage storage;
   
   private volatile boolean closed = false;
-  private String bucket;
   
-  @Autowired
-  GCPShotCloudStore(Storage storage) {
+  GCPShotCloudStore(String bucket, APICoreProperties.Shot shotProps, Storage storage) {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(bucket), "bucket can't be empty");
+    Preconditions.checkNotNull(shotProps, "shotProps can't be null");
+    Preconditions.checkNotNull(storage, "storage can't be null");
+    
+    this.bucket = bucket;
+    this.shotProps = shotProps;
     this.storage = storage;
   }
   
-  /**
-   * Should be set before using methods in this class, this should've been in constructor but
-   * following is the reason why it's presented as a setter:
-   * buildCapability is contained in db table, to get that we might have to:
-   * "create another RequestScoped bean that may have dependency on the current HttpServletRequest.
-   * From the request it can fetch it's body, where a table key is sent. From key it can load
-   * capabilities data and load into the bean." Now this bean will have to be injected here. This
-   * is ok but we might want to perform some db operations together in controller and not in a
-   * separate bean to save round trips. This is much work, we can alternatively and less elegantly
-   * use this setter, upon receipt of request, future calls will use the same object.
-   * @param buildCapability the build capability object of the currently running build
-   */
-  @Override
-  public void setBuildCapability(BuildCapability buildCapability) {
-    this.bucket = buildCapability.getShotBucketSessionStorage();
-  }
-  
-  // don't check for null references as this is called so rapidly, assume parameters are valid.
   // could be accessed by more than one thread at a time.
   @Override
   public boolean storeShot(String name, InputStream stream) {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(name), "shot name can't be empty");
+    Preconditions.checkNotNull(stream, "shot stream can't be null");
+    
     if (closed) {
       return false;
     }
@@ -74,7 +51,7 @@ public class GCPShotCloudStore implements ShotCloudStore {
     // https://github.com/googleapis/google-cloud-java/blob/b47858f62e4944ca2efc4301e2e0a1c5f22dc728
     // /google-cloud-examples/src/main/java/com/google/cloud/examples/storage/StorageExample.java#L295
     BlobInfo blobInfo = BlobInfo.newBuilder(bucket, name)
-        .setContentType(SHOT_CONTENT_TYPE).build();
+        .setContentType(shotProps.getContentType()).build();
     String blobUploadErrInfo = ", blob " + name;
     
     int reattempts = 0;
@@ -103,8 +80,8 @@ public class GCPShotCloudStore implements ShotCloudStore {
           return true;
         } catch (IOException io) {
           // TODO: see if we need to reattempt on this after working on logs, I feel on abrupt
-          // channel closing due to any reason like network issue should already be handled by the
-          // client, but if not, we can try opening channel again by 'not returning'.
+          //  channel closing due to any reason like network issue should already be handled by the
+          //  client, but if not, we can try opening channel again by 'not returning'.
           LOG.error("IOException exception during channel write, not reattempting and quitting" +
               blobUploadErrInfo, io);
           break; // TODO: for now assume this is non-recoverable
@@ -122,8 +99,8 @@ public class GCPShotCloudStore implements ShotCloudStore {
           // statuses here https://cloud.google.com/storage/docs/json_api/v1/status-codes
           break; // give up as we can't retry
           // TODO: same as below, we'll have to see whether we're giving up in response to a 'close'
-          // exception, keep a watch on log. We shouldn't give up on close exception cause a closure
-          // it just for one shot.
+          //  exception, keep a watch on log. We shouldn't give up on close exception cause a
+          //  closure it just for one shot.
           
           // TODO: we might've to retry on some non-retry-able marked errors too after seeing errors
         }
@@ -162,5 +139,13 @@ public class GCPShotCloudStore implements ShotCloudStore {
     }
     closed = true;
     return false;
+  }
+  
+  public static class Factory implements ShotCloudStore.Factory {
+  
+    @Override
+    public ShotCloudStore create(String bucket, APICoreProperties.Shot shotProps, Storage storage) {
+      return new GCPShotCloudStore(bucket, shotProps, storage);
+    }
   }
 }

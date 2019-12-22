@@ -1,4 +1,4 @@
-package com.zylitics.btbr.support;
+package com.zylitics.btbr;
 
 import com.google.cloud.kms.v1.CryptoKeyName;
 import com.google.cloud.kms.v1.DecryptResponse;

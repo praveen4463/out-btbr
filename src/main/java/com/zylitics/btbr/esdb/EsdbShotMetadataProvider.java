@@ -2,7 +2,7 @@ package com.zylitics.btbr.esdb;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.ShotMetadata;
-import com.zylitics.btbr.runner.ShotMetadataProvider;
+import com.zylitics.btbr.runner.provider.ShotMetadataProvider;
 import org.elasticsearch.action.bulk.BackoffPolicy;
 import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.client.RequestOptions;
@@ -18,7 +18,7 @@ import java.io.IOException;
 
 @Component
 @RequestScope
-public class EsdbShotMetadataProvider extends AbstractBulkSaveProvider<ShotMetadata>
+class EsdbShotMetadataProvider extends AbstractBulkSaveProvider<ShotMetadata>
     implements ShotMetadataProvider {
   
   private final APICoreProperties apiCoreProperties;

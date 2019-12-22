@@ -2,7 +2,7 @@ package com.zylitics.btbr.dao;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.TestCommand;
-import com.zylitics.btbr.runner.TestCommandProvider;
+import com.zylitics.btbr.runner.provider.TestCommandProvider;
 import org.elasticsearch.common.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.SqlParameterValue;
@@ -17,14 +17,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class DaoTestCommandProvider implements TestCommandProvider {
+class DaoTestCommandProvider implements TestCommandProvider {
   
   private final APICoreProperties apiCoreProperties;
   private final NamedParameterJdbcTemplate jdbc;
   
   @Autowired
-  DaoTestCommandProvider(APICoreProperties apiCoreProperties,
-                                NamedParameterJdbcTemplate jdbc) {
+  DaoTestCommandProvider(APICoreProperties apiCoreProperties, NamedParameterJdbcTemplate jdbc) {
     this.apiCoreProperties = apiCoreProperties;
     this.jdbc = jdbc;
   }

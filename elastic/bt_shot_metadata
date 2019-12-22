@@ -28,8 +28,7 @@ curl -X PUT "localhost:9200/bt_shot_metadata?pretty" -H 'Content-Type: applicati
         "index": false
       },
       "create_date": {
-        "type": "date",
-        "format": "yyyy-MM-dd HH:mm:ss.SSS zzz"
+        "type": "date"
       }
     }
   },

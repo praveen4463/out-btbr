@@ -2,7 +2,7 @@ package com.zylitics.btbr.dao;
 
 import com.google.common.base.Strings;
 import com.zylitics.btbr.model.BuildWdSession;
-import com.zylitics.btbr.runner.BuildWdSessionProvider;
+import com.zylitics.btbr.runner.provider.BuildWdSessionProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Repository
-public class DaoBuildWdSessionProvider implements BuildWdSessionProvider {
+class DaoBuildWdSessionProvider implements BuildWdSessionProvider {
   
   private final NamedParameterJdbcTemplate jdbc;
   

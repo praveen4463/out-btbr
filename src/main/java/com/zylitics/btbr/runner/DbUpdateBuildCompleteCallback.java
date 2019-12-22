@@ -2,6 +2,8 @@ package com.zylitics.btbr.runner;
 
 import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildWdSession;
+import com.zylitics.btbr.runner.provider.BuildProvider;
+import com.zylitics.btbr.runner.provider.BuildWdSessionProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +14,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * Updates the db upon build completion.
  */
 @Component
-public class DbUpdateBuildCompleteCallback implements BuildCompleteCallback {
+class DbUpdateBuildCompleteCallback implements BuildCompleteCallback {
   
   private static final Logger LOG = LoggerFactory.getLogger(DbUpdateBuildCompleteCallback.class);
   

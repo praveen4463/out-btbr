@@ -1,7 +1,7 @@
 package com.zylitics.btbr.dao;
 
 import com.zylitics.btbr.model.TestBuild;
-import com.zylitics.btbr.runner.TestBuildProvider;
+import com.zylitics.btbr.runner.provider.TestBuildProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -13,7 +13,7 @@ import java.sql.Types;
 import java.util.Optional;
 
 @Repository
-public class DaoTestBuildProvider implements TestBuildProvider {
+class DaoTestBuildProvider implements TestBuildProvider {
   
   private final NamedParameterJdbcTemplate jdbc;
   

@@ -34,4 +34,13 @@ public class TestBuild {
     this.buildId = buildId;
     return this;
   }
+  
+  @Override
+  public String toString() {
+    return "TestBuild{" +
+        "testBuildId=" + testBuildId +
+        ", testVersionId=" + testVersionId +
+        ", buildId=" + buildId +
+        '}';
+  }
 }

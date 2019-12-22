@@ -91,4 +91,18 @@ public class ShotMetadata {
     this.createDate = createDate;
     return this;
   }
+  
+  @Override
+  public String toString() {
+    return "ShotMetadata{" +
+        "shotName='" + shotName + '\'' +
+        ", buildId=" + buildId +
+        ", buildKey='" + buildKey + '\'' +
+        ", sessionKey='" + sessionKey + '\'' +
+        ", testCommandId=" + testCommandId +
+        ", method='" + method + '\'' +
+        ", webDriverCommand='" + webDriverCommand + '\'' +
+        ", createDate=" + createDate +
+        '}';
+  }
 }
