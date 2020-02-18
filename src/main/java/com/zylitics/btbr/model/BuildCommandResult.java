@@ -8,7 +8,7 @@ public class BuildCommandResult {
   
   private long testCommandId;
   
-  private int tookMillis;
+  private long tookMillis;
   
   private boolean isSuccess;
   
@@ -18,48 +18,54 @@ public class BuildCommandResult {
     return buildId;
   }
   
-  public void setBuildId(int buildId) {
+  public BuildCommandResult setBuildId(int buildId) {
     this.buildId = buildId;
+    return this;
   }
   
   public int getTestVersionId() {
     return testVersionId;
   }
   
-  public void setTestVersionId(int testVersionId) {
+  public BuildCommandResult setTestVersionId(int testVersionId) {
     this.testVersionId = testVersionId;
+    return this;
   }
   
   public long getTestCommandId() {
     return testCommandId;
   }
   
-  public void setTestCommandId(long testCommandId) {
+  public BuildCommandResult setTestCommandId(long testCommandId) {
     this.testCommandId = testCommandId;
+    return this;
   }
   
-  public int getTookMillis() {
+  public long getTookMillis() {
     return tookMillis;
   }
   
-  public void setTookMillis(int tookMillis) {
+  public BuildCommandResult setTookMillis(long tookMillis) {
     this.tookMillis = tookMillis;
+    return this;
   }
   
   public boolean isSuccess() {
     return isSuccess;
   }
   
-  public void setSuccess(boolean success) {
+  public BuildCommandResult setSuccess(boolean success) {
     isSuccess = success;
+    return this;
   }
   
   public String getError() {
     return error;
   }
   
-  public void setError(String error) {
+  public BuildCommandResult setError(String error) {
     this.error = error;
+    return this;
   }
   
   @Override

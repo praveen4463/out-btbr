@@ -14,10 +14,6 @@ public class ShotMetadata {
   
   private long testCommandId;
   
-  private String method;
-  
-  private String webDriverCommand;
-  
   private ZonedDateTime createDate;
   
   public String getShotName() {
@@ -65,24 +61,6 @@ public class ShotMetadata {
     return this;
   }
   
-  public String getMethod() {
-    return method;
-  }
-  
-  public ShotMetadata setMethod(String method) {
-    this.method = method;
-    return this;
-  }
-  
-  public String getWebDriverCommand() {
-    return webDriverCommand;
-  }
-  
-  public ShotMetadata setWebDriverCommand(String webDriverCommand) {
-    this.webDriverCommand = webDriverCommand;
-    return this;
-  }
-  
   public ZonedDateTime getCreateDate() {
     return createDate;
   }
@@ -100,8 +78,6 @@ public class ShotMetadata {
         ", buildKey='" + buildKey + '\'' +
         ", sessionKey='" + sessionKey + '\'' +
         ", testCommandId=" + testCommandId +
-        ", method='" + method + '\'' +
-        ", webDriverCommand='" + webDriverCommand + '\'' +
         ", createDate=" + createDate +
         '}';
   }

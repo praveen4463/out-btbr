@@ -1,7 +1,7 @@
 package com.zylitics.btbr.config;
 
+import com.google.common.collect.ImmutableSet;
 import com.zylitics.btbr.model.BuildCapability;
-import jnr.ffi.annotations.In;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -10,6 +10,8 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import java.util.Set;
 
 /**
  * All setters in this class allow only first time access by container, after that no values can
@@ -363,6 +365,166 @@ public class APICoreProperties {
     public void setEosShot(String eosShot) {
       if (this.eosShot == null) {
         this.eosShot = eosShot;
+      }
+    }
+  }
+  
+  public static class Webdriver {
+    
+    @NotEmpty
+    private Set<String> supportedBrowsers;
+  
+    @NotEmpty
+    private Set<String> supportedPlatforms;
+  
+    @NotBlank
+    private String defaultPageLoadStrategy;
+    
+    @NotBlank
+    private String enableProfilerLogsProp;
+  
+    @NotBlank
+    private String verboseClientLogsProp;
+  
+    @NotBlank
+    private String browserPerfLogsDir;
+  
+    @NotBlank
+    private String internalLogsDir;
+  
+    @NotBlank
+    private String browserPerfLogsFile;
+  
+    @NotBlank
+    private String clientLogsFile;
+  
+    @NotBlank
+    private String profilerLogsFile;
+  
+    @NotBlank
+    private String driverLogsFile;
+  
+    @Min(10)
+    private Integer retrieveLogsUponCmd;
+    
+  
+    public Set<String> getSupportedBrowsers() {
+      return supportedBrowsers;
+    }
+  
+    public void setSupportedBrowsers(Set<String> supportedBrowsers) {
+      if (this.supportedBrowsers == null) {
+        this.supportedBrowsers = ImmutableSet.copyOf(supportedBrowsers);
+      }
+    }
+  
+    public Set<String> getSupportedPlatforms() {
+      return supportedPlatforms;
+    }
+  
+    public void setSupportedPlatforms(Set<String> supportedPlatforms) {
+      if (this.supportedPlatforms == null) {
+        this.supportedPlatforms = ImmutableSet.copyOf(supportedPlatforms);
+      }
+    }
+  
+    public String getDefaultPageLoadStrategy() {
+      return defaultPageLoadStrategy;
+    }
+  
+    public void setDefaultPageLoadStrategy(String defaultPageLoadStrategy) {
+      if (this.defaultPageLoadStrategy == null) {
+        this.defaultPageLoadStrategy = defaultPageLoadStrategy;
+      }
+    }
+  
+    public String getEnableProfilerLogsProp() {
+      return enableProfilerLogsProp;
+    }
+  
+    public void setEnableProfilerLogsProp(String enableProfilerLogsProp) {
+      if (this.enableProfilerLogsProp == null) {
+        this.enableProfilerLogsProp = enableProfilerLogsProp;
+      }
+    }
+  
+    public String getVerboseClientLogsProp() {
+      return verboseClientLogsProp;
+    }
+  
+    public void setVerboseClientLogsProp(String verboseClientLogsProp) {
+      if (this.verboseClientLogsProp == null) {
+        this.verboseClientLogsProp = verboseClientLogsProp;
+      }
+    }
+  
+    public String getBrowserPerfLogsDir() {
+      return browserPerfLogsDir;
+    }
+  
+    public void setBrowserPerfLogsDir(String browserPerfLogsDir) {
+      if (this.browserPerfLogsDir == null) {
+        this.browserPerfLogsDir = browserPerfLogsDir;
+      }
+    }
+  
+    public String getInternalLogsDir() {
+      return internalLogsDir;
+    }
+  
+    public void setInternalLogsDir(String internalLogsDir) {
+      if (this.internalLogsDir == null) {
+        this.internalLogsDir = internalLogsDir;
+      }
+    }
+  
+    public String getBrowserPerfLogsFile() {
+      return browserPerfLogsFile;
+    }
+  
+    public void setBrowserPerfLogsFile(String browserPerfLogsFile) {
+      if (this.browserPerfLogsFile == null) {
+        this.browserPerfLogsFile = browserPerfLogsFile;
+      }
+    }
+  
+    public String getClientLogsFile() {
+      return clientLogsFile;
+    }
+  
+    public void setClientLogsFile(String clientLogsFile) {
+      if (this.clientLogsFile == null) {
+        this.clientLogsFile = clientLogsFile;
+      }
+    }
+  
+    public String getProfilerLogsFile() {
+      return profilerLogsFile;
+    }
+  
+    public void setProfilerLogsFile(String profilerLogsFile) {
+      if (this.profilerLogsFile == null) {
+        this.profilerLogsFile = profilerLogsFile;
+      }
+    }
+  
+    public String getDriverLogsFile() {
+      return driverLogsFile;
+    }
+  
+    public void setDriverLogsFile(String driverLogsFile) {
+      if (this.driverLogsFile == null) {
+        this.driverLogsFile = driverLogsFile;
+      }
+    }
+  
+    public Integer getRetrieveLogsUponCmd() {
+      return retrieveLogsUponCmd;
+    }
+  
+    public void setRetrieveLogsUponCmd(Integer retrieveLogsUponCmd) {
+      if (this.retrieveLogsUponCmd == null) {
+        this.retrieveLogsUponCmd = retrieveLogsUponCmd;
       }
     }
   }

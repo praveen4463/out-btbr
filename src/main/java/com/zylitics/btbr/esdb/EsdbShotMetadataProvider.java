@@ -58,8 +58,6 @@ class EsdbShotMetadataProvider extends AbstractBulkSaveProvider<ShotMetadata>
           .field(ShotMetadataIndexFields.BUILD_KEY, smd.getBuildKey())
           .field(ShotMetadataIndexFields.SESSION_KEY, smd.getSessionKey())
           .field(ShotMetadataIndexFields.TEST_COMMAND_ID, smd.getTestCommandId())
-          .field(ShotMetadataIndexFields.METHOD, smd.getMethod())
-          .field(ShotMetadataIndexFields.WEB_DRIVER_COMMAND, smd.getWebDriverCommand())
           .timeField(ShotMetadataIndexFields.CREATE_DATE, smd.getCreateDate());
     }
     builder.endObject();

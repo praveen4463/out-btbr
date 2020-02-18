@@ -47,7 +47,7 @@ class DaoBuildProvider implements BuildProvider {
     String sql = "UPDATE bt_build SET end_date = :end_date, is_success = :is_success" +
         ", error = :error WHERE bt_build_id = :bt_build_id";
   
-    Map<String, SqlParameterValue> params = new HashMap<>(5);
+    Map<String, SqlParameterValue> params = new HashMap<>(6);
     
     params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, build.getBuildId()));
     params.put("end_date", new SqlParameterValue(Types.TIMESTAMP_WITH_TIMEZONE

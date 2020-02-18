@@ -12,9 +12,5 @@ interface ShotMetadataIndexFields {
   
   String TEST_COMMAND_ID = "bt_test_command_id";
   
-  String METHOD = "method";
-  
-  String WEB_DRIVER_COMMAND = "web_driver_command";
-  
   String CREATE_DATE = "create_date";
 }

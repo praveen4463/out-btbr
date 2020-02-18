@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-class GCPShotCloudStore implements ShotCloudStore {
+final class GCPShotCloudStore implements ShotCloudStore {
   
   private static final Logger LOG = LoggerFactory.getLogger(GCPShotCloudStore.class);
   

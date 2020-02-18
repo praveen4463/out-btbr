@@ -25,10 +25,29 @@ api-core:
     max-test-command-load: 500
     command_result_flush_records: 10
     shot_metadata_flush_records: 100
+    server-logs-bucket: zl-server-logs
   shot:
     ext: png
     content-type: image/png
     max-shot-finish-sec: 7200
     error-shot: ERROR
     eos-shot: EOS
+  webdriver:
+    supported-browsers:
+      - chrome
+      - firefox
+      - internet explorer
+    supported-platforms:
+      - windows
+    default-page-load-strategy: eager
+    enable-profiler-logs-prop: webdriver.logging.profiler.enabled
+    verbose-client-logs-prop: webbdriver.logging.client.verbose.enabled
+    browser-perf-logs-dir: performance-logs
+    internal-logs-dir: all-internal-logs
+    browser-perf-logs-file: performance.log
+    client-logs-file: client.log
+    profiler-logs-file: profiler.log
+    driver-logs-file: driver.log
+    # every time, upon this many commands run, we should retrieve logs and write to file.
+    retrieve-logs-upon-cmd: 100
 ---

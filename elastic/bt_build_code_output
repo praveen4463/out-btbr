@@ -1,0 +1,52 @@
+# index definition for index bt_build_code_output
+
+curl -X PUT "localhost:9200/bt_build_code_output?pretty" -H 'Content-Type: application/json' -d'
+{
+  "mappings": {
+    "properties": {
+      "id": {
+        "type": "integer"
+      },
+      "bt_build_id": {
+        "type": "integer"
+      },
+      "bt_test_version_id": {
+        "type": "integer"
+      },
+      "output": {
+        "type": "text"
+      },
+      "create_date": {
+        "type": "date"
+      }
+    }
+  },
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 1
+  }
+}
+'
+# TODO: we might need to setup more things into the index for production
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html
+
+# Example document indexing
+curl -X POST "localhost:9200/bt_build_code_output/_doc?pretty" -H 'Content-Type: application/json' -d '
+{
+  "id": 1,
+  "bt_build_id": 32,
+  "bt_test_version_id": 123,
+  "output": "currently executing line 323",
+  "create_date": "2019-11-23 07:54:01.456 UTC"
+}
+'
+
+# Example document retrieval
+curl -XGET "localhost:9200/bt_build_code_output/_search?pretty" -H 'Content-Type: application/json' -d '
+{
+  "query": {
+    "match_all": {}
+  },
+  "size": 1000
+}
+'

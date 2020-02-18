@@ -7,6 +7,10 @@ import com.google.common.base.Strings;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zylitics.btbr.config.APICoreProperties;
+import com.zylitics.btbr.runner.CaptureShotHandler;
+import com.zylitics.btbr.runner.GlobalWebdriverService;
+import com.zylitics.btbr.shot.CaptureShotHandlerImpl;
+import com.zylitics.btbr.webdriver.GlobalWebdriverServiceImpl;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -117,6 +121,18 @@ public class Launcher {
     // TODO (optional): specify any transaction settings.
     transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_DEFAULT);
     return transactionTemplate;
+  }
+  
+  @Bean
+  @Profile({"production", "e2e"})
+  CaptureShotHandler.Factory captureShotHandlerFactory() {
+    return new CaptureShotHandlerImpl.Factory();
+  }
+  
+  @Bean
+  @Profile({"production", "e2e"})
+  GlobalWebdriverService.Factory globalWebdriverServiceFactory() {
+    return new GlobalWebdriverServiceImpl.Factory();
   }
   
   /** published when all beans are loaded */

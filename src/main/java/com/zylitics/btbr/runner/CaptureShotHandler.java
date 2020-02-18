@@ -26,7 +26,7 @@ import com.zylitics.btbr.shot.CaptureShotHandlerImpl;
  *    {@link CaptureShotHandler#blockUntilFinish()} in the end to perform a wait for shots.
  * </p>
  */
-interface CaptureShotHandler {
+public interface CaptureShotHandler {
   
   /**
    * starts taking and processing shots. Runs asynchronously and returns immediately.
@@ -47,10 +47,6 @@ interface CaptureShotHandler {
   void blockUntilFinish();
   
   interface Factory {
-    
-    static Factory getDefault() {
-      return new CaptureShotHandlerImpl.Factory();
-    }
     
     CaptureShotHandler create(APICoreProperties apiCoreProperties,
                               ShotMetadataProvider shotMetadataProvider,

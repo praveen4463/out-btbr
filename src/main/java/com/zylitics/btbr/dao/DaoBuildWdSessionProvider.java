@@ -30,7 +30,7 @@ class DaoBuildWdSessionProvider implements BuildWdSessionProvider {
         ", is_success = :is_success, error_post_session = :error_post_session" +
         " WHERE bt_build_wd_session_id = :bt_build_wd_session_id;";
   
-    Map<String, SqlParameterValue> params = new HashMap<>(5);
+    Map<String, SqlParameterValue> params = new HashMap<>(6);
   
     params.put("bt_build_wd_session_id", new SqlParameterValue(Types.INTEGER
         , buildWdSession.getBuildWdSessionId()));

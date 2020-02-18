@@ -277,8 +277,6 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
         .setBuildKey(build.getBuildKey())
         .setSessionKey(sessionKey)
         .setTestCommandId(currentTestCommand.getTestCommandId())
-        .setMethod(currentTestCommand.getWdcHttpMethod())
-        .setWebDriverCommand(currentTestCommand.getWebDriverCommand())
         .setCreateDate(dateTime);
   }
   
