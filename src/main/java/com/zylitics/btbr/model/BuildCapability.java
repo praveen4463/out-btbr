@@ -8,9 +8,9 @@ public class BuildCapability {
   
   private boolean shotTakeTestShot;
   
-  private int commandResultFlushRecords;
+  private int programOutputFlushNo;
   
-  private long commandResultFlushMillis;
+  private long programOutputFlushMillis;
   
   private String serverScreenSize;
   
@@ -44,6 +44,8 @@ public class BuildCapability {
   
   private boolean chromeEnablePage;
   
+  private boolean buildAbortOnFailure;
+  
   public int getBuildCapabilityId() {
     return buildCapabilityId;
   }
@@ -71,22 +73,21 @@ public class BuildCapability {
     return this;
   }
   
-  public int getCommandResultFlushRecords() {
-    return commandResultFlushRecords;
+  public int getProgramOutputFlushNo() {
+    return programOutputFlushNo;
   }
   
-  public BuildCapability setCommandResultFlushRecords(int commandResultFlushRecords) {
-    this.commandResultFlushRecords = commandResultFlushRecords;
+  public BuildCapability setProgramOutputFlushNo(int programOutputFlushNo) {
+    this.programOutputFlushNo = programOutputFlushNo;
     return this;
   }
   
-  /** Should be used only when {@link BuildCapability#getCommandResultFlushRecords()} is not given */
-  public long getCommandResultFlushMillis() {
-    return commandResultFlushMillis;
+  public long getProgramOutputFlushMillis() {
+    return programOutputFlushMillis;
   }
   
-  public BuildCapability setCommandResultFlushMillis(long commandResultFlushMillis) {
-    this.commandResultFlushMillis = commandResultFlushMillis;
+  public BuildCapability setProgramOutputFlushMillis(long programOutputFlushMillis) {
+    this.programOutputFlushMillis = programOutputFlushMillis;
     return this;
   }
   
@@ -234,14 +235,23 @@ public class BuildCapability {
     return this;
   }
   
+  public boolean isBuildAbortOnFailure() {
+    return buildAbortOnFailure;
+  }
+  
+  public BuildCapability setBuildAbortOnFailure(boolean buildAbortOnFailure) {
+    this.buildAbortOnFailure = buildAbortOnFailure;
+    return this;
+  }
+  
   @Override
   public String toString() {
     return "BuildCapability{" +
         "buildCapabilityId=" + buildCapabilityId +
         ", shotBucketSessionStorage='" + shotBucketSessionStorage + '\'' +
         ", shotTakeTestShot=" + shotTakeTestShot +
-        ", commandResultFlushRecords=" + commandResultFlushRecords +
-        ", commandResultFlushMillis=" + commandResultFlushMillis +
+        ", programOutputFlushNo=" + programOutputFlushNo +
+        ", programOutputFlushMillis=" + programOutputFlushMillis +
         ", serverScreenSize='" + serverScreenSize + '\'' +
         ", serverTimeZoneWithDst='" + serverTimeZoneWithDst + '\'' +
         ", wdBrowserName='" + wdBrowserName + '\'' +
@@ -258,6 +268,7 @@ public class BuildCapability {
         ", brwIsFullScreen=" + brwIsFullScreen +
         ", chromeEnableNetwork=" + chromeEnableNetwork +
         ", chromeEnablePage=" + chromeEnablePage +
+        ", buildAbortOnFailure=" + buildAbortOnFailure +
         '}';
   }
 }

@@ -189,7 +189,7 @@ public class APICoreProperties {
     private String shotMetadataIndex;
     
     @NotBlank
-    private String bcrIndex;
+    private String zwlProgramOutputIndex;
     
     @NotBlank
     private String envVarHost;
@@ -234,13 +234,13 @@ public class APICoreProperties {
       }
     }
   
-    public String getBcrIndex() {
-      return bcrIndex;
+    public String getZwlProgramOutputIndex() {
+      return zwlProgramOutputIndex;
     }
   
-    public void setBcrIndex(String bcrIndex) {
-      if (this.bcrIndex == null) {
-        this.bcrIndex = bcrIndex;
+    public void setZwlProgramOutputIndex(String zwlProgramOutputIndex) {
+      if (this.zwlProgramOutputIndex == null) {
+        this.zwlProgramOutputIndex = zwlProgramOutputIndex;
       }
     }
   
@@ -256,37 +256,24 @@ public class APICoreProperties {
   }
   
   public static class Runner {
-    
-    @Min(10)
-    private Integer maxTestCommandLoad;
   
     @Min(1)
-    private Integer commandResultFlushRecords;
+    private Integer programOutputFlushNo;
   
     @Min(10)
     private Integer shotMetadataFlushRecords;
-  
-    public Integer getMaxTestCommandLoad() {
-      return maxTestCommandLoad;
-    }
-  
-    public void setMaxTestCommandLoad(Integer maxTestCommandLoad) {
-      if (this.maxTestCommandLoad == null) {
-        this.maxTestCommandLoad = maxTestCommandLoad;
-      }
-    }
-  
+    
     /**
-     * The default value to use when {@link BuildCapability#getCommandResultFlushRecords()} or
-     * {@link BuildCapability#getCommandResultFlushMillis()} are not provided (are equals to 0)
+     * The default value to use when {@link BuildCapability#getProgramOutputFlushNo()} or
+     * {@link BuildCapability#getProgramOutputFlushMillis()} are not provided (are equals to 0)
      */
-    public Integer getCommandResultFlushRecords() {
-      return commandResultFlushRecords;
+    public Integer getProgramOutputFlushNo() {
+      return programOutputFlushNo;
     }
   
-    public void setCommandResultFlushRecords(Integer commandResultFlushRecords) {
-      if (this.commandResultFlushRecords == null) {
-        this.commandResultFlushRecords = commandResultFlushRecords;
+    public void setProgramOutputFlushNo(Integer programOutputFlushNo) {
+      if (this.programOutputFlushNo == null) {
+        this.programOutputFlushNo = programOutputFlushNo;
       }
     }
     

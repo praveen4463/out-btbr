@@ -1,7 +1,6 @@
 package com.zylitics.btbr.runner;
 
 import com.zylitics.btbr.model.Build;
-import com.zylitics.btbr.model.BuildWdSession;
 
 /**
  * Invoked by async request handler whenever a running build is failed or succeed.
@@ -12,5 +11,5 @@ import com.zylitics.btbr.model.BuildWdSession;
 // methods.
 interface BuildCompleteCallback {
   
-  void onBuildComplete(Build build, BuildWdSession buildWdSession);
+  void onBuildComplete(Build build);
 }

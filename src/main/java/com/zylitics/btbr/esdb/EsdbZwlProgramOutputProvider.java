@@ -2,9 +2,10 @@ package com.zylitics.btbr.esdb;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
-import com.zylitics.btbr.model.BuildCommandResult;
-import com.zylitics.btbr.runner.provider.BuildCommandResultProvider;
-import org.elasticsearch.action.bulk.*;
+import com.zylitics.btbr.model.ZwlProgramOutput;
+import com.zylitics.btbr.runner.provider.ZwlProgramOutputProvider;
+import org.elasticsearch.action.bulk.BackoffPolicy;
+import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
@@ -27,14 +28,14 @@ import java.util.concurrent.TimeUnit;
 @Component
 @RequestScope
 // BulkProcessor https://www.elastic.co/guide/en/elasticsearch/client/java-rest/7.4/java-rest-high-document-bulk.html
-class EsdbBuildCommandResultProvider extends AbstractBulkSaveProvider<BuildCommandResult>
-    implements BuildCommandResultProvider {
+class EsdbZwlProgramOutputProvider extends AbstractBulkSaveProvider<ZwlProgramOutput>
+    implements ZwlProgramOutputProvider {
   
   private final APICoreProperties apiCoreProperties;
   private final RestHighLevelClient client;
   
   @Autowired
-  EsdbBuildCommandResultProvider(APICoreProperties apiCoreProperties,
+  EsdbZwlProgramOutputProvider(APICoreProperties apiCoreProperties,
                                  RestHighLevelClient client) {
     this.apiCoreProperties = apiCoreProperties;
     this.client = client;
@@ -50,31 +51,30 @@ class EsdbBuildCommandResultProvider extends AbstractBulkSaveProvider<BuildComma
         .setBackoffPolicy(
             BackoffPolicy.exponentialBackoff(TimeValue.timeValueSeconds(1),
                 apiCoreProperties.getEsdb().getMaxRetries()));
-    if (buildCapability.getCommandResultFlushRecords() != 0) {
-      builder.setBulkActions(buildCapability.getCommandResultFlushRecords());
-    } else if (buildCapability.getCommandResultFlushMillis() != 0) {
-      builder.setFlushInterval(new TimeValue(buildCapability.getCommandResultFlushMillis(),
+    if (buildCapability.getProgramOutputFlushNo() > 0) {
+      builder.setBulkActions(buildCapability.getProgramOutputFlushNo());
+    } else if (buildCapability.getProgramOutputFlushMillis() > 0) {
+      builder.setFlushInterval(new TimeValue(buildCapability.getProgramOutputFlushMillis(),
           TimeUnit.MILLISECONDS));
     } else {
-      builder.setBulkActions(apiCoreProperties.getRunner().getCommandResultFlushRecords());
+      builder.setBulkActions(apiCoreProperties.getRunner().getProgramOutputFlushNo());
     }
     setBulkProcessor(builder.build());
   }
   
   // !!! make sure that field names and their field types are same as what is in index
-  // 'bt_build_command_result'
+  // 'zwl_program_output'
   @Override
-  XContentBuilder getAsXContentBuilder(BuildCommandResult bcr) throws IOException {
+  XContentBuilder getAsXContentBuilder(ZwlProgramOutput zpo) throws IOException {
     XContentBuilder builder = XContentFactory.jsonBuilder();
     builder.startObject();
     {
       builder
-          .field(BCRIndexFields.BUILD_ID, bcr.getBuildId())
-          .field(BCRIndexFields.TEST_VERSION_ID, bcr.getTestVersionId())
-          .field(BCRIndexFields.TEST_COMMAND_ID, bcr.getTestCommandId())
-          .field(BCRIndexFields.TOOK_MILLIS, bcr.getTookMillis())
-          .field(BCRIndexFields.IS_SUCCESS, bcr.isSuccess())
-          .field(BCRIndexFields.ERROR, bcr.getError());
+          .field(ZwlProgramOutputIndexFields.BUILD_ID, zpo.getBuildId())
+          .field(ZwlProgramOutputIndexFields.TEST_VERSION_ID, zpo.getTestVersionId())
+          .field(ZwlProgramOutputIndexFields.OUTPUT, zpo.getOutput())
+          .field(ZwlProgramOutputIndexFields.ENDED, zpo.isEnded())
+          .field(ZwlProgramOutputIndexFields.CREATE_DATE, zpo.getCreateDate());
     }
     builder.endObject();
     return builder;
@@ -82,6 +82,6 @@ class EsdbBuildCommandResultProvider extends AbstractBulkSaveProvider<BuildComma
   
   @Override
   String getIndex() {
-    return apiCoreProperties.getEsdb().getBcrIndex();
+    return apiCoreProperties.getEsdb().getZwlProgramOutputIndex();
   }
 }

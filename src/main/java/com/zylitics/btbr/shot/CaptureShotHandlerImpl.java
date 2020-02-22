@@ -7,7 +7,7 @@ import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.ShotMetadata;
 import com.zylitics.btbr.runner.CaptureShotHandler;
-import com.zylitics.btbr.runner.CurrentTestCommand;
+import com.zylitics.btbr.runner.CurrentTestVersion;
 import com.zylitics.btbr.runner.provider.ShotMetadataProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +58,7 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
   
   private final String sessionKey;
   
-  private final CurrentTestCommand currentTestCommand;
+  private final CurrentTestVersion currentTestVersion;
   
   private final CaptureDevice captureDevice;
   
@@ -82,7 +82,7 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
                                  Build build,
                                  String sessionKey,
                                  String bucketSessionStorage,
-                                 CurrentTestCommand currentTestCommand) {
+                                 CurrentTestVersion currentTestVersion) {
     Preconditions.checkNotNull(apiCoreProperties, "APICoreProperties can't be null");
     Preconditions.checkNotNull(shotMetadataProvider, "ShotMetadataProvider can't be null");
     Preconditions.checkNotNull(storage, "storage can't be null");
@@ -90,13 +90,13 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(sessionKey), "sessionKey can't be empty");
     Preconditions.checkArgument(!Strings.isNullOrEmpty(bucketSessionStorage),
         "bucketSessionStorage can't be empty");
-    Preconditions.checkNotNull(currentTestCommand, "CurrentTestCommand can't be null");
+    Preconditions.checkNotNull(currentTestVersion, "currentTestVersion can't be null");
     
     shotProps = apiCoreProperties.getShot();
     this.shotMetadataProvider = shotMetadataProvider;
     this.build = build;
     this.sessionKey = sessionKey;
-    this.currentTestCommand = currentTestCommand;
+    this.currentTestVersion = currentTestVersion;
   
     captureDevice = CaptureDevice.Factory.getDefault().create(shotProps.getExt());
     captureDevice.init();
@@ -119,7 +119,7 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
                   ShotMetadataProvider shotMetadataProvider,
                   Build build,
                   String sessionKey,
-                  CurrentTestCommand currentTestCommand,
+                  CurrentTestVersion currentTestVersion,
                   CaptureDevice captureDevice,
                   ExecutorService processShotExecutor,
                   ShotCloudStore shotCloudStore) {
@@ -127,7 +127,7 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
     this.shotMetadataProvider = shotMetadataProvider;
     this.build = build;
     this.sessionKey = sessionKey;
-    this.currentTestCommand = currentTestCommand;
+    this.currentTestVersion = currentTestVersion;
     this.captureDevice = captureDevice;
     this.processShotExecutor = processShotExecutor;
     this.shotCloudStore = shotCloudStore;
@@ -274,9 +274,10 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
     return new ShotMetadata()
         .setShotName(getShotName(shotIdentifier))
         .setBuildId(build.getBuildId())
+        .setTestVersionId(currentTestVersion.getTestVersionId())
         .setBuildKey(build.getBuildKey())
         .setSessionKey(sessionKey)
-        .setTestCommandId(currentTestCommand.getTestCommandId())
+        .setAtLineZwl(currentTestVersion.getControlAtLineInProgram())
         .setCreateDate(dateTime);
   }
   
@@ -310,9 +311,9 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
     public CaptureShotHandler create(APICoreProperties apiCoreProperties,
                                      ShotMetadataProvider shotMetadataProvider, Storage storage,
                                      Build build, String sessionKey, String bucketSessionStorage,
-                                     CurrentTestCommand currentTestCommand) {
+                                     CurrentTestVersion currentTestVersion) {
       return new CaptureShotHandlerImpl(apiCoreProperties, shotMetadataProvider, storage, build,
-          sessionKey, bucketSessionStorage, currentTestCommand);
+          sessionKey, bucketSessionStorage, currentTestVersion);
     }
   }
 }

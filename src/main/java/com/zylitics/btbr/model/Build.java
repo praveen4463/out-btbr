@@ -8,9 +8,7 @@ public class Build {
   
   private String buildKey;
   
-  private int buildCapabilityId;
-  
-  private int buildWdSessionId;
+  private BuildCapability buildCapability;
   
   private ZonedDateTime endDate;
   
@@ -36,21 +34,12 @@ public class Build {
     return this;
   }
   
-  public int getBuildCapabilityId() {
-    return buildCapabilityId;
+  public BuildCapability getBuildCapability() {
+    return buildCapability;
   }
   
-  public Build setBuildCapabilityId(int buildCapabilityId) {
-    this.buildCapabilityId = buildCapabilityId;
-    return this;
-  }
-  
-  public int getBuildWdSessionId() {
-    return buildWdSessionId;
-  }
-  
-  public Build setBuildWdSessionId(int buildWdSessionId) {
-    this.buildWdSessionId = buildWdSessionId;
+  public Build setBuildCapability(BuildCapability buildCapability) {
+    this.buildCapability = buildCapability;
     return this;
   }
   
@@ -86,8 +75,7 @@ public class Build {
     return "Build{" +
         "buildId=" + buildId +
         ", key='" + buildKey + '\'' +
-        ", buildCapabilityId=" + buildCapabilityId +
-        ", buildWdSessionId=" + buildWdSessionId +
+        ", buildCapability=" + buildCapability +
         ", endDate=" + endDate +
         ", isSuccess=" + isSuccess +
         ", error='" + error + '\'' +

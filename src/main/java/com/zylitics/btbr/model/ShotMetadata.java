@@ -8,11 +8,13 @@ public class ShotMetadata {
   
   private int buildId;
   
+  private int testVersionId;
+  
   private String buildKey;
   
   private String sessionKey;
   
-  private long testCommandId;
+  private int atLineZwl;
   
   private ZonedDateTime createDate;
   
@@ -34,6 +36,15 @@ public class ShotMetadata {
     return this;
   }
   
+  public int getTestVersionId() {
+    return testVersionId;
+  }
+  
+  public ShotMetadata setTestVersionId(int testVersionId) {
+    this.testVersionId = testVersionId;
+    return this;
+  }
+  
   public String getBuildKey() {
     return buildKey;
   }
@@ -52,12 +63,12 @@ public class ShotMetadata {
     return this;
   }
   
-  public long getTestCommandId() {
-    return testCommandId;
+  public int getAtLineZwl() {
+    return atLineZwl;
   }
   
-  public ShotMetadata setTestCommandId(long testCommandId) {
-    this.testCommandId = testCommandId;
+  public ShotMetadata setAtLineZwl(int atLineZwl) {
+    this.atLineZwl = atLineZwl;
     return this;
   }
   
@@ -75,9 +86,10 @@ public class ShotMetadata {
     return "ShotMetadata{" +
         "shotName='" + shotName + '\'' +
         ", buildId=" + buildId +
+        ", testVersionId=" + testVersionId +
         ", buildKey='" + buildKey + '\'' +
         ", sessionKey='" + sessionKey + '\'' +
-        ", testCommandId=" + testCommandId +
+        ", atLineZwl=" + atLineZwl +
         ", createDate=" + createDate +
         '}';
   }

@@ -7,7 +7,6 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
 import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
-import com.zylitics.btbr.SecretsManager;
 import com.zylitics.btbr.config.APICoreProperties;
 import org.elasticsearch.common.Strings;
 import org.springframework.beans.factory.annotation.Autowired;

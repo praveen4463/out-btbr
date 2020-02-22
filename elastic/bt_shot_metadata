@@ -1,4 +1,9 @@
 # index definition for index shot_metadata
+# at_line_zwl: line position of interpreter in ZWL program when the corresponding shot was taken
+# , this could used to filter shots.
+# bt_test_version_id: after every test_version is completed, runner issues a about:blank url to
+# webdriver and once url is changed to about:blank, it changes the versionId so that shot process
+# now takes the new versionId and starts from about:blank. It then starts new version run.
 
 curl -X PUT "localhost:9200/bt_shot_metadata?pretty" -H 'Content-Type: application/json' -d'
 {
@@ -10,14 +15,17 @@ curl -X PUT "localhost:9200/bt_shot_metadata?pretty" -H 'Content-Type: applicati
       "bt_build_id": {
         "type": "integer"
       },
+      "bt_test_version_id": {
+        "type": "integer"
+      },
       "build_key": {
         "type": "keyword"
       },
       "session_key": {
         "type": "keyword"
       },
-      "bt_test_command_id": {
-        "type": "long"
+      "at_line_zwl": {
+        "type": "integer"
       },
       "create_date": {
         "type": "date"
@@ -36,11 +44,12 @@ curl -X PUT "localhost:9200/bt_shot_metadata?pretty" -H 'Content-Type: applicati
 # Example document indexing
 curl -X POST "localhost:9200/bt_shot_metadata/_doc?pretty" -H 'Content-Type: application/json' -d '
 {
-  "shot_name": "2C425549-3E04-4BBA-A03A-52F66CCA46A5-1.png",
+  "shot_name": "2C425549-3E04-4BBA-A03A-52F66CCA46A5-dhd2333hdh33-1.png",
   "bt_build_id": "121",
+  "bt_test_version_id": "322",
   "build_key": "dhd2333hdh33",
   "session_key": "2C425549-3E04-4BBA-A03A-52F66CCA46A5",
-  "bt_test_command_id": 1,
+  "at_line_zwl": 103,
   "create_date": "2019-11-23 07:54:01.456 UTC"
 }
 '

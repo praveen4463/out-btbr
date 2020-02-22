@@ -1,12 +1,10 @@
-# index definition for index bt_build_code_output
+# index definition for index zwl_program_output
+# ended column specified that the output for the build+version combination is ended.
 
-curl -X PUT "localhost:9200/bt_build_code_output?pretty" -H 'Content-Type: application/json' -d'
+curl -X PUT "localhost:9200/zwl_program_output?pretty" -H 'Content-Type: application/json' -d'
 {
   "mappings": {
     "properties": {
-      "id": {
-        "type": "integer"
-      },
       "bt_build_id": {
         "type": "integer"
       },
@@ -16,6 +14,10 @@ curl -X PUT "localhost:9200/bt_build_code_output?pretty" -H 'Content-Type: appli
       "output": {
         "type": "text"
       },
+      "ended": {
+        "type": "boolean",
+        "index": false
+      }
       "create_date": {
         "type": "date"
       }
@@ -31,7 +33,7 @@ curl -X PUT "localhost:9200/bt_build_code_output?pretty" -H 'Content-Type: appli
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html
 
 # Example document indexing
-curl -X POST "localhost:9200/bt_build_code_output/_doc?pretty" -H 'Content-Type: application/json' -d '
+curl -X POST "localhost:9200/zwl_program_output/_doc?pretty" -H 'Content-Type: application/json' -d '
 {
   "id": 1,
   "bt_build_id": 32,
@@ -42,7 +44,7 @@ curl -X POST "localhost:9200/bt_build_code_output/_doc?pretty" -H 'Content-Type:
 '
 
 # Example document retrieval
-curl -XGET "localhost:9200/bt_build_code_output/_search?pretty" -H 'Content-Type: application/json' -d '
+curl -XGET "localhost:9200/zwl_program_output/_search?pretty" -H 'Content-Type: application/json' -d '
 {
   "query": {
     "match_all": {}

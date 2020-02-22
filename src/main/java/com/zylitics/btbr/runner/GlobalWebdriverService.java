@@ -2,8 +2,6 @@ package com.zylitics.btbr.runner;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
-import com.zylitics.btbr.webdriver.BrwExtCmdResult;
-import com.zylitics.btbr.webdriver.BrwExtCmdDef;
 import org.openqa.selenium.SessionNotCreatedException;
 
 /**
@@ -13,14 +11,6 @@ import org.openqa.selenium.SessionNotCreatedException;
 public interface GlobalWebdriverService {
   
   String getSessionKey();
-  
-  /**
-   * Runs a browser extension command and returns it's result, this method is guaranteed to not
-   * throw any exception and will translate all exceptions to meaningful error messages.
-   * @param command a single brw ext command to run with webdriver
-   * @return result of command run
-   */
-  BrwExtCmdResult runCommand(BrwExtCmdDef command);
   
   interface Factory {
   

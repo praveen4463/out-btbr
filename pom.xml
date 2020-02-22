@@ -10,6 +10,7 @@
   <url>http://maven.apache.org</url>
   <properties>
     <selenium.java.version>4.0.0-alpha-3</selenium.java.version>
+    <zwl.version>0.1.2</zwl.version>
     <stackdriver.logback.version>0.116.0-alpha</stackdriver.logback.version>
     <google.cloud.storage.version>1.100.0</google.cloud.storage.version>
     <google.cloud.kms.version>1.34.0</google.cloud.kms.version>
@@ -32,6 +33,11 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.zylitics</groupId>
+      <artifactId>zl-zwl</artifactId>
+      <version>${zwl.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

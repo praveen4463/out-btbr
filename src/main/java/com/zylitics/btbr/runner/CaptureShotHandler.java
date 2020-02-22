@@ -4,7 +4,6 @@ import com.google.cloud.storage.Storage;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.runner.provider.ShotMetadataProvider;
-import com.zylitics.btbr.shot.CaptureShotHandlerImpl;
 
 /**
  * Handler for shot process, should be created and started after session to webdriver has been
@@ -13,10 +12,11 @@ import com.zylitics.btbr.shot.CaptureShotHandlerImpl;
  * 1. Wait for webdriver session to acquire, once done, instantiate this handler using factory
  *    method {@link CaptureShotHandler.Factory#create}
  * </p><p>
- * 2. {@link CurrentTestCommand} should be instantiated just once and the reference should be held
- *    globally, on every new command, it should be updated rather than instantiated again, because
- *    this handler will hold a reference of it too to get latest command run updates, it will use it
- *    to create {@link com.zylitics.btbr.model.ShotMetadata} for every captured shot.
+ * 2. {@link CurrentTestVersion} should be instantiated just once and the reference should be held
+ *    globally, on every next version, it should be updated rather than instantiated again, because
+ *    this handler will hold a reference of it to get current version and currently executing
+ *    line within the version, it will use it to create {@link com.zylitics.btbr.model.ShotMetadata}
+ *    for every captured shot.
  * </p><p>
  * 3. Invoke {@link CaptureShotHandler#startShot()}
  * </p><p>
@@ -54,6 +54,6 @@ public interface CaptureShotHandler {
                               Build build,
                               String sessionKey,
                               String bucketSessionStorage,
-                              CurrentTestCommand currentTestCommand);
+                              CurrentTestVersion currentTestVersion);
   }
 }

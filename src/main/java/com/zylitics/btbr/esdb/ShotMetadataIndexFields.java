@@ -6,11 +6,13 @@ interface ShotMetadataIndexFields {
   
   String BUILD_ID = "bt_build_id";
   
+  String TEST_VERSION_ID = "bt_test_version_id";
+  
   String BUILD_KEY = "build_key";
   
   String SESSION_KEY = "session_key";
   
-  String TEST_COMMAND_ID = "bt_test_command_id";
+  String AT_LINE_ZWL = "at_line_zwl";
   
   String CREATE_DATE = "create_date";
 }

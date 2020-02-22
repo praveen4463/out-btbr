@@ -10,7 +10,7 @@ api-core:
     auth-user-secret-cloud-file: zl-esdb-auth.encrypt
     max-retries: 10
     shot-metadata-index: bt_shot_metadata
-    bcr-index: bt_build_command_result
+    zwl-program-output-index: zwl_program_output
     env-var-host: ESDB_HOST
   data-source:
     db-name: zbtp
@@ -22,8 +22,7 @@ api-core:
     # https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing
     min-idle-conn-pool: 2
   runner:
-    max-test-command-load: 500
-    command_result_flush_records: 10
+    program_output_flush_no: 10
     shot_metadata_flush_records: 100
     server-logs-bucket: zl-server-logs
   shot:
