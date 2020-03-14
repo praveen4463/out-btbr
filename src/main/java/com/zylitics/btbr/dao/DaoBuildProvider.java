@@ -33,7 +33,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bc.server_timezone_with_dst, bc.wd_browser_name, bc.wd_browser_version" +
         ", bc.wd_platform_name, bc.wd_accept_insecure_certs, bc.wd_page_load_strategy" +
         ", bc.wd_set_window_rect, bc.wd_timeouts_script, bc.wd_timeouts_page_load" +
-        ", bc.wd_timeouts_implicit, bc.wd_strict_file_interactability" +
+        ", bc.wd_timeouts_implicit, bc.wd_timeouts_element_access" +
+        ", bc.wd_strict_file_interactability" +
         ", bc.wd_unhandled_prompt_behavior, bc.brw_is_full_screen" +
         ", bc.chrome_enable_network, bc.chrome_enable_page, bc.build_abort_on_failure" +
         " FROM bt_build AS bu INNER JOIN bt_build_capability AS bc" +
@@ -63,6 +64,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
                 .setWdTimeoutsScript(rs.getInt("wd_timeouts_script"))
                 .setWdTimeoutsPageLoad(rs.getInt("wd_timeouts_page_load"))
                 .setWdTimeoutsImplicit(rs.getInt("wd_timeouts_implicit"))
+                .setWdTimeoutsElementAccess(rs.getInt("wd_timeouts_element_access"))
                 .setWdStrictFileInteractability(rs.getBoolean("wd_strict_file_interactability"))
                 .setWdUnhandledPromptBehavior(rs.getString("wd_unhandled_prompt_behavior"))
                 .setBrwIsFullScreen(rs.getBoolean("brw_is_full_screen"))

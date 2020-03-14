@@ -9,8 +9,8 @@
   <name>zl-btbr</name>
   <url>http://maven.apache.org</url>
   <properties>
-    <selenium.java.version>4.0.0-alpha-3</selenium.java.version>
-    <zwl.version>0.1.2</zwl.version>
+    <selenium.java.version>4.0.0-alpha-4</selenium.java.version>
+    <zwl.version>0.1.3-SNAPSHOT</zwl.version>
     <stackdriver.logback.version>0.116.0-alpha</stackdriver.logback.version>
     <google.cloud.storage.version>1.100.0</google.cloud.storage.version>
     <google.cloud.kms.version>1.34.0</google.cloud.kms.version>

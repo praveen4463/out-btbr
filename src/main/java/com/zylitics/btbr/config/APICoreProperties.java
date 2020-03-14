@@ -367,6 +367,12 @@ public class APICoreProperties {
     @NotBlank
     private String defaultPageLoadStrategy;
     
+    @Min(1000)
+    private Integer defaultTimeoutElementAccess;
+  
+    @Min(1000)
+    private Integer defaultTimeoutPageLoad;
+    
     @NotBlank
     private String enableProfilerLogsProp;
   
@@ -422,6 +428,26 @@ public class APICoreProperties {
     public void setDefaultPageLoadStrategy(String defaultPageLoadStrategy) {
       if (this.defaultPageLoadStrategy == null) {
         this.defaultPageLoadStrategy = defaultPageLoadStrategy;
+      }
+    }
+  
+    public Integer getDefaultTimeoutElementAccess() {
+      return defaultTimeoutElementAccess;
+    }
+  
+    public void setDefaultTimeoutElementAccess(Integer defaultTimeoutElementAccess) {
+      if (this.defaultTimeoutElementAccess == null) {
+        this.defaultTimeoutElementAccess = defaultTimeoutElementAccess;
+      }
+    }
+  
+    public Integer getDefaultTimeoutPageLoad() {
+      return defaultTimeoutPageLoad;
+    }
+  
+    public void setDefaultTimeoutPageLoad(Integer defaultTimeoutPageLoad) {
+      if (this.defaultTimeoutPageLoad == null) {
+        this.defaultTimeoutPageLoad = defaultTimeoutPageLoad;
       }
     }
   

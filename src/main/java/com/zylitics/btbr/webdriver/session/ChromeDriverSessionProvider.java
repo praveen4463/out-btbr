@@ -40,6 +40,7 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
     // chrome.addArguments("start-maximized"); don't use this for now as other browsers don't have
     // this option, also sometimes chrome doesn't start maximized even with this argument, it's
     // safe to explicitly send maximize every time.
+    
     // add more browser specific arguments
     
     // add performance logging if asked to

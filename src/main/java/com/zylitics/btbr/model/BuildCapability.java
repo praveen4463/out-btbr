@@ -34,6 +34,8 @@ public class BuildCapability {
   
   private int wdTimeoutsImplicit;
   
+  private int wdTimeoutsElementAccess;
+  
   private boolean wdStrictFileInteractability;
   
   private String wdUnhandledPromptBehavior;
@@ -190,6 +192,15 @@ public class BuildCapability {
     return this;
   }
   
+  public int getWdTimeoutsElementAccess() {
+    return wdTimeoutsElementAccess;
+  }
+  
+  public BuildCapability setWdTimeoutsElementAccess(int wdTimeoutsElementAccess) {
+    this.wdTimeoutsElementAccess = wdTimeoutsElementAccess;
+    return this;
+  }
+  
   public boolean isWdStrictFileInteractability() {
     return wdStrictFileInteractability;
   }
@@ -263,6 +274,7 @@ public class BuildCapability {
         ", wdTimeoutsScript=" + wdTimeoutsScript +
         ", wdTimeoutsPageLoad=" + wdTimeoutsPageLoad +
         ", wdTimeoutsImplicit=" + wdTimeoutsImplicit +
+        ", wdTimeoutsElementAccess=" + wdTimeoutsElementAccess +
         ", wdStrictFileInteractability=" + wdStrictFileInteractability +
         ", wdUnhandledPromptBehavior='" + wdUnhandledPromptBehavior + '\'' +
         ", brwIsFullScreen=" + brwIsFullScreen +

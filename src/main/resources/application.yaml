@@ -39,6 +39,8 @@ api-core:
     supported-platforms:
       - windows
     default-page-load-strategy: eager
+    default-timeout-element-access: 60000
+    default-timeout-page-load: 300000
     enable-profiler-logs-prop: webdriver.logging.profiler.enabled
     verbose-client-logs-prop: webbdriver.logging.client.verbose.enabled
     browser-perf-logs-dir: performance-logs

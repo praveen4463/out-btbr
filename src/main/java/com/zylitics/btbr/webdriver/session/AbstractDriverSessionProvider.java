@@ -31,6 +31,7 @@ public abstract class AbstractDriverSessionProvider {
   
   final BuildCapability buildCapability;
   
+  // caps those are same for all browsers, maps buildCapability to selenium's capability.
   final Capabilities commonCapabilities;
   
   public AbstractDriverSessionProvider(APICoreProperties.Webdriver wdProps
@@ -60,7 +61,7 @@ public abstract class AbstractDriverSessionProvider {
     
     caps.setCapability(CapabilityType.LOGGING_PREFS, logs);
     
-    caps.setCapability(CapabilityType.BROWSER_VERSION, buildCapability.getWdBrowserName());
+    caps.setCapability(CapabilityType.BROWSER_VERSION, buildCapability.getWdBrowserVersion());
   
     Preconditions.checkArgument(!Strings.isNullOrEmpty(buildCapability.getWdPlatformName()),
         "platformName capability can't be empty");
