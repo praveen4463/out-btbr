@@ -1,18 +1,19 @@
-package com.zylitics.btbr.webdriver.functions.context;
+package com.zylitics.btbr.webdriver.functions.elements.interaction;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.ZwlValue;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class Close extends AbstractWebdriverFunction {
+public abstract class MultiClickClear extends AbstractWebdriverFunction {
   
-  public Close(APICoreProperties.Webdriver wdProps,
+  public MultiClickClear(APICoreProperties.Webdriver wdProps,
                          BuildCapability buildCapability,
                          RemoteWebDriver driver,
                          PrintStream printStream) {
@@ -20,18 +21,13 @@ public class Close extends AbstractWebdriverFunction {
   }
   
   @Override
-  public String getName() {
-    return "close";
-  }
-  
-  @Override
   public int minParamsCount() {
-    return 0;
+    return 1;
   }
   
   @Override
   public int maxParamsCount() {
-    return 0;
+    return Integer.MAX_VALUE;
   }
   
   @Override
@@ -39,13 +35,18 @@ public class Close extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    return handleWDExceptions(() -> {
-      // don't allow to close all the windows as it closes the session.
-      if (driver.getWindowHandles().size() > 1) {
-        driver.close();
-      }
-      return _void;
-    });
+    writeCommandUpdate(onlyCommandUpdateText());
+    int argsCount = args.size();
+    
+    if (argsCount >= 1) {
+      return handleWDExceptions(() -> {
+        perform(getElementsUnderstandingArgs(args));
+        return _void;
+      });
+    }
+    
+    throw unexpectedEndOfFunctionOverload(argsCount);
   }
+  
+  protected abstract void perform(List<RemoteWebElement> elements);
 }

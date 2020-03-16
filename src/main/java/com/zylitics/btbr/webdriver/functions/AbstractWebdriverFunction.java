@@ -1,5 +1,6 @@
 package com.zylitics.btbr.webdriver.functions;
 
+import com.google.api.client.util.Preconditions;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.zwl.datatype.ListZwlValue;
@@ -17,11 +18,23 @@ import java.io.PrintStream;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+/*
+ * Important consideration for webdriver functions:
+ * 1. each function sends command run update to user, every function should invoke
+ *    writeCommandUpdate method and use the appropriate method for sending a text. For example
+ *    If the arguments accepted by function are not too big, we should print the argument else
+ *    we should just let the function name printed for user, in some situations a custom message
+ *    can also be printed, such as showing warning.
+ * 2. each function should invoke webdriver related methods within handleWDExceptions context so
+ *    that any webdriver exception could be wrapped inside ZwlLangException which is what Zwl
+ *    expect, all other exceptions are treated as system related exceptions and not relayed to user.
+ */
 public abstract class AbstractWebdriverFunction extends AbstractFunction {
   
   protected final APICoreProperties.Webdriver wdProps;
@@ -134,16 +147,30 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
   
   /**
    * Should be used by functions that expect more than one element. User can either send multiple
-   * elemIds or selectors or just one selector that is meant to fetch multiple elements.
+   * elemIds or selectors or just one selector that is meant to fetch multiple elements. If
+   * succeeded, this method is guaranteed to return some element(s).
+   * <p>This method throws {@link NoSuchElementException} if argument list has just one item,
+   * the selector, and it couldn't retrieve any element.</p>
    * @param args The raw arguments received by function.
    * @return List of {@link RemoteWebElement}s
    */
   protected List<RemoteWebElement> getElementsUnderstandingArgs(List<ZwlValue> args) {
-    if (args.size() == 1) {
-      // we got only one argument, try finding elementS from it.
-      return findElements(driver, tryCastString(0, args.get(0)), true);
+    Preconditions.checkArgument(args.size() > 0, "Expected at least one argument");
+    
+    if (args.size() > 1) {
+      // Following can't return empty list because each selector/elemId is evaluated separately,
+      // if a selector returns nothing, exception will be thrown
+      return getElements(args.stream().map(Objects::toString).collect(Collectors.toList()));
     }
-    return getElements(args.stream().map(Objects::toString).collect(Collectors.toList()));
+    // we got only one argument, try finding elementS from it.
+    String selector = tryCastString(0, args.get(0));
+    List<RemoteWebElement> elements = findElements(driver, selector, true);
+    // we must throw exception if the lone selector couldn't yield element(s) cause it's required
+    // we've some elements to perform the desired action.
+    if (elements.size() == 0) {
+      throw getNoSuchElementException(selector);
+    }
+    return elements;
   }
   
   protected RemoteWebElement getWebElementUsingElemId(String elemId) {
@@ -190,5 +217,9 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
     }
     
     return new WebDriverWait(driver, Duration.ofMillis(timeout));
+  }
+  
+  protected NoSuchElementException getNoSuchElementException(String selector) {
+    return new NoSuchElementException("Cannot locate an element using " + selector);
   }
 }

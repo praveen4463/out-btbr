@@ -1,4 +1,4 @@
-package com.zylitics.btbr.webdriver.functions.context;
+package com.zylitics.btbr.webdriver.functions.elements.interaction;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
@@ -10,42 +10,45 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class Close extends AbstractWebdriverFunction {
+public class Submit extends AbstractWebdriverFunction {
   
-  public Close(APICoreProperties.Webdriver wdProps,
-                         BuildCapability buildCapability,
-                         RemoteWebDriver driver,
-                         PrintStream printStream) {
+  public Submit(APICoreProperties.Webdriver wdProps,
+                       BuildCapability buildCapability,
+                       RemoteWebDriver driver,
+                       PrintStream printStream) {
     super(wdProps, buildCapability, driver, printStream);
   }
   
   @Override
   public String getName() {
-    return "close";
+    return "submit";
   }
   
   @Override
   public int minParamsCount() {
-    return 0;
+    return 1;
   }
   
   @Override
   public int maxParamsCount() {
-    return 0;
+    return 1;
   }
   
   @Override
   public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
-    
+  
     writeCommandUpdate(withArgsCommandUpdateText(args));
-    return handleWDExceptions(() -> {
-      // don't allow to close all the windows as it closes the session.
-      if (driver.getWindowHandles().size() > 1) {
-        driver.close();
-      }
-      return _void;
-    });
+    int argsCount = args.size();
+    
+    if (argsCount == 1) {
+      return handleWDExceptions(() -> {
+        getElement(tryCastString(0, args.get(0))).submit();
+        return _void;
+      });
+    }
+    
+    throw unexpectedEndOfFunctionOverload(argsCount);
   }
 }

@@ -372,6 +372,9 @@ public class APICoreProperties {
   
     @Min(1000)
     private Integer defaultTimeoutPageLoad;
+  
+    @Min(1000)
+    private Integer defaultTimeoutNewWindow;
     
     @NotBlank
     private String enableProfilerLogsProp;
@@ -399,7 +402,9 @@ public class APICoreProperties {
   
     @Min(10)
     private Integer retrieveLogsUponCmd;
-    
+  
+    @NotBlank
+    private String elementShotDir;
   
     public Set<String> getSupportedBrowsers() {
       return supportedBrowsers;
@@ -448,6 +453,16 @@ public class APICoreProperties {
     public void setDefaultTimeoutPageLoad(Integer defaultTimeoutPageLoad) {
       if (this.defaultTimeoutPageLoad == null) {
         this.defaultTimeoutPageLoad = defaultTimeoutPageLoad;
+      }
+    }
+  
+    public Integer getDefaultTimeoutNewWindow() {
+      return defaultTimeoutNewWindow;
+    }
+  
+    public void setDefaultTimeoutNewWindow(Integer defaultTimeoutNewWindow) {
+      if (this.defaultTimeoutNewWindow == null) {
+        this.defaultTimeoutPageLoad = defaultTimeoutNewWindow;
       }
     }
   
@@ -538,6 +553,16 @@ public class APICoreProperties {
     public void setRetrieveLogsUponCmd(Integer retrieveLogsUponCmd) {
       if (this.retrieveLogsUponCmd == null) {
         this.retrieveLogsUponCmd = retrieveLogsUponCmd;
+      }
+    }
+  
+    public String getElementShotDir() {
+      return elementShotDir;
+    }
+  
+    public void setElementShotDir(String elementShotDir) {
+      if (this.elementShotDir == null) {
+        this.elementShotDir = elementShotDir;
       }
     }
   }

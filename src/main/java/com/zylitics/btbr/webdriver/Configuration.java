@@ -18,6 +18,8 @@ public class Configuration {
   
   public static final String PATH_SEPARATOR = System.getProperty("file.separator");
   
+  public static final String SYS_DEF_TEMP_DIR = System.getProperty("java.io.tmpdir");
+  
   Function<String, Optional<AbstractDriverSessionProvider>> getSessionProviderByBrowser(
       APICoreProperties.Webdriver wdProps, BuildCapability buildCapability) {
     return browser -> {

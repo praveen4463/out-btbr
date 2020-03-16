@@ -25,6 +25,8 @@ api-core:
     program_output_flush_no: 10
     shot_metadata_flush_records: 100
     server-logs-bucket: zl-server-logs
+    user-asset-bucket: zl-user-asset
+    # keeps things like element shots, uploaded files for testing file input in builds etc.
   shot:
     ext: png
     content-type: image/png
@@ -41,6 +43,7 @@ api-core:
     default-page-load-strategy: eager
     default-timeout-element-access: 60000
     default-timeout-page-load: 300000
+    default-timeout-new-window: 30000
     enable-profiler-logs-prop: webdriver.logging.profiler.enabled
     verbose-client-logs-prop: webbdriver.logging.client.verbose.enabled
     browser-perf-logs-dir: performance-logs
@@ -51,4 +54,5 @@ api-core:
     driver-logs-file: driver.log
     # every time, upon this many commands run, we should retrieve logs and write to file.
     retrieve-logs-upon-cmd: 100
+    element-shot-dir: element-shot
 ---
