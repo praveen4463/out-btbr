@@ -70,7 +70,7 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
     targetLocator = driver.switchTo();
   }
   
-  protected <V> V handleWDExceptions(Callable<V> code) {
+  public <V> V handleWDExceptions(Callable<V> code) {
     try {
       return code.call();
     } catch (WebDriverException wdEx) {
@@ -122,7 +122,7 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
         .matches("[a-zA-Z0-9]{8}-?[a-zA-Z0-9]{4}-?[a-zA-Z0-9]{4}-?[a-zA-Z0-9]{4}-?[a-zA-Z0-9]{12}");
   }
   
-  protected RemoteWebElement getElement(String elemIdOrSelector) {
+  public RemoteWebElement getElement(String elemIdOrSelector) {
     return getElement(elemIdOrSelector, true);
   }
   

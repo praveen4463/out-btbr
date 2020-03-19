@@ -1,4 +1,4 @@
-package com.zylitics.btbr.webdriver.functions.elements.interaction.keys;
+package com.zylitics.btbr.webdriver.functions.cookies;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
@@ -8,31 +8,30 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.PrintStream;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Supplier;
 
-public class Type extends AbstractWebdriverFunction {
+public class DeleteCookie extends AbstractWebdriverFunction {
   
-  public Type(APICoreProperties.Webdriver wdProps,
-                BuildCapability buildCapability,
-                RemoteWebDriver driver,
-                PrintStream printStream) {
+  public DeleteCookie(APICoreProperties.Webdriver wdProps,
+                   BuildCapability buildCapability,
+                   RemoteWebDriver driver,
+                   PrintStream printStream) {
     super(wdProps, buildCapability, driver, printStream);
   }
   
   @Override
   public String getName() {
-    return "type";
+    return "deleteCookie";
   }
   
   @Override
   public int minParamsCount() {
-    return 2;
+    return 1;
   }
   
   @Override
   public int maxParamsCount() {
-    return Integer.MAX_VALUE;
+    return 1;
   }
   
   @Override
@@ -40,15 +39,12 @@ public class Type extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(onlyCommandUpdateText());
     int argsCount = args.size();
+    writeCommandUpdate(withArgsCommandUpdateText(args));
     
-    if (argsCount >= 2) {
-      String elemIdOrSelector = tryCastString(0, args.get(0));
-      String[] keys = args.subList(1, argsCount)
-          .stream().map(Objects::toString).toArray(String[]::new);
+    if (argsCount == 1) {
       return handleWDExceptions(() -> {
-        getElement(elemIdOrSelector).sendKeys(keys);
+        options.deleteCookieNamed(tryCastString(0, args.get(0)));
         return _void;
       });
     }

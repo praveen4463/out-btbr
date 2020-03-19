@@ -11,23 +11,23 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public class Type extends AbstractWebdriverFunction {
+public class TypeActive extends AbstractWebdriverFunction {
   
-  public Type(APICoreProperties.Webdriver wdProps,
-                BuildCapability buildCapability,
-                RemoteWebDriver driver,
-                PrintStream printStream) {
+  public TypeActive(APICoreProperties.Webdriver wdProps,
+              BuildCapability buildCapability,
+              RemoteWebDriver driver,
+              PrintStream printStream) {
     super(wdProps, buildCapability, driver, printStream);
   }
   
   @Override
   public String getName() {
-    return "type";
+    return "typeActive";
   }
   
   @Override
   public int minParamsCount() {
-    return 2;
+    return 1;
   }
   
   @Override
@@ -43,12 +43,10 @@ public class Type extends AbstractWebdriverFunction {
     writeCommandUpdate(onlyCommandUpdateText());
     int argsCount = args.size();
     
-    if (argsCount >= 2) {
-      String elemIdOrSelector = tryCastString(0, args.get(0));
-      String[] keys = args.subList(1, argsCount)
-          .stream().map(Objects::toString).toArray(String[]::new);
+    if (argsCount >= 1) {
+      String[] keys = args.stream().map(Objects::toString).toArray(String[]::new);
       return handleWDExceptions(() -> {
-        getElement(elemIdOrSelector).sendKeys(keys);
+        targetLocator.activeElement().sendKeys(keys);
         return _void;
       });
     }

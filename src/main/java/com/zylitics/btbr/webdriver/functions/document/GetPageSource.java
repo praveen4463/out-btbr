@@ -1,4 +1,4 @@
-package com.zylitics.btbr.webdriver.functions.elements.interaction.keys;
+package com.zylitics.btbr.webdriver.functions.document;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
@@ -8,12 +8,11 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.PrintStream;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Supplier;
 
-public class Type extends AbstractWebdriverFunction {
+public class GetPageSource extends AbstractWebdriverFunction {
   
-  public Type(APICoreProperties.Webdriver wdProps,
+  public GetPageSource(APICoreProperties.Webdriver wdProps,
                 BuildCapability buildCapability,
                 RemoteWebDriver driver,
                 PrintStream printStream) {
@@ -22,17 +21,17 @@ public class Type extends AbstractWebdriverFunction {
   
   @Override
   public String getName() {
-    return "type";
+    return "getPageSource";
   }
   
   @Override
   public int minParamsCount() {
-    return 2;
+    return 0;
   }
   
   @Override
   public int maxParamsCount() {
-    return Integer.MAX_VALUE;
+    return 0;
   }
   
   @Override
@@ -40,19 +39,7 @@ public class Type extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(onlyCommandUpdateText());
-    int argsCount = args.size();
-    
-    if (argsCount >= 2) {
-      String elemIdOrSelector = tryCastString(0, args.get(0));
-      String[] keys = args.subList(1, argsCount)
-          .stream().map(Objects::toString).toArray(String[]::new);
-      return handleWDExceptions(() -> {
-        getElement(elemIdOrSelector).sendKeys(keys);
-        return _void;
-      });
-    }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    writeCommandUpdate(withArgsCommandUpdateText(args));
+    return handleWDExceptions(() -> tryGetStringZwlValue(driver.getPageSource()));
   }
 }

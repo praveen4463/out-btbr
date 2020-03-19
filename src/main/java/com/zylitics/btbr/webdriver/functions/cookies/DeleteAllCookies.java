@@ -1,4 +1,4 @@
-package com.zylitics.btbr.webdriver.functions.elements.interaction.keys;
+package com.zylitics.btbr.webdriver.functions.cookies;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
@@ -10,28 +10,28 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class TypeIntoElements extends AbstractWebdriverFunction {
+public class DeleteAllCookies extends AbstractWebdriverFunction {
   
-  public TypeIntoElements(APICoreProperties.Webdriver wdProps,
-                          BuildCapability buildCapability,
-                          RemoteWebDriver driver,
-                          PrintStream printStream) {
+  public DeleteAllCookies(APICoreProperties.Webdriver wdProps,
+                      BuildCapability buildCapability,
+                      RemoteWebDriver driver,
+                      PrintStream printStream) {
     super(wdProps, buildCapability, driver, printStream);
   }
   
   @Override
   public String getName() {
-    return "typeIntoElements";
+    return "deleteAllCookies";
   }
   
   @Override
   public int minParamsCount() {
-    return 2;
+    return 0;
   }
   
   @Override
   public int maxParamsCount() {
-    return Integer.MAX_VALUE;
+    return 0;
   }
   
   @Override
@@ -40,16 +40,10 @@ public class TypeIntoElements extends AbstractWebdriverFunction {
     super.invoke(args, defaultValue, lineNColumn);
     
     writeCommandUpdate(onlyCommandUpdateText());
-    int argsCount = args.size();
-    
-    if (argsCount >= 2) {
-      String text = args.get(0).toString();
-      return handleWDExceptions(() -> {
-        getElementsUnderstandingArgs(args.subList(1, argsCount)).forEach(e -> e.sendKeys(text));
-        return _void;
-      });
-    }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+  
+    return handleWDExceptions(() -> {
+      options.deleteAllCookies();
+      return _void;
+    });
   }
 }

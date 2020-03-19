@@ -62,7 +62,7 @@ public class SetFiles extends AbstractWebdriverFunction {
     
     if (argsCount >= 2) {
       RemoteWebElement element = getElement(tryCastString(0, args.get(0)));
-      Set<String> filesOnCloud = args.subList(1, args.size() - 1)
+      Set<String> filesOnCloud = args.subList(1, args.size())
           .stream().map(Objects::toString).collect(Collectors.toSet());
       // don't cast to string, may be possible the file is named like 322323 with no extension and
       // user sent it that way.

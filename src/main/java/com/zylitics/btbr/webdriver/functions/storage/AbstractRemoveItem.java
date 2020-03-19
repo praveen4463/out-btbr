@@ -1,38 +1,32 @@
-package com.zylitics.btbr.webdriver.functions.elements.interaction.keys;
+package com.zylitics.btbr.webdriver.functions.storage;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
-import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
+import com.zylitics.zwl.datatype.NothingZwlValue;
 import com.zylitics.zwl.datatype.ZwlValue;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.PrintStream;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Supplier;
 
-public class Type extends AbstractWebdriverFunction {
+public abstract class AbstractRemoveItem extends AbstractStorage {
   
-  public Type(APICoreProperties.Webdriver wdProps,
-                BuildCapability buildCapability,
-                RemoteWebDriver driver,
-                PrintStream printStream) {
+  public AbstractRemoveItem(APICoreProperties.Webdriver wdProps,
+                         BuildCapability buildCapability,
+                         RemoteWebDriver driver,
+                         PrintStream printStream) {
     super(wdProps, buildCapability, driver, printStream);
   }
   
   @Override
-  public String getName() {
-    return "type";
-  }
-  
-  @Override
   public int minParamsCount() {
-    return 2;
+    return 1;
   }
   
   @Override
   public int maxParamsCount() {
-    return Integer.MAX_VALUE;
+    return 1;
   }
   
   @Override
@@ -40,19 +34,23 @@ public class Type extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(onlyCommandUpdateText());
-    int argsCount = args.size();
+    if (localStorage == null || sessionStorage == null) {
+      printNoStorageMsg();
+      return new NothingZwlValue();
+    }
     
-    if (argsCount >= 2) {
-      String elemIdOrSelector = tryCastString(0, args.get(0));
-      String[] keys = args.subList(1, argsCount)
-          .stream().map(Objects::toString).toArray(String[]::new);
+    int argsCount = args.size();
+    writeCommandUpdate(withArgsCommandUpdateText(args));
+    
+    if (argsCount == 1) {
       return handleWDExceptions(() -> {
-        getElement(elemIdOrSelector).sendKeys(keys);
+        remove(tryCastString(0, args.get(0)));
         return _void;
       });
     }
     
     throw unexpectedEndOfFunctionOverload(argsCount);
   }
+  
+  protected abstract void remove(String key);
 }

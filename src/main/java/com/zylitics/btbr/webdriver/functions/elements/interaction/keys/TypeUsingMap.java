@@ -8,31 +8,31 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.PrintStream;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.function.Supplier;
 
-public class Type extends AbstractWebdriverFunction {
+public class TypeUsingMap extends AbstractWebdriverFunction {
   
-  public Type(APICoreProperties.Webdriver wdProps,
-                BuildCapability buildCapability,
-                RemoteWebDriver driver,
-                PrintStream printStream) {
+  public TypeUsingMap(APICoreProperties.Webdriver wdProps,
+              BuildCapability buildCapability,
+              RemoteWebDriver driver,
+              PrintStream printStream) {
     super(wdProps, buildCapability, driver, printStream);
   }
   
   @Override
   public String getName() {
-    return "type";
+    return "typeUsingMap";
   }
   
   @Override
   public int minParamsCount() {
-    return 2;
+    return 1;
   }
   
   @Override
   public int maxParamsCount() {
-    return Integer.MAX_VALUE;
+    return 1;
   }
   
   @Override
@@ -43,12 +43,10 @@ public class Type extends AbstractWebdriverFunction {
     writeCommandUpdate(onlyCommandUpdateText());
     int argsCount = args.size();
     
-    if (argsCount >= 2) {
-      String elemIdOrSelector = tryCastString(0, args.get(0));
-      String[] keys = args.subList(1, argsCount)
-          .stream().map(Objects::toString).toArray(String[]::new);
+    if (argsCount == 1) {
+      Map<String, ZwlValue> m = tryCastMap(0, args.get(0));
       return handleWDExceptions(() -> {
-        getElement(elemIdOrSelector).sendKeys(keys);
+        m.forEach((k, v) -> getElement(k).sendKeys(v.toString()));
         return _void;
       });
     }

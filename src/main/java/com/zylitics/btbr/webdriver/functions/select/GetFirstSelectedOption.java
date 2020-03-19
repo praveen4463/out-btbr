@@ -1,38 +1,40 @@
-package com.zylitics.btbr.webdriver.functions.elements.interaction.keys;
+package com.zylitics.btbr.webdriver.functions.select;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.ZwlValue;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.RemoteWebElement;
+import org.openqa.selenium.support.ui.Select;
 
 import java.io.PrintStream;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Supplier;
 
-public class Type extends AbstractWebdriverFunction {
+public class GetFirstSelectedOption extends AbstractWebdriverFunction {
   
-  public Type(APICoreProperties.Webdriver wdProps,
-                BuildCapability buildCapability,
-                RemoteWebDriver driver,
-                PrintStream printStream) {
+  public GetFirstSelectedOption(APICoreProperties.Webdriver wdProps,
+                            BuildCapability buildCapability,
+                            RemoteWebDriver driver,
+                            PrintStream printStream) {
     super(wdProps, buildCapability, driver, printStream);
   }
   
   @Override
   public String getName() {
-    return "type";
+    return "getFirstSelectedOption";
   }
   
   @Override
   public int minParamsCount() {
-    return 2;
+    return 1;
   }
   
   @Override
   public int maxParamsCount() {
-    return Integer.MAX_VALUE;
+    return 1;
   }
   
   @Override
@@ -40,17 +42,13 @@ public class Type extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(onlyCommandUpdateText());
+    writeCommandUpdate(withArgsCommandUpdateText(args));
     int argsCount = args.size();
     
-    if (argsCount >= 2) {
+    if (argsCount == 1) {
       String elemIdOrSelector = tryCastString(0, args.get(0));
-      String[] keys = args.subList(1, argsCount)
-          .stream().map(Objects::toString).toArray(String[]::new);
-      return handleWDExceptions(() -> {
-        getElement(elemIdOrSelector).sendKeys(keys);
-        return _void;
-      });
+      WebElement option = new Select(getElement(elemIdOrSelector)).getFirstSelectedOption();
+      return convertIntoZwlElemId((RemoteWebElement) option);
     }
     
     throw unexpectedEndOfFunctionOverload(argsCount);
