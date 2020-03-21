@@ -22,8 +22,9 @@ public class SetElementAccessTimeout extends Timeouts {
   
   @Override
   protected void setTimeout(int timeout) {
-    // build caps are created per build, thus we can overwrite directly. Rest of the build will
-    // work using this timeout setting.
+    // build caps are created per build and all functions are instantiated using the same instance,
+    // when we overwrite a setting, it will be seen by all function instance thus, Rest of the build
+    // will work using this timeout setting.
     buildCapability.setWdTimeoutsElementAccess(timeout);
   }
 }

@@ -34,6 +34,9 @@ import java.util.stream.Collectors;
  * 2. each function should invoke webdriver related methods within handleWDExceptions context so
  *    that any webdriver exception could be wrapped inside ZwlLangException which is what Zwl
  *    expect, all other exceptions are treated as system related exceptions and not relayed to user.
+ * 3. Any implementing function may save state but that will remain same for the lifetime of the
+      build, if that function is used further in build, the same state will be used because
+      functions are instantiated only once per build.
  */
 public abstract class AbstractWebdriverFunction extends AbstractFunction {
   
@@ -181,6 +184,7 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
   }
   
   protected RemoteWebElement findElement(SearchContext ctx, String cssSelector, boolean wait) {
+    // findElement throws exception when no element is found
     Supplier<RemoteWebElement> s = () ->
         (RemoteWebElement) ctx.findElement(By.cssSelector(cssSelector));
     return waitOrNot(s, wait);
@@ -188,15 +192,23 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
   
   protected List<RemoteWebElement> findElements(SearchContext ctx, String cssSelector,
                                                 boolean wait) {
-    Supplier<List<RemoteWebElement>> s = () ->
-        ctx.findElements(By.cssSelector(cssSelector)).stream()
-        .map(e -> (RemoteWebElement) e).collect(Collectors.toList());
+    // findElements don't throw exception rather sends an empty list.
+    Supplier<List<RemoteWebElement>> s = () -> {
+      List<WebElement> elements = ctx.findElements(By.cssSelector(cssSelector));
+      if (elements.size() == 0 && wait) {
+        return null; // so that Wait can continue waiting
+      }
+      return elements.stream().map(e -> (RemoteWebElement) e).collect(Collectors.toList());
+    };
     return waitOrNot(s, wait);
   }
   
   private <T> T waitOrNot(Supplier<T> s, boolean wait) {
     if (wait) {
-      return getElementAccessWait().until(d -> s.get());
+      // create new instance every time to prevent any threading issue in future.
+      WebDriverWait elementAccessWait =
+          new WebDriverWait(driver, Duration.ofMillis(getElementAccessTimeout()));
+      return elementAccessWait.until(d -> s.get());
     }
     return s.get();
   }
@@ -210,16 +222,16 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
         .map(this::convertIntoZwlElemId).collect(Collectors.toList()));
   }
   
-  protected WebDriverWait getElementAccessWait() {
+  protected NoSuchElementException getNoSuchElementException(String selector) {
+    return new NoSuchElementException("Cannot locate an element using " + selector);
+  }
+  
+  // don't store as global variable because timeout may be updated during build.
+  protected int getElementAccessTimeout() {
     int timeout = buildCapability.getWdTimeoutsElementAccess();
     if (timeout == 0) {
       timeout = wdProps.getDefaultTimeoutElementAccess();
     }
-    
-    return new WebDriverWait(driver, Duration.ofMillis(timeout));
-  }
-  
-  protected NoSuchElementException getNoSuchElementException(String selector) {
-    return new NoSuchElementException("Cannot locate an element using " + selector);
+    return timeout;
   }
 }

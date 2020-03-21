@@ -15,28 +15,22 @@ import java.util.function.Supplier;
 
 public abstract class AbstractStorage extends AbstractWebdriverFunction {
   
+  final LocalStorage localStorage;
+  
+  final SessionStorage sessionStorage;
+  
   public AbstractStorage(APICoreProperties.Webdriver wdProps,
                        BuildCapability buildCapability,
                        RemoteWebDriver driver,
                        PrintStream printStream) {
     super(wdProps, buildCapability, driver, printStream);
-  }
   
-  LocalStorage localStorage;
-  
-  SessionStorage sessionStorage;
-  
-  @Override
-  public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
-                         Supplier<String> lineNColumn) {
-    super.invoke(args, defaultValue, lineNColumn);
-    
+    WebStorage storage = null;
     if (driver instanceof WebStorage) {
-      WebStorage storage = (WebStorage) driver;
-      localStorage = storage.getLocalStorage();
-      sessionStorage = storage.getSessionStorage();
+      storage = (WebStorage) driver;
     }
-    return _void;
+    localStorage = storage != null ? storage.getLocalStorage() : null;
+    sessionStorage = storage != null ? storage.getSessionStorage() : null;
   }
   
   void printNoStorageMsg() {
