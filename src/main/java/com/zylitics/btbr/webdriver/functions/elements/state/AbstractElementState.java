@@ -36,16 +36,12 @@ public abstract class AbstractElementState extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
   
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    int argsCount = args.size();
-    
-    if (argsCount == 1) {
-      String elemIdOrSelector = tryCastString(0, args.get(0));
-      return handleWDExceptions(() ->
-          new BooleanZwlValue(checkState(getElement(elemIdOrSelector))));
+    if (args.size() == 0) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    String elemIdOrSelector = tryCastString(0, args.get(0));
+    return handleWDExceptions(() ->
+        new BooleanZwlValue(checkState(getElement(elemIdOrSelector))));
   }
   
   protected abstract boolean checkState(RemoteWebElement element);

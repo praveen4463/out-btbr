@@ -39,16 +39,12 @@ public class SendAlertText extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    int argsCount = args.size();
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    
-    if (argsCount == 1) {
-      return handleWDExceptions(() -> {
-        targetLocator.alert().sendKeys(args.get(0).toString());
-        return _void;
-      });
+    if (args.size() == 0) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    return handleWDExceptions(() -> {
+      targetLocator.alert().sendKeys(args.get(0).toString());
+      return _void;
+    });
   }
 }

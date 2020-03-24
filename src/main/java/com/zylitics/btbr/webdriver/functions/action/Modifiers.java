@@ -6,10 +6,10 @@ import org.openqa.selenium.Keys;
  * Lists the numeric code points of modifier keys, code can also be get using
  * {@link Keys#getCodePoint()}
  */
-public class Modifiers {
+public interface Modifiers {
   
-  public static final int SHIFT = 57352;
-  public static final int ALT = 57354;
-  public static final int CONTROL = 57353;
-  public static final int COMMAND = 57405;
+  int SHIFT = 57352;
+  int ALT = 57354;
+  int CONTROL = 57353;
+  int COMMAND = 57405;
 }

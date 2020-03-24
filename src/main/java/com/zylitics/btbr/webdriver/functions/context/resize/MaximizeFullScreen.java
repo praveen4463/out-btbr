@@ -34,7 +34,6 @@ public abstract class MaximizeFullScreen extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     return handleWDExceptions(() -> {
       operation();
       return _void;

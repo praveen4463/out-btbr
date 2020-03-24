@@ -19,7 +19,7 @@ public class ClearAll extends MultiClickClear {
   
   @Override
   public String getName() {
-    return "clickAll";
+    return "clearAll";
   }
   
   @Override

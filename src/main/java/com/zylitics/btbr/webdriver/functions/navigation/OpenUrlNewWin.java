@@ -39,20 +39,13 @@ public class OpenUrlNewWin extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    int argsCount = args.size();
-    
-    if (argsCount == 2) {
-      return execute(tryCastString(0, args.get(0)), tryCastString(1, args.get(1)));
+    if (args.size() < 2) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
-  }
-  
-  private ZwlValue execute(String winType, String url) {
     return handleWDExceptions(() -> {
-      targetLocator.newWindow(parseWindowType(winType)); // control is returned after the switch
-      driver.get(url); // we've switched, now open url
+      // control is returned after the switch
+      targetLocator.newWindow(parseWindowType(tryCastString(0, args.get(0))));
+      driver.get(tryCastString(1, args.get(1))); // we've switched, now open url
       return _void;
     });
   }

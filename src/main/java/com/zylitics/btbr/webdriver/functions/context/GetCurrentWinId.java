@@ -39,7 +39,6 @@ public class GetCurrentWinId extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     return handleWDExceptions(() -> tryGetStringZwlValue(driver.getWindowHandle()));
   }
 }

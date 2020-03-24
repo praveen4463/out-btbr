@@ -40,17 +40,13 @@ public class TypeUsingMap extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(onlyCommandUpdateText());
-    int argsCount = args.size();
-    
-    if (argsCount == 1) {
-      Map<String, ZwlValue> m = tryCastMap(0, args.get(0));
-      return handleWDExceptions(() -> {
-        m.forEach((k, v) -> getElement(k).sendKeys(v.toString()));
-        return _void;
-      });
+    if (args.size() == 0) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    Map<String, ZwlValue> m = tryCastMap(0, args.get(0));
+    return handleWDExceptions(() -> {
+      m.forEach((k, v) -> getElement(k).sendKeys(v.toString()));
+      return _void;
+    });
   }
 }

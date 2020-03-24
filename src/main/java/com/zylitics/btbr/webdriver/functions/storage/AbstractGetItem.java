@@ -39,14 +39,10 @@ public abstract class AbstractGetItem extends AbstractStorage {
       return new NothingZwlValue();
     }
     
-    int argsCount = args.size();
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    
-    if (argsCount == 1) {
-      return tryGetStringZwlValue(handleWDExceptions(() -> get(tryCastString(0, args.get(0)))));
+    if (args.size() == 0) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    return tryGetStringZwlValue(handleWDExceptions(() -> get(tryCastString(0, args.get(0)))));
   }
   
   protected abstract String get(String key);

@@ -39,17 +39,13 @@ public abstract class AbstractRemoveItem extends AbstractStorage {
       return new NothingZwlValue();
     }
     
-    int argsCount = args.size();
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    
-    if (argsCount == 1) {
-      return handleWDExceptions(() -> {
-        remove(tryCastString(0, args.get(0)));
-        return _void;
-      });
+    if (args.size() == 0) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    return handleWDExceptions(() -> {
+      remove(tryCastString(0, args.get(0)));
+      return _void;
+    });
   }
   
   protected abstract void remove(String key);

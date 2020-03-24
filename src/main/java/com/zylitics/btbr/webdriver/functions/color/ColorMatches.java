@@ -41,15 +41,11 @@ public class ColorMatches extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    int argsCount = args.size();
-    
-    if (argsCount == 2) {
-      Color color1 = Color.fromString(tryCastString(0, args.get(0)));
-      Color color2 = Color.fromString(tryCastString(1, args.get(1)));
-      return new BooleanZwlValue(color1.equals(color2));
+    if (args.size() != 2) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    Color color1 = Color.fromString(tryCastString(0, args.get(0)));
+    Color color2 = Color.fromString(tryCastString(1, args.get(1)));
+    return new BooleanZwlValue(color1.equals(color2));
   }
 }

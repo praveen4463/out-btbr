@@ -37,16 +37,12 @@ public abstract class AbstractElementProperty extends AbstractWebdriverFunction 
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
   
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    int argsCount = args.size();
-    
-    if (argsCount == 1) {
-      String elemIdOrSelector = tryCastString(0, args.get(0));
-      String text = handleWDExceptions(() -> getProperty(getElement(elemIdOrSelector)));
-      return tryGetStringZwlValue(text);
+    if (args.size() == 0) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    String elemIdOrSelector = tryCastString(0, args.get(0));
+    String text = handleWDExceptions(() -> getProperty(getElement(elemIdOrSelector)));
+    return tryGetStringZwlValue(text);
   }
   
   protected abstract String getProperty(RemoteWebElement element);

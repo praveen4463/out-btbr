@@ -25,16 +25,12 @@ public abstract class AbstractTitleUrl extends AbstractUntilExpectation {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
   
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    int argsCount = args.size();
-    
-    if (argsCount == 1) {
-      String s = tryCastString(0, args.get(0));
-      return handleWDExceptions(() ->
-          new BooleanZwlValue(getWait(TimeoutType.PAGE_LOAD).until(condition(s))));
+    if (args.size() != 1) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    String s = tryCastString(0, args.get(0));
+    return handleWDExceptions(() ->
+        new BooleanZwlValue(getWait(TimeoutType.PAGE_LOAD).until(condition(s))));
   }
   
   abstract ExpectedCondition<Boolean> condition(String s);

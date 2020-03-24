@@ -7,13 +7,18 @@ import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.ZwlValue;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 
 public class CaptureElementScreenshot extends AbstractWebdriverFunction {
+  
+  private static final Logger LOG = LoggerFactory.getLogger(CaptureElementScreenshot.class);
   
   public CaptureElementScreenshot(APICoreProperties.Webdriver wdProps,
                                        BuildCapability buildCapability,
@@ -42,30 +47,24 @@ public class CaptureElementScreenshot extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
   
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     int argsCount = args.size();
-    
-    if (argsCount >= 1 && argsCount <= 2) {
-      return execute(args);
+    if (argsCount == 0) {
+      throw unexpectedEndOfFunctionOverload(argsCount);
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
-  }
-  
-  private ZwlValue execute(List<ZwlValue> args) {
     String elemIdOrSelector = tryCastString(0, args.get(0));
-    String fileName = null;
-    if (args.size() == 2) {
-      fileName = args.get(1).toString();
-    }
-    if (fileName == null) {
-      fileName = UUID.randomUUID().toString();
-    }
+    String fileName = argsCount == 2 ? args.get(1).toString() : UUID.randomUUID().toString();
     byte[] screenshot =
         handleWDExceptions(() -> getElement(elemIdOrSelector).getScreenshotAs(OutputType.BYTES));
     // Rather than directly uploading to cloud, write locally and push all after the end of build
     // so that test execution don't delay, as we don't need to show these shots to user during build
-    IOUtil.write(screenshot, fileName, wdProps.getElementShotDir()); // doesn't throws if failed.
+    try {
+      IOUtil.write(screenshot, fileName, wdProps.getElementShotDir()); // doesn't throws if failed.
+    } catch (IOException io) {
+      writeBuildOutput("WARNING: " + getName() + " took the screenshot but it couldn't be saved" +
+          " due to some internal error, your build will continue and won't fail. We will be" +
+          " fixing it real quick.");
+      LOG.error(io.getMessage(), io);
+    }
     return _void;
   }
 }

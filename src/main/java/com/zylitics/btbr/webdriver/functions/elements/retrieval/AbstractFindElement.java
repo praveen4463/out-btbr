@@ -34,15 +34,12 @@ public abstract class AbstractFindElement extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     int argsCount = args.size();
-    
-    if (argsCount >= 1 && argsCount <= 2) {
-      boolean noWait = argsCount == 2 ? parseBoolean(1, args.get(1)) : false;
-      return handleWDExceptions(() -> find(tryCastString(0, args.get(0)), !noWait));
+    if (argsCount == 0) {
+      throw unexpectedEndOfFunctionOverload(argsCount);
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    boolean noWait = argsCount == 2 ? parseBoolean(1, args.get(1)) : false;
+    return handleWDExceptions(() -> find(tryCastString(0, args.get(0)), !noWait));
   }
   
   protected abstract ZwlValue find(String selector, boolean wait);

@@ -40,7 +40,6 @@ public abstract class AbstractGetKeySet extends AbstractStorage {
       return new NothingZwlValue();
     }
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     Set<String> keySet = handleWDExceptions(this::get);
     if (keySet == null) {
       return new NothingZwlValue();

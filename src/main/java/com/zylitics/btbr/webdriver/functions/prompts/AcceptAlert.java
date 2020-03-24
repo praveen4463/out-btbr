@@ -22,6 +22,6 @@ public class AcceptAlert extends DismissAccept {
   
   @Override
   protected void alertOperation() {
-    targetLocator.alert().dismiss();
+    targetLocator.alert().accept();
   }
 }

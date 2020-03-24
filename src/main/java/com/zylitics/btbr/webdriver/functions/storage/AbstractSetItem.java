@@ -39,17 +39,13 @@ public abstract class AbstractSetItem extends AbstractStorage {
       return new NothingZwlValue();
     }
     
-    int argsCount = args.size();
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    
-    if (argsCount == 2) {
-      return handleWDExceptions(() -> {
-        set(tryCastString(0, args.get(0)), tryCastString(1, args.get(1)));
-        return _void;
-      });
+    if (args.size() < 2) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    return handleWDExceptions(() -> {
+      set(tryCastString(0, args.get(0)), tryCastString(1, args.get(1)));
+      return _void;
+    });
   }
   
   protected abstract void set(String key, String value);

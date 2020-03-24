@@ -36,15 +36,11 @@ public abstract class AbstractMultiElementState extends AbstractWebdriverFunctio
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(onlyCommandUpdateText());
-    int argsCount = args.size();
-    
-    if (argsCount >= 1) {
-      return handleWDExceptions(() ->
-          new BooleanZwlValue(stateCheck(getElementsUnderstandingArgs(args))));
+    if (args.size() == 0) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    return handleWDExceptions(() ->
+        new BooleanZwlValue(stateCheck(getElementsUnderstandingArgs(args))));
   }
   
   protected abstract boolean stateCheck(List<RemoteWebElement> elements);

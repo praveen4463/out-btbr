@@ -34,8 +34,6 @@ public abstract class DismissAccept extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(onlyCommandUpdateText());
-    
     return handleWDExceptions(() -> {
       alertOperation();
       return _void;

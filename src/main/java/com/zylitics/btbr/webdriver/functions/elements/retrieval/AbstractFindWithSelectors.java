@@ -36,30 +36,21 @@ public abstract class AbstractFindWithSelectors extends AbstractWebdriverFunctio
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(onlyCommandUpdateText());
-    int argsCount = args.size();
-    
-    if (argsCount >= 1) {
-      return handleWDExceptions(() -> execute(args));
-    }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
-  }
-  
-  private ZwlValue execute(List<ZwlValue> args) {
-    if (args.size() == 0) {
-      return new NothingZwlValue();
-    }
-    RuntimeException lastException = null;
-    for (int i = 0; i < args.size(); i++) {
-      String selector = tryCastString(i, args.get(i));
-      try {
-        return find(selector, false);
-      } catch (NoSuchElementException ne) {
-        lastException = ne;
+    return handleWDExceptions(() -> {
+      if (args.size() == 0) {
+        throw unexpectedEndOfFunctionOverload(args.size());
       }
-    }
-    throw lastException;
+      RuntimeException lastException = null;
+      for (int i = 0; i < args.size(); i++) {
+        String selector = tryCastString(i, args.get(i));
+        try {
+          return find(selector, false);
+        } catch (NoSuchElementException ne) {
+          lastException = ne;
+        }
+      }
+      throw lastException;
+    });
   }
   
   protected abstract ZwlValue find(String selector, boolean wait);

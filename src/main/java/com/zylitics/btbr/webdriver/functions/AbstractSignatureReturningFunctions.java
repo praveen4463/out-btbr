@@ -22,7 +22,7 @@ import java.util.function.Supplier;
  */
 public abstract class AbstractSignatureReturningFunctions extends AbstractFunction {
   
-  // Most functions may not take any argument.
+  // Most functions may not take any argument, those that take will override.
   @Override
   public int minParamsCount() {
     return 0;

@@ -4,9 +4,9 @@ import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.io.PrintStream;
+import java.util.regex.Pattern;
 
 public class UntilUrlLike extends AbstractTitleUrl {
   
@@ -24,6 +24,9 @@ public class UntilUrlLike extends AbstractTitleUrl {
   
   @Override
   ExpectedCondition<Boolean> condition(String s) {
-    return ExpectedConditions.urlMatches(s);
+    return d -> {
+      Pattern p = getPattern(s);
+      return p.matcher(driver.getCurrentUrl()).find();
+    };
   }
 }

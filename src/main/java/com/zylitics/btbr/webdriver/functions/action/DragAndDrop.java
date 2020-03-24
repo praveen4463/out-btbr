@@ -40,7 +40,6 @@ public class DragAndDrop extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     int argsCount = args.size();
     
     Actions actions = new Actions(driver);

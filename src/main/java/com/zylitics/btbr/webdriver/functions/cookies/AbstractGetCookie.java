@@ -23,14 +23,14 @@ public abstract class AbstractGetCookie extends AbstractWebdriverFunction {
   }
   
   Map<String, ZwlValue> cookieToZwlMap(Cookie c) {
-    Preconditions.checkNotNull(c);
+    Preconditions.checkNotNull(c, "Cookie can't be null");
     
     Map<String, ZwlValue> m = new HashMap<>();
     m.put("name", new StringZwlValue(c.getName()));
     m.put("value", new StringZwlValue(c.getValue()));
     m.put("domain",
         c.getDomain() != null ? new StringZwlValue(c.getDomain()) : new NothingZwlValue());
-    m.put("path", new StringZwlValue(c.getValue())); // path is default set when null
+    m.put("path", new StringZwlValue(c.getPath())); // path is default set when null
     ZwlValue expiry = new NothingZwlValue();
       /*
       Normally a user would send a date as expiry date and the same date is returned when getting

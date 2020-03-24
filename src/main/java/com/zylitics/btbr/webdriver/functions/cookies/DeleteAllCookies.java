@@ -38,8 +38,6 @@ public class DeleteAllCookies extends AbstractWebdriverFunction {
   public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
-    
-    writeCommandUpdate(onlyCommandUpdateText());
   
     return handleWDExceptions(() -> {
       options.deleteAllCookies();

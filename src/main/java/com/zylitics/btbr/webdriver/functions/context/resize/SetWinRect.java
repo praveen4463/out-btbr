@@ -3,7 +3,6 @@ package com.zylitics.btbr.webdriver.functions.context.resize;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
-import com.zylitics.zwl.datatype.MapZwlValue;
 import com.zylitics.zwl.datatype.ZwlValue;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
@@ -35,17 +34,13 @@ public abstract class SetWinRect extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    int argsCount = args.size();
-  
-    if (argsCount == 2) {
-      return handleWDExceptions(() -> {
-        set(parseDouble(0, args.get(0)).intValue(), parseDouble(1, args.get(1)).intValue());
-        return _void;
-      });
+    if (args.size() != 2) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-  
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    return handleWDExceptions(() -> {
+      set(parseDouble(0, args.get(0)).intValue(), parseDouble(1, args.get(1)).intValue());
+      return _void;
+    });
   }
   
   protected abstract void set(int a, int b);

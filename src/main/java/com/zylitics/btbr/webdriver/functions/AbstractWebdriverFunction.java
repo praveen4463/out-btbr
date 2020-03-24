@@ -3,10 +3,8 @@ package com.zylitics.btbr.webdriver.functions;
 import com.google.api.client.util.Preconditions;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
-import com.zylitics.zwl.datatype.ListZwlValue;
-import com.zylitics.zwl.datatype.NothingZwlValue;
-import com.zylitics.zwl.datatype.StringZwlValue;
-import com.zylitics.zwl.datatype.ZwlValue;
+import com.zylitics.btbr.util.CollectionUtil;
+import com.zylitics.zwl.datatype.*;
 import com.zylitics.zwl.exception.ZwlLangException;
 import com.zylitics.zwl.function.AbstractFunction;
 import org.openqa.selenium.*;
@@ -16,27 +14,21 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.PrintStream;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /*
  * Important consideration for webdriver functions:
- * 1. each function sends command run update to user, every function should invoke
- *    writeCommandUpdate method and use the appropriate method for sending a text. For example
- *    If the arguments accepted by function are not too big, we should print the argument else
- *    we should just let the function name printed for user, in some situations a custom message
- *    can also be printed, such as showing warning.
- * 2. each function should invoke webdriver related methods within handleWDExceptions context so
+ * 1. each function should invoke webdriver related methods within handleWDExceptions context so
  *    that any webdriver exception could be wrapped inside ZwlLangException which is what Zwl
  *    expect, all other exceptions are treated as system related exceptions and not relayed to user.
- * 3. Any implementing function may save state but that will remain same for the lifetime of the
+ * 2. Any implementing function may save state but that will remain same for the lifetime of the
       build, if that function is used further in build, the same state will be used because
-      functions are instantiated only once per build.
+      functions are instantiated only once per build. Thus seldom use state, if you really have to,
+      don't forget to reset it on each invocation of the same function.
  */
 public abstract class AbstractWebdriverFunction extends AbstractFunction {
   
@@ -73,6 +65,38 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
     targetLocator = driver.switchTo();
   }
   
+  @Override
+  public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
+                         Supplier<String> lineNColumn) {
+    super.invoke(args, defaultValue, lineNColumn);
+    
+    // write function execution update after invoking super's so we don't write for illegal calls
+    writeFunctionExecutionUpdate(args);
+    return _void;
+  }
+  
+  /**
+   * Writes function execution update as build output. This method should be overridden by functions
+   * that wish to write a custom function execution update.
+   * @param args arguments that function takes.
+   */
+  // we're going to add all the arguments if function takes any, and finally when it's going to
+  // be saved, runner should trim if it's too long, and if not it can remain intact.
+  protected void writeFunctionExecutionUpdate(List<ZwlValue> args) {
+    String toWrite = null;
+    if (args.size() == 0) {
+      toWrite = "Executing function " + getName();
+    } else {
+      toWrite = String.format("Executing function %s with arguments %s", getName(),
+          args.stream().map(Objects::toString).collect(Collectors.joining(",")));
+    }
+    writeBuildOutput(toWrite);
+  }
+  
+  protected void writeBuildOutput(String text) {
+    printStream.println(withLineNCol(text));
+  }
+  
   public <V> V handleWDExceptions(Callable<V> code) {
     try {
       return code.call();
@@ -82,22 +106,6 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
-  }
-  
-  protected void writeCommandUpdate(String text) {
-    printStream.println(withLineNCol(text));
-  }
-  
-  protected String withArgsCommandUpdateText(List<ZwlValue> args) {
-    if (args.size() == 0) {
-      return onlyCommandUpdateText();
-    }
-    return String.format("Executing command %s with arguments %s", getName(),
-        args.stream().map(Objects::toString).collect(Collectors.joining(",")));
-  }
-  
-  protected String onlyCommandUpdateText() {
-    return "Executing command " + getName();
   }
   
   protected ZwlValue tryGetStringZwlValue(String val) {
@@ -119,7 +127,6 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
     }
   }
   
-  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
   protected boolean isValidElemId(String elemId) {
     return elemId
         .matches("[a-zA-Z0-9]{8}-?[a-zA-Z0-9]{4}-?[a-zA-Z0-9]{4}-?[a-zA-Z0-9]{4}-?[a-zA-Z0-9]{12}");
@@ -130,11 +137,11 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
   }
   
   protected RemoteWebElement getElement(String elemIdOrSelector,
-                                        @SuppressWarnings("SameParameterValue") boolean wait) {
-    if (!isValidElemId(elemIdOrSelector)) {
-      return findElement(driver, elemIdOrSelector, wait);
+                                        boolean wait) {
+    if (isValidElemId(elemIdOrSelector)) {
+      return getWebElementUsingElemId(elemIdOrSelector);
     }
-    return getWebElementUsingElemId(elemIdOrSelector);
+    return findElement(driver, elemIdOrSelector, wait);
   }
   
   protected List<RemoteWebElement> getElements(List<String> elemIdsOrSelectors) {
@@ -144,7 +151,7 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
   protected List<RemoteWebElement> getElements(List<String> elemIdsOrSelectors,
                                                @SuppressWarnings("SameParameterValue") boolean wait) {
     return elemIdsOrSelectors.stream().map(s ->
-        !isValidElemId(s) ? findElement(driver, s, wait) : getWebElementUsingElemId(s))
+        isValidElemId(s) ? getWebElementUsingElemId(s) : findElement(driver, s, wait))
         .collect(Collectors.toList());
   }
   
@@ -159,24 +166,26 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
    */
   protected List<RemoteWebElement> getElementsUnderstandingArgs(List<ZwlValue> args) {
     Preconditions.checkArgument(args.size() > 0, "Expected at least one argument");
-    
-    if (args.size() > 1) {
-      // Following can't return empty list because each selector/elemId is evaluated separately,
-      // if a selector returns nothing, exception will be thrown
-      return getElements(args.stream().map(Objects::toString).collect(Collectors.toList()));
+  
+    if (args.size() == 1) {
+      // we got only one argument, it may be an elemId, but if not we expect it multi element
+      // selector.
+      String s = tryCastString(0, args.get(0));
+      if (!isValidElemId(s)) {
+        return findElements(driver, s, true);
+        // can't return empty because the wait doesn't let 0 sized result.
+      }
     }
-    // we got only one argument, try finding elementS from it.
-    String selector = tryCastString(0, args.get(0));
-    List<RemoteWebElement> elements = findElements(driver, selector, true);
-    // we must throw exception if the lone selector couldn't yield element(s) cause it's required
-    // we've some elements to perform the desired action.
-    if (elements.size() == 0) {
-      throw getNoSuchElementException(selector);
-    }
-    return elements;
+    // Following can't return empty list because each selector/elemId is evaluated separately,
+    // if a selector returns nothing, exception will be thrown
+    return getElements(args.stream().map(Objects::toString).collect(Collectors.toList()));
   }
   
   protected RemoteWebElement getWebElementUsingElemId(String elemId) {
+    if (!isValidElemId(elemId)) {
+      throw new ZwlLangException(new IllegalArgumentException(""),
+          withLineNCol("Given string " + elemId + " is not a valid elemId."));
+    }
     RemoteWebElement element = new RemoteWebElement();
     element.setParent(driver);
     element.setId(elemId);
@@ -196,7 +205,7 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
     Supplier<List<RemoteWebElement>> s = () -> {
       List<WebElement> elements = ctx.findElements(By.cssSelector(cssSelector));
       if (elements.size() == 0 && wait) {
-        return null; // so that Wait can continue waiting
+        return null; // so that Wait can continue waiting when nothing found.
       }
       return elements.stream().map(e -> (RemoteWebElement) e).collect(Collectors.toList());
     };
@@ -214,16 +223,18 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
   }
   
   protected ZwlValue convertIntoZwlElemId(RemoteWebElement remoteWebElement) {
+    if (remoteWebElement == null) {
+      return new NothingZwlValue();
+    }
     return new StringZwlValue(remoteWebElement.getId());
   }
   
   protected ZwlValue convertIntoZwlElemIds(List<RemoteWebElement> remoteWebElements) {
+    if (remoteWebElements == null) {
+      return new NothingZwlValue();
+    }
     return new ListZwlValue(remoteWebElements.stream()
         .map(this::convertIntoZwlElemId).collect(Collectors.toList()));
-  }
-  
-  protected NoSuchElementException getNoSuchElementException(String selector) {
-    return new NoSuchElementException("Cannot locate an element using " + selector);
   }
   
   // don't store as global variable because timeout may be updated during build.
@@ -233,5 +244,53 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
       timeout = wdProps.getDefaultTimeoutElementAccess();
     }
     return timeout;
+  }
+  
+  /**
+   * Once a response is received from functions in {@link org.openqa.selenium.JavascriptExecutor}
+   * , this method interprets them and converts to appropriate ZwlValue so that the result can be
+   * returned to user. When a List or Map is returned, it's items are iterated and given to this
+   * method recursively to produce a List/Map or ZwlValue which is then returned.
+   * @param o the value to interpret.
+   * @return Interpreted ZwlValue
+   */
+  protected ZwlValue transformJsResponse(Object o) {
+    if (o == null) {
+      return new NothingZwlValue();
+    }
+    
+    if (o instanceof Double) {
+      return new DoubleZwlValue((Double) o);
+    }
+    
+    if (o instanceof Long) {
+      return new DoubleZwlValue((Long) o);
+    }
+    
+    if (o instanceof Boolean) {
+      return new BooleanZwlValue((Boolean) o);
+    }
+    
+    if (o instanceof WebElement) {
+      // safe cast, this is a RemoteWebElement as per JsonToWebElementConverter which converts
+      // json web element into WebElement
+      return convertIntoZwlElemId((RemoteWebElement) o);
+    }
+    
+    if (o instanceof List<?>) {
+      List<?> lo = (List<?>) o;
+      List<ZwlValue> lz = new ArrayList<>(CollectionUtil.getInitialCapacity(lo.size()));
+      lo.forEach(item -> lz.add(transformJsResponse(item)));
+      return new ListZwlValue(lz);
+    }
+    
+    if (o instanceof Map<?, ?>) {
+      Map<?, ?> mo = (Map<?, ?>) o;
+      Map<String, ZwlValue> mz = new HashMap<>(CollectionUtil.getInitialCapacity(mo.size()));
+      mo.forEach((k, v) -> mz.put(k.toString(), transformJsResponse(v)));
+      return new MapZwlValue(mz);
+    }
+    
+    return new StringZwlValue(o.toString());
   }
 }

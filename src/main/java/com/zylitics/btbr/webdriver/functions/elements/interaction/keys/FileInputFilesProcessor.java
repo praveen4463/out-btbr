@@ -8,8 +8,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.zylitics.btbr.util.CollectionUtil;
 import com.zylitics.zwl.exception.ZwlLangException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -22,14 +20,13 @@ import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * Downloads the given files using GCP {@link Storage}, saves them locally in a temporary location
  * , and returns the paths of saved files.
  */
 class FileInputFilesProcessor {
-  
-  private static final Logger LOG = LoggerFactory.getLogger(FileInputFilesProcessor.class);
   
   private final Storage storage;
   
@@ -39,10 +36,13 @@ class FileInputFilesProcessor {
   
   private final Set<String> fileNames;
   
+  private final Supplier<String> lineNColumn;
+  
   FileInputFilesProcessor(Storage storage,
                           String userAccountBucket,
                           String pathToUploadedFiles,
-                          Set<String> fileNames) {
+                          Set<String> fileNames,
+                          Supplier<String> lineNColumn) {
     Preconditions.checkNotNull(storage, "storage can't be null");
     Preconditions.checkArgument(!Strings.isNullOrEmpty(userAccountBucket),
         "userAccountBucket can't be empty");
@@ -55,6 +55,7 @@ class FileInputFilesProcessor {
     this.userAccountBucket = userAccountBucket;
     this.pathToUploadedFiles = pathToUploadedFiles;
     this.fileNames = fileNames;
+    this.lineNColumn = lineNColumn;
   }
   
   /**
@@ -73,7 +74,7 @@ class FileInputFilesProcessor {
         Blob blob = storage.get(BlobId.of(userAccountBucket, constructFilePath(fileName)));
         if (blob == null) {
           throw new ZwlLangException(fileName + " doesn't exists. Please check whether this file" +
-              " was really uploaded.");
+              " was really uploaded. " + lineNColumn.get());
         }
         
         // create separate directory under temp dir for each file so that even if file names are
@@ -100,7 +101,6 @@ class FileInputFilesProcessor {
         // for now no reattempt or catching StorageException separately, just log and see what
         // errors we get.
         // TODO: watch exceptions and decide on reattempts and what to notify user
-        LOG.error(io.getMessage(), io);
         throw new RuntimeException(io); // don't force caller handle an exception.
       } finally {
         if (channel != null) {

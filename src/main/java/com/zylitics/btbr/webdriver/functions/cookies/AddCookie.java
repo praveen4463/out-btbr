@@ -41,14 +41,10 @@ public class AddCookie extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    int argsCount = args.size();
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    
-    if (argsCount >= 2) {
-      return add(args);
+    if (args.size() < 2) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    return add(args);
   }
   
   private ZwlValue add(List<ZwlValue> args) {

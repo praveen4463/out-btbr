@@ -39,16 +39,12 @@ public class DeleteCookie extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    int argsCount = args.size();
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    
-    if (argsCount == 1) {
-      return handleWDExceptions(() -> {
-        options.deleteCookieNamed(tryCastString(0, args.get(0)));
-        return _void;
-      });
+    if (args.size() != 1) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    return handleWDExceptions(() -> {
+      options.deleteCookieNamed(tryCastString(0, args.get(0)));
+      return _void;
+    });
   }
 }

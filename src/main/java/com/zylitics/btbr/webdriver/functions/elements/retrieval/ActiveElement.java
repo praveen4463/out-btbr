@@ -39,7 +39,6 @@ public class ActiveElement extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     return handleWDExceptions(() -> {
       targetLocator.activeElement();
       return _void;

@@ -39,7 +39,6 @@ public class GetAllWinIds extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     return handleWDExceptions(() -> tryGetStringZwlValues(driver.getWindowHandles()));
   }
 }

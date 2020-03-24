@@ -49,15 +49,11 @@ public class PerformAction extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(onlyCommandUpdateText());
-    int argsCount = args.size();
-    
-    if (argsCount >= 1) {
-      process(args);
-      return _void;
+    if (args.size() == 0) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    process(args);
+    return _void;
   }
   
   private void process(List<ZwlValue> args) {

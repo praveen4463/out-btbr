@@ -43,20 +43,16 @@ public class SendKeysToPage extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(onlyCommandUpdateText());
-    int argsCount = args.size();
-    
-    if (argsCount >= 1) {
-      String[] keys = args.stream().map(Objects::toString).toArray(String[]::new);
-      return handleWDExceptions(() -> {
-        // every browsing context has a body element.
-        RemoteWebElement element = findElement(driver, "body", true);
-        actionSendKeysCustom(element, keys);
-        return _void;
-      });
+    if (args.size() == 0) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    String[] keys = args.stream().map(Objects::toString).toArray(String[]::new);
+    return handleWDExceptions(() -> {
+      // every browsing context should have a body element.
+      RemoteWebElement element = findElement(driver, "body", true);
+      actionSendKeysCustom(element, keys);
+      return _void;
+    });
   }
   
   // the Actions.sendKeys method presses each key and immediately releases which leads to no affect
@@ -65,10 +61,12 @@ public class SendKeysToPage extends AbstractWebdriverFunction {
   private void actionSendKeysCustom(RemoteWebElement element, CharSequence... keys) {
     Actions actions = new Actions(driver);
     KeyInput defaultKeyboard = new KeyInput("default keyboard");
-    actions.click(element);
+    actions.click(element); // focus
     Set<Integer> modifierToKeyUp = new HashSet<>();
     for (CharSequence key : keys) {
       key.codePoints().forEach(codePoint -> {
+        // it's important that we first keydown any modifier and then non modifiers so that it takes
+        // affect for non modifiers.
         if (isSupportedModifier(codePoint)) {
           if (modifierToKeyUp.add(codePoint)) {
             actions.tick(defaultKeyboard.createKeyDown(codePoint));

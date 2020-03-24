@@ -34,7 +34,6 @@ public abstract class BackForward extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     return handleWDExceptions(() -> {
       int times = 1;
       if (args.size() > 0) {

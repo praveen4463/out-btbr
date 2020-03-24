@@ -40,24 +40,18 @@ public class IsStale extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    int argsCount = args.size();
-    
-    if (argsCount == 1) {
-      return execute(args);
+    if (args.size() == 0) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
-  }
-  
-  private ZwlValue execute(List<ZwlValue> args) {
     String elemId = tryCastString(0, args.get(0));
-    boolean stale = false;
-    try {
-      handleWDExceptions(() -> getWebElementUsingElemId(elemId).isEnabled());
-    } catch (StaleElementReferenceException s) {
-      stale = true;
-    }
-    return new BooleanZwlValue(stale);
+    return handleWDExceptions(() -> {
+      boolean stale = false;
+      try {
+        getWebElementUsingElemId(elemId).isEnabled();
+      } catch (StaleElementReferenceException s) {
+        stale = true;
+      }
+      return new BooleanZwlValue(stale);
+    });
   }
 }

@@ -38,8 +38,6 @@ public abstract class AbstractClear extends AbstractStorage {
       printNoStorageMsg();
       return new NothingZwlValue();
     }
-    
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     return handleWDExceptions(() -> {
       clear();
       return _void;

@@ -44,18 +44,14 @@ public class ClickSwitchNew extends AbstractWebdriverFunction {
   public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
-  
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    int argsCount = args.size();
     
-    if (argsCount == 1) {
-      return handleWDExceptions(() -> {
-        execute(getElement(tryCastString(0, args.get(0))));
-        return _void;
-      });
+    if (args.size() != 1) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    return handleWDExceptions(() -> {
+      execute(getElement(tryCastString(0, args.get(0))));
+      return _void;
+    });
   }
   
   private void execute(RemoteWebElement element) {
@@ -80,7 +76,7 @@ public class ClickSwitchNew extends AbstractWebdriverFunction {
       if (newHandles.size() > 1) {
         targetLocator.window(previousHandle);
         writeCommandUpdate("WARNING: " + getName() + " couldn't switch to newly opened window" +
-            " because there seems to have more than one new windows. We've switched browser" +
+            " because there seems to have more than one new windows. I've switched browser" +
             " focus back to the window where you clicked.");
         return;
       }

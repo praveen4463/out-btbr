@@ -2,8 +2,6 @@ package com.zylitics.btbr.webdriver.functions.cookies;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
-import com.zylitics.btbr.util.CollectionUtil;
-import com.zylitics.zwl.datatype.ListZwlValue;
 import com.zylitics.zwl.datatype.MapZwlValue;
 import com.zylitics.zwl.datatype.NothingZwlValue;
 import com.zylitics.zwl.datatype.ZwlValue;
@@ -11,9 +9,7 @@ import org.openqa.selenium.Cookie;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Supplier;
 
 public class GetNamedCookie extends AbstractGetCookie {
@@ -27,7 +23,7 @@ public class GetNamedCookie extends AbstractGetCookie {
   
   @Override
   public String getName() {
-    return "getCookies";
+    return "getNamedCookie";
   }
   
   @Override
@@ -45,18 +41,14 @@ public class GetNamedCookie extends AbstractGetCookie {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    int argsCount = args.size();
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    
-    if (argsCount == 1) {
-      Cookie cookie = handleWDExceptions(() ->
-          options.getCookieNamed(tryCastString(0, args.get(0))));
-      if (cookie == null) {
-        return new NothingZwlValue();
-      }
-      return new MapZwlValue(cookieToZwlMap(cookie));
+    if (args.size() != 1) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    Cookie cookie = handleWDExceptions(() ->
+        options.getCookieNamed(tryCastString(0, args.get(0))));
+    if (cookie == null) {
+      return new NothingZwlValue();
+    }
+    return new MapZwlValue(cookieToZwlMap(cookie));
   }
 }

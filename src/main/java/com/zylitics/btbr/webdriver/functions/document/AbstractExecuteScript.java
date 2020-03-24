@@ -7,9 +7,7 @@ import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.*;
 import com.zylitics.zwl.exception.InvalidTypeException;
 import com.zylitics.zwl.util.ParseUtil;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.io.PrintStream;
 import java.util.*;
@@ -48,20 +46,17 @@ public abstract class AbstractExecuteScript extends AbstractWebdriverFunction {
     super.invoke(args, defaultValue, lineNColumn);
   
     int argsCount = args.size();
-    writeCommandUpdate(onlyCommandUpdateText());
-    
-    if (argsCount >= 1) {
-      String script = tryCastString(0, args.get(0));
-      // don't let capacity be 0. The type is list of objects cause args may contain different type
-      // of items.
-      List<Object> scriptArgs = new ArrayList<>(CollectionUtil.getInitialCapacity(argsCount));
-      if (argsCount > 1) {
-        args.subList(1, argsCount).forEach(z -> scriptArgs.add(convertFromZwlValue(z)));
-      }
-      return transformResponse(execute(script, scriptArgs));
+    if (argsCount < 1) {
+      throw unexpectedEndOfFunctionOverload(argsCount);
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    String script = tryCastString(0, args.get(0));
+    // don't let capacity be 0. The type is list of objects cause args may contain different type
+    // of items.
+    List<Object> scriptArgs = new ArrayList<>(CollectionUtil.getInitialCapacity(argsCount));
+    if (argsCount > 1) {
+      args.subList(1, argsCount).forEach(z -> scriptArgs.add(convertFromZwlValue(z)));
+    }
+    return transformJsResponse(execute(script, scriptArgs));
   }
   
   protected abstract Object execute(String script, List<Object> args);
@@ -126,54 +121,6 @@ public abstract class AbstractExecuteScript extends AbstractWebdriverFunction {
       return mo;
     }
     
-    throw new IllegalArgumentException("Couldn't recognize the type of " + val); // very unlikely
-  }
-  
-  /**
-   * Once a response is received from functions in {@link org.openqa.selenium.JavascriptExecutor}
-   * , this method interprets them and converts to appropriate ZwlValue so that the result can be
-   * returned to user. When a List or Map is returned, it's items are iterated and given to this
-   * method recursively to produce a List/Map or ZwlValue which is then returned.
-   * @param o the value to interpret.
-   * @return Interpreted ZwlValue
-   */
-  private ZwlValue transformResponse(Object o) {
-    if (o == null) {
-      return new NothingZwlValue();
-    }
-    
-    if (o instanceof Double) {
-      return new DoubleZwlValue((Double) o);
-    }
-  
-    if (o instanceof Long) {
-      return new DoubleZwlValue((Long) o);
-    }
-    
-    if (o instanceof Boolean) {
-      return new BooleanZwlValue((Boolean) o);
-    }
-    
-    if (o instanceof WebElement) {
-      // safe cast, this is a RemoteWebElement as per JsonToWebElementConverter which converts
-      // json web element into WebElement
-      return convertIntoZwlElemId((RemoteWebElement) o);
-    }
-    
-    if (o instanceof List<?>) {
-      List<?> lo = (List<?>) o;
-      List<ZwlValue> lz = new ArrayList<>(CollectionUtil.getInitialCapacity(lo.size()));
-      lo.forEach(item -> lz.add(transformResponse(item)));
-      return new ListZwlValue(lz);
-    }
-    
-    if (o instanceof Map<?, ?>) {
-      Map<?, ?> mo = (Map<?, ?>) o;
-      Map<String, ZwlValue> mz = new HashMap<>(CollectionUtil.getInitialCapacity(mo.size()));
-      mo.forEach((k, v) -> mz.put(k.toString(), transformResponse(v)));
-      return new MapZwlValue(mz);
-    }
-    
-    return new StringZwlValue(o.toString());
+    throw new IllegalArgumentException("Couldn't recognize the type of " + val); // shouldn't happen
   }
 }

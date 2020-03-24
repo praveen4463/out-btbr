@@ -34,19 +34,17 @@ public class UntilFlt extends AbstractFunction {
     super.invoke(args, defaultValue, lineNColumn);
   
     int argsCount = args.size();
-    
-    if (argsCount >= 1) {
-      Double timeout = parseDouble(0, args.get(0));
-      Double poll = 0d;
-      if (argsCount == 2) {
-        poll = parseDouble(1, args.get(1));
-      }
-      Map<String, ZwlValue> m = new HashMap<>(CollectionUtil.getInitialCapacity(2));
-      m.put(AbstractUntilExpectation.TIMEOUT_KEY, new DoubleZwlValue(timeout));
-      m.put(AbstractUntilExpectation.POLL_KEY, new DoubleZwlValue(poll));
-      return new MapZwlValue(m);
+    if (argsCount == 0) {
+      throw unexpectedEndOfFunctionOverload(argsCount);
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    Double timeout = parseDouble(0, args.get(0));
+    Double poll = 0d;
+    if (argsCount == 2) {
+      poll = parseDouble(1, args.get(1));
+    }
+    Map<String, ZwlValue> m = new HashMap<>(CollectionUtil.getInitialCapacity(2));
+    m.put(AbstractUntilExpectation.TIMEOUT_KEY, new DoubleZwlValue(timeout));
+    m.put(AbstractUntilExpectation.POLL_KEY, new DoubleZwlValue(poll));
+    return new MapZwlValue(m);
   }
 }

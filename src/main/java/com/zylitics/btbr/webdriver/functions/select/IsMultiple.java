@@ -41,15 +41,11 @@ public class IsMultiple extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    int argsCount = args.size();
-    
-    if (argsCount == 1) {
-      String elemIdOrSelector = tryCastString(0, args.get(0));
-      return new BooleanZwlValue(handleWDExceptions(() ->
-          new Select(getElement(elemIdOrSelector)).isMultiple()));
+    if (args.size() == 0) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    String elemIdOrSelector = tryCastString(0, args.get(0));
+    return new BooleanZwlValue(handleWDExceptions(() ->
+        new Select(getElement(elemIdOrSelector)).isMultiple()));
   }
 }

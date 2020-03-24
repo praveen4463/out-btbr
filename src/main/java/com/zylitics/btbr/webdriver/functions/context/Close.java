@@ -39,7 +39,6 @@ public class Close extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     return handleWDExceptions(() -> {
       // don't allow to close all the windows as it closes the session.
       if (driver.getWindowHandles().size() > 1) {

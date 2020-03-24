@@ -35,17 +35,13 @@ public abstract class MultiClickClear extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(onlyCommandUpdateText());
-    int argsCount = args.size();
-    
-    if (argsCount >= 1) {
-      return handleWDExceptions(() -> {
-        perform(getElementsUnderstandingArgs(args));
-        return _void;
-      });
+    if (args.size() == 0) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    return handleWDExceptions(() -> {
+      perform(getElementsUnderstandingArgs(args));
+      return _void;
+    });
   }
   
   protected abstract void perform(List<RemoteWebElement> elements);

@@ -39,8 +39,6 @@ public class GetAlertText extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    
     return handleWDExceptions(() -> tryGetStringZwlValue(targetLocator.alert().getText()));
   }
 }

@@ -39,17 +39,14 @@ public class TypeIntoElements extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(onlyCommandUpdateText());
     int argsCount = args.size();
-    
-    if (argsCount >= 2) {
-      String text = args.get(0).toString();
-      return handleWDExceptions(() -> {
-        getElementsUnderstandingArgs(args.subList(1, argsCount)).forEach(e -> e.sendKeys(text));
-        return _void;
-      });
+    if (argsCount < 2) {
+      throw unexpectedEndOfFunctionOverload(argsCount);
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    String text = args.get(0).toString();
+    return handleWDExceptions(() -> {
+      getElementsUnderstandingArgs(args.subList(1, argsCount)).forEach(e -> e.sendKeys(text));
+      return _void;
+    });
   }
 }

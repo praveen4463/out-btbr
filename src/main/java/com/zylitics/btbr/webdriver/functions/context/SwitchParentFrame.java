@@ -39,7 +39,6 @@ public class SwitchParentFrame extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     return handleWDExceptions(() -> {
       targetLocator.parentFrame();
       return _void;

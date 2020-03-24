@@ -59,24 +59,20 @@ public class SetFile extends AbstractWebdriverFunction {
   public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
-  
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    int argsCount = args.size();
     
-    if (argsCount == 2) {
-      RemoteWebElement element = getElement(tryCastString(0, args.get(0)));
-      String fileOnCloud = args.get(1).toString();
-      // don't case to string, may be possible the file is named like 322323 with no extension and
-      // user sent it that way.
-      String localFilePathAfterDownload =
-          new FileInputFilesProcessor(storage, userAccountBucket, pathToUploadedFiles,
-              Collections.singleton(fileOnCloud)).process().iterator().next();
-      return handleWDExceptions(() -> {
-        element.sendKeys(localFilePathAfterDownload);
-        return _void;
-      });
+    if (args.size() != 2) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    RemoteWebElement element = getElement(tryCastString(0, args.get(0)));
+    String fileOnCloud = args.get(1).toString();
+    // don't case to string, may be possible the file is named like 322323 with no extension and
+    // user sent it that way.
+    String localFilePathAfterDownload =
+        new FileInputFilesProcessor(storage, userAccountBucket, pathToUploadedFiles,
+            Collections.singleton(fileOnCloud), lineNColumn).process().iterator().next();
+    return handleWDExceptions(() -> {
+      element.sendKeys(localFilePathAfterDownload);
+      return _void;
+    });
   }
 }

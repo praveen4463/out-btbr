@@ -40,7 +40,6 @@ public abstract class AbstractSize extends AbstractStorage {
       return new NothingZwlValue();
     }
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     return new DoubleZwlValue(handleWDExceptions(this::size));
   }
   

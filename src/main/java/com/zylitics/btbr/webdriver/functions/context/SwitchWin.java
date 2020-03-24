@@ -39,9 +39,13 @@ public class SwitchWin extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
+    int argsCount = args.size();
+    if (argsCount > 1) {
+      throw unexpectedEndOfFunctionOverload(argsCount);
+    }
+    
     return handleWDExceptions(() -> {
-      if (args.size() > 0) {
+      if (argsCount == 1) {
         targetLocator.window(tryCastString(0, args.get(0)));
       } else {
         targetLocator.defaultContent();

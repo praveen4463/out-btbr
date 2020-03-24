@@ -37,19 +37,15 @@ public abstract class AbstractSelectDeselectBy extends AbstractWebdriverFunction
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    int argsCount = args.size();
-    
-    if (argsCount == 2) {
-      String elemIdOrSelector = tryCastString(0, args.get(0));
-      return handleWDExceptions(() -> {
-        Select select = new Select(getElement(elemIdOrSelector));
-        selectDeselect(select, args.get(1));
-        return _void;
-      });
+    if (args.size() == 2) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    String elemIdOrSelector = tryCastString(0, args.get(0));
+    return handleWDExceptions(() -> {
+      Select select = new Select(getElement(elemIdOrSelector));
+      selectDeselect(select, args.get(1));
+      return _void;
+    });
   }
   
   abstract void selectDeselect(Select select, ZwlValue value);

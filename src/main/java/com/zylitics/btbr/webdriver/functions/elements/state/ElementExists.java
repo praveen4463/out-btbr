@@ -5,7 +5,6 @@ import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.BooleanZwlValue;
 import com.zylitics.zwl.datatype.ZwlValue;
-import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.PrintStream;
@@ -41,25 +40,19 @@ public class ElementExists extends AbstractWebdriverFunction {
   public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
-  
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    int argsCount = args.size();
     
-    if (argsCount == 1) {
-      return execute(args);
+    if (args.size() == 0) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
-  }
-  
-  private ZwlValue execute(List<ZwlValue> args) {
     String selector = tryCastString(0, args.get(0));
-    boolean exists = true;
-    try {
-      handleWDExceptions(() -> findElement(driver, selector, true));
-    } catch (NoSuchElementException n) {
-      exists = false;
-    }
-    return new BooleanZwlValue(exists);
+    return handleWDExceptions(() -> {
+      boolean exists = true;
+      try {
+        findElement(driver, selector, true);
+      } catch (NoSuchElementException n) {
+        exists = false;
+      }
+      return new BooleanZwlValue(exists);
+    });
   }
 }

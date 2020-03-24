@@ -44,7 +44,7 @@ public class SetFiles extends AbstractWebdriverFunction {
   
   @Override
   public int minParamsCount() {
-    return 1;
+    return 2;
   }
   
   @Override
@@ -56,27 +56,24 @@ public class SetFiles extends AbstractWebdriverFunction {
   public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
-  
-    writeCommandUpdate(withArgsCommandUpdateText(args));
+    
     int argsCount = args.size();
-    
-    if (argsCount >= 2) {
-      RemoteWebElement element = getElement(tryCastString(0, args.get(0)));
-      Set<String> filesOnCloud = args.subList(1, args.size())
-          .stream().map(Objects::toString).collect(Collectors.toSet());
-      // don't cast to string, may be possible the file is named like 322323 with no extension and
-      // user sent it that way.
-      Set<String> localFilePathsAfterDownload =
-          new FileInputFilesProcessor(storage, userAccountBucket, pathToUploadedFiles,
-              filesOnCloud).process();
-      return handleWDExceptions(() -> {
-        element.sendKeys(String.join("\n", localFilePathsAfterDownload));
-        // per the spec https://w3c.github.io/webdriver/#dfn-dispatch-actions-for-a-string
-        // , concat file paths with newline character.
-        return _void;
-      });
+    if (argsCount < 2) {
+      throw unexpectedEndOfFunctionOverload(argsCount);
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    RemoteWebElement element = getElement(tryCastString(0, args.get(0)));
+    Set<String> filesOnCloud = args.subList(1, argsCount)
+        .stream().map(Objects::toString).collect(Collectors.toSet());
+    // don't cast to string, may be possible the file is named like 322323 with no extension and
+    // user sent it that way.
+    Set<String> localFilePathsAfterDownload =
+        new FileInputFilesProcessor(storage, userAccountBucket, pathToUploadedFiles,
+            filesOnCloud, lineNColumn).process();
+    return handleWDExceptions(() -> {
+      element.sendKeys(String.join("\n", localFilePathsAfterDownload));
+      // per the spec https://w3c.github.io/webdriver/#dfn-dispatch-actions-for-a-string
+      // , concat file paths with newline character.
+      return _void;
+    });
   }
 }

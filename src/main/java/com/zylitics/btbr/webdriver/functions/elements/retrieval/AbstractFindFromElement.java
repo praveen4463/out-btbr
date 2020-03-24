@@ -35,17 +35,15 @@ public abstract class AbstractFindFromElement extends AbstractWebdriverFunction 
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     int argsCount = args.size();
     
-    if (argsCount >= 2 && argsCount <= 3) {
-      boolean noWait = argsCount == 3 ? parseBoolean(2, args.get(2)) : false;
-      return handleWDExceptions(() -> find(
-          getElement(tryCastString(0, args.get(0)), !noWait),
-          tryCastString(1, args.get(1)), !noWait));
+    if (argsCount < 2) {
+      throw unexpectedEndOfFunctionOverload(argsCount);
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    boolean noWait = argsCount == 3 ? parseBoolean(2, args.get(2)) : false;
+    return handleWDExceptions(() -> find(
+        getElement(tryCastString(0, args.get(0)), !noWait),
+        tryCastString(1, args.get(1)), !noWait));
   }
   
   protected abstract ZwlValue find(RemoteWebElement element, String selector, boolean wait);

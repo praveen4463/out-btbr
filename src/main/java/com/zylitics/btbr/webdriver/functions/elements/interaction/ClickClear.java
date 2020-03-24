@@ -34,18 +34,15 @@ public abstract class ClickClear extends AbstractWebdriverFunction {
   public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
-  
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    int argsCount = args.size();
     
-    if (argsCount == 1) {
-      return handleWDExceptions(() -> {
-        perform(getElement(tryCastString(0, args.get(0))));
-        return _void;
-      });
+    if (args.size() != 1) {
+      throw unexpectedEndOfFunctionOverload(args.size());
+      
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    return handleWDExceptions(() -> {
+      perform(getElement(tryCastString(0, args.get(0))));
+      return _void;
+    });
   }
   
   protected abstract void perform(RemoteWebElement element);

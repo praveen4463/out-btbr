@@ -40,17 +40,14 @@ public class TypeActive extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(onlyCommandUpdateText());
     int argsCount = args.size();
-    
-    if (argsCount >= 1) {
-      String[] keys = args.stream().map(Objects::toString).toArray(String[]::new);
-      return handleWDExceptions(() -> {
-        targetLocator.activeElement().sendKeys(keys);
-        return _void;
-      });
+    if (argsCount == 0) {
+      throw unexpectedEndOfFunctionOverload(argsCount);
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    String[] keys = args.stream().map(Objects::toString).toArray(String[]::new);
+    return handleWDExceptions(() -> {
+      targetLocator.activeElement().sendKeys(keys);
+      return _void;
+    });
   }
 }

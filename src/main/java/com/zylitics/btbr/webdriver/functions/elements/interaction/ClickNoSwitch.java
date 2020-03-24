@@ -46,15 +46,11 @@ public class ClickNoSwitch extends AbstractWebdriverFunction {
   public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
-  
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    int argsCount = args.size();
     
-    if (argsCount == 1) {
-      return handleWDExceptions(() -> execute(getElement(tryCastString(0, args.get(0)))));
+    if (args.size() != 1) {
+      throw unexpectedEndOfFunctionOverload(args.size());
     }
-    
-    throw unexpectedEndOfFunctionOverload(argsCount);
+    return handleWDExceptions(() -> execute(getElement(tryCastString(0, args.get(0)))));
   }
   
   private ZwlValue execute(RemoteWebElement element) {
@@ -83,7 +79,8 @@ public class ClickNoSwitch extends AbstractWebdriverFunction {
       // (probably the click opened more than one window)
       return new StringZwlValue(newHandles.iterator().next());
     } catch (TimeoutException ignore) {
-      // a timeout means no other window was opened, thus we've nothing to do here
+      // a timeout means no other window was opened, thus we've nothing to do here, don't show a
+      // warning, just don't do anything.
     }
     return new NothingZwlValue();
   }

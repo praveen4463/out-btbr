@@ -36,10 +36,7 @@ public abstract class GetWinRect extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
-    return handleWDExceptions(() -> {
-      return new MapZwlValue(get());
-    });
+    return handleWDExceptions(() -> new MapZwlValue(get()));
   }
   
   protected abstract Map<String, ZwlValue> get();

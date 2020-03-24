@@ -17,7 +17,7 @@ public class LsSetItem extends AbstractSetItem {
   
   @Override
   public String getName() {
-    return "ssSetItem";
+    return "lsSetItem";
   }
   
   @Override

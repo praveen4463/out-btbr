@@ -3,7 +3,6 @@ package com.zylitics.btbr.webdriver.functions.cookies;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.util.CollectionUtil;
-import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.*;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -41,7 +40,6 @@ public class GetCookies extends AbstractGetCookie {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    writeCommandUpdate(withArgsCommandUpdateText(args));
     Set<Cookie> cookies = handleWDExceptions(options::getCookies);
     if (cookies == null) {
       return new ListZwlValue(new ArrayList<>(0));
