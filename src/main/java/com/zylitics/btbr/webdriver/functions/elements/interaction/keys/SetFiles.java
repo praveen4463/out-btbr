@@ -9,6 +9,7 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -23,6 +24,8 @@ public class SetFiles extends AbstractWebdriverFunction {
   private final String userAccountBucket;
   
   private final String pathToUploadedFiles;
+  
+  private final Path buildDir;
 
   public SetFiles(APICoreProperties.Webdriver wdProps,
                  BuildCapability buildCapability,
@@ -30,11 +33,13 @@ public class SetFiles extends AbstractWebdriverFunction {
                  PrintStream printStream,
                  Storage storage,
                  String userAccountBucket,
-                 String pathToUploadedFiles) {
+                 String pathToUploadedFiles,
+                  Path buildDir) {
     super(wdProps, buildCapability, driver, printStream);
     this.storage = storage;
     this.userAccountBucket = userAccountBucket;
     this.pathToUploadedFiles = pathToUploadedFiles;
+    this.buildDir = buildDir;
   }
   
   @Override
@@ -68,7 +73,7 @@ public class SetFiles extends AbstractWebdriverFunction {
     // user sent it that way.
     Set<String> localFilePathsAfterDownload =
         new FileInputFilesProcessor(storage, userAccountBucket, pathToUploadedFiles,
-            filesOnCloud, lineNColumn).process();
+            filesOnCloud, buildDir, lineNColumn).process();
     return handleWDExceptions(() -> {
       element.sendKeys(String.join("\n", localFilePathsAfterDownload));
       // per the spec https://w3c.github.io/webdriver/#dfn-dispatch-actions-for-a-string

@@ -16,17 +16,19 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
  * Downloads the given files using GCP {@link Storage}, saves them locally in a temporary location
  * , and returns the paths of saved files.
+ * Note that the deletion of directories on VM exist can be done at root which is the build dir,
+ * thus individual dir like download dir don't require a shutdown hook.
  */
 class FileInputFilesProcessor {
+  
+  private static final String USER_DOWNLOAD_DIR = "user_downloads";
   
   private final Storage storage;
   
@@ -36,12 +38,15 @@ class FileInputFilesProcessor {
   
   private final Set<String> fileNames;
   
+  private final Path buildDir; // dir where all files for current build should be stored.
+  
   private final Supplier<String> lineNColumn;
   
   FileInputFilesProcessor(Storage storage,
                           String userAccountBucket,
                           String pathToUploadedFiles,
                           Set<String> fileNames,
+                          Path buildDir,
                           Supplier<String> lineNColumn) {
     Preconditions.checkNotNull(storage, "storage can't be null");
     Preconditions.checkArgument(!Strings.isNullOrEmpty(userAccountBucket),
@@ -49,12 +54,13 @@ class FileInputFilesProcessor {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(pathToUploadedFiles),
         "pathToUploadedFiles can't be empty");
     Preconditions.checkArgument(fileNames.size() == 0, "fileNames can't be empty");
-    
+    Preconditions.checkNotNull(buildDir, "buildDir can't be null");
     
     this.storage = storage;
     this.userAccountBucket = userAccountBucket;
     this.pathToUploadedFiles = pathToUploadedFiles;
     this.fileNames = fileNames;
+    this.buildDir = buildDir;
     this.lineNColumn = lineNColumn;
   }
   
@@ -65,24 +71,42 @@ class FileInputFilesProcessor {
    * notified about the problem
    */
   Set<String> process() throws ZwlLangException {
+    if (!Files.isDirectory(buildDir)) {
+      throw new RuntimeException(buildDir.toAbsolutePath().toString() + " isn't a directory");
+    }
+    
+    Path userDownloads = buildDir.resolve(USER_DOWNLOAD_DIR);
+    createNotExistDir(userDownloads);
     Set<String> localPaths = new HashSet<>(CollectionUtil.getInitialCapacity(fileNames.size()));
     
     for (String fileName : fileNames) {
+      Path filePath = userDownloads.resolve(fileName);
+      // before proceeding for download, check whether the same file was downloaded in this
+      // build, if so, skip download and use that. Even if user had a same named file in different
+      // directories at storage, the fileName carries the full path to file because storage is a
+      // flat filesystem, so if user put in root of their directory ship.pdf, fileName = ship.pdf,
+      // if put in talk/biz/ship.pdf, fileName = talk/biz/ship.pdf, thus we can be sure same file
+      // name refers to the same file (assuming content doesn't change within a build)
+      if (Files.exists(filePath)) {
+        localPaths.add(filePath.toAbsolutePath().toString());
+        continue;
+      }
+      
       WritableByteChannel channel = null;
-      Path file;
       try {
         Blob blob = storage.get(BlobId.of(userAccountBucket, constructFilePath(fileName)));
         if (blob == null) {
           throw new ZwlLangException(fileName + " doesn't exists. Please check whether this file" +
               " was really uploaded. " + lineNColumn.get());
         }
-        
-        // create separate directory under temp dir for each file so that even if file names are
-        // repeated across function calls, they all get into local file system without overwriting
-        // other and carry unique path.
-        Path dir = Files.createTempDirectory(UUID.randomUUID().toString());
-        file = Files.createFile(Paths.get(dir.toString(), fileName));
-        OutputStream stream = Files.newOutputStream(file);
+        // currently there is no support for user to put files in a directory structure at cloud
+        // storage and they need to put all of them at one place flat. This makes it easier to not
+        // deal with creating another directory path here before creating the file.
+        if (!filePath.getParent().equals(userDownloads)) {
+          throw new RuntimeException("Directory structure in user specified file isn't currently" +
+              " supported.");
+        }
+        OutputStream stream = createFileAndOpenStream(filePath);
         
         if (blob.getSize() < 1_000_000) {
           stream.write(blob.getContent());
@@ -98,6 +122,8 @@ class FileInputFilesProcessor {
           }
         }
       } catch (Exception io) {
+        // We should be catching only storage related exceptions here, IO error should be handled
+        // in a separate try-catch if desired.
         // for now no reattempt or catching StorageException separately, just log and see what
         // errors we get.
         // TODO: watch exceptions and decide on reattempts and what to notify user
@@ -109,9 +135,28 @@ class FileInputFilesProcessor {
           } catch (IOException ignore) {}
         }
       }
-      localPaths.add(file.toAbsolutePath().toString());
+      localPaths.add(filePath.toAbsolutePath().toString());
     }
     return localPaths;
+  }
+  
+  private void createNotExistDir(Path dir) {
+    try {
+      if (!Files.isDirectory(dir)) {
+        Files.createDirectory(dir);
+      }
+    } catch (IOException io) {
+      throw new RuntimeException(io);
+    }
+  }
+  
+  private OutputStream createFileAndOpenStream(Path file) {
+    try {
+      Files.createFile(file);
+      return Files.newOutputStream(file);
+    } catch (IOException io) {
+      throw new RuntimeException(io);
+    }
   }
   
   private String constructFilePath(String fileName) {

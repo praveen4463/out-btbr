@@ -10,7 +10,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class SetWinRect extends AbstractWebdriverFunction {
+abstract class SetWinRect extends AbstractWebdriverFunction {
   
   public SetWinRect(APICoreProperties.Webdriver wdProps,
                     BuildCapability buildCapability,

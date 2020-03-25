@@ -10,7 +10,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
-public class ActionFunctions {
+class ActionFunctions {
   
   public static final String FOCUS = "focus";
   

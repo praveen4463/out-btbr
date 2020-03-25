@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public abstract class GetWinRect extends AbstractWebdriverFunction {
+abstract class GetWinRect extends AbstractWebdriverFunction {
   
   public GetWinRect(APICoreProperties.Webdriver wdProps,
                             BuildCapability buildCapability,

@@ -10,7 +10,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class MaximizeFullScreen extends AbstractWebdriverFunction {
+abstract class MaximizeFullScreen extends AbstractWebdriverFunction {
   
   public MaximizeFullScreen(APICoreProperties.Webdriver wdProps,
                             BuildCapability buildCapability,

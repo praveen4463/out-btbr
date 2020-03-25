@@ -9,6 +9,7 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
@@ -20,6 +21,8 @@ public class SetFile extends AbstractWebdriverFunction {
   private final String userAccountBucket;
   
   private final String pathToUploadedFiles;
+  
+  private final Path buildDir;
   
   /**
    *
@@ -33,11 +36,13 @@ public class SetFile extends AbstractWebdriverFunction {
                  PrintStream printStream,
                  Storage storage,
                  String userAccountBucket,
-                 String pathToUploadedFiles) {
+                 String pathToUploadedFiles,
+                 Path buildDir) {
     super(wdProps, buildCapability, driver, printStream);
     this.storage = storage;
     this.userAccountBucket = userAccountBucket;
     this.pathToUploadedFiles = pathToUploadedFiles;
+    this.buildDir = buildDir;
   }
   
   @Override
@@ -65,11 +70,11 @@ public class SetFile extends AbstractWebdriverFunction {
     }
     RemoteWebElement element = getElement(tryCastString(0, args.get(0)));
     String fileOnCloud = args.get(1).toString();
-    // don't case to string, may be possible the file is named like 322323 with no extension and
+    // don't cast to string, may be possible the file is named like 322323 with no extension and
     // user sent it that way.
     String localFilePathAfterDownload =
         new FileInputFilesProcessor(storage, userAccountBucket, pathToUploadedFiles,
-            Collections.singleton(fileOnCloud), lineNColumn).process().iterator().next();
+            Collections.singleton(fileOnCloud), buildDir, lineNColumn).process().iterator().next();
     return handleWDExceptions(() -> {
       element.sendKeys(localFilePathAfterDownload);
       return _void;
