@@ -13,7 +13,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class AbstractTotalElements extends AbstractUntilExpectation {
+abstract class AbstractTotalElements extends AbstractUntilExpectation {
   
   public AbstractTotalElements(APICoreProperties.Webdriver wdProps,
                            BuildCapability buildCapability,

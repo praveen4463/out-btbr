@@ -10,7 +10,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class AbstractFindElement extends AbstractWebdriverFunction {
+abstract class AbstractFindElement extends AbstractWebdriverFunction {
   
   public AbstractFindElement(APICoreProperties.Webdriver wdProps,
                              BuildCapability buildCapability,

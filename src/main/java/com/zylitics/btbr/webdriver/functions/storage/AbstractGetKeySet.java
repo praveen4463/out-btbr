@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public abstract class AbstractGetKeySet extends AbstractStorage {
+abstract class AbstractGetKeySet extends AbstractStorage {
   
   public AbstractGetKeySet(APICoreProperties.Webdriver wdProps,
                            BuildCapability buildCapability,

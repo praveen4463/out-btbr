@@ -19,7 +19,7 @@ import java.util.function.Supplier;
  * checking whether it's state matches the desired state. ALl of these require element to be on
  * page.
  */
-public abstract class AbstractVisibleEnable extends AbstractUntilExpectation {
+abstract class AbstractVisibleEnable extends AbstractUntilExpectation {
   
   public AbstractVisibleEnable(APICoreProperties.Webdriver wdProps,
                       BuildCapability buildCapability,

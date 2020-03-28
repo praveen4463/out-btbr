@@ -12,7 +12,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class AbstractFindWithSelectors extends AbstractWebdriverFunction {
+abstract class AbstractFindWithSelectors extends AbstractWebdriverFunction {
   
   public AbstractFindWithSelectors(APICoreProperties.Webdriver wdProps,
                                   BuildCapability buildCapability,

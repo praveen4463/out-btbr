@@ -11,7 +11,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class AbstractElementNamedProperty extends AbstractWebdriverFunction {
+abstract class AbstractElementNamedProperty extends AbstractWebdriverFunction {
   
   public AbstractElementNamedProperty(APICoreProperties.Webdriver wdProps,
                                       BuildCapability buildCapability,

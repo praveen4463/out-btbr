@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 // FLT = function level timeout
-public abstract class AbstractUntilExpectation extends AbstractWebdriverFunction {
+abstract class AbstractUntilExpectation extends AbstractWebdriverFunction {
   
   final static String TIMEOUT_KEY = "fltTimeout";
   

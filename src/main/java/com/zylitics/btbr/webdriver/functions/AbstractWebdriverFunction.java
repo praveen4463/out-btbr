@@ -10,6 +10,7 @@ import com.zylitics.zwl.function.AbstractFunction;
 import org.openqa.selenium.*;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
+import org.openqa.selenium.remote.UselessFileDetector;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.PrintStream;
@@ -100,9 +101,11 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
   public <V> V handleWDExceptions(Callable<V> code) {
     try {
       return code.call();
+    } catch (ZwlLangException z) {
+      throw z;
     } catch (WebDriverException wdEx) {
       // wrap webdriver exceptions and throw.
-      throw new ZwlLangException(wdEx, withLineNCol(wdEx.getMessage()));
+      throw new ZwlLangException(lineNColumn.get(), wdEx);
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
@@ -183,12 +186,13 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
   
   protected RemoteWebElement getWebElementUsingElemId(String elemId) {
     if (!isValidElemId(elemId)) {
-      throw new ZwlLangException(new IllegalArgumentException(""),
-          withLineNCol("Given string " + elemId + " is not a valid elemId."));
+      throw new ZwlLangException(withLineNCol("Given string " + elemId + " is not a valid elemId."),
+          new IllegalArgumentException());
     }
     RemoteWebElement element = new RemoteWebElement();
     element.setParent(driver);
     element.setId(elemId);
+    element.setFileDetector(new UselessFileDetector());
     return element;
   }
   

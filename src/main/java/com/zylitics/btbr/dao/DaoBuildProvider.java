@@ -35,7 +35,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bc.wd_set_window_rect, bc.wd_timeouts_script, bc.wd_timeouts_page_load" +
         ", bc.wd_timeouts_implicit, bc.wd_timeouts_element_access" +
         ", bc.wd_strict_file_interactability" +
-        ", bc.wd_unhandled_prompt_behavior, bc.brw_is_full_screen" +
+        ", bc.wd_unhandled_prompt_behavior, bc.brw_start_maximize" +
         ", bc.chrome_enable_network, bc.chrome_enable_page, bc.build_abort_on_failure" +
         " FROM bt_build AS bu INNER JOIN bt_build_capability AS bc" +
         " ON (bu.bt_build_capability_id = bc.bt_build_capability_id)" +
@@ -67,7 +67,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
                 .setWdTimeoutsElementAccess(rs.getInt("wd_timeouts_element_access"))
                 .setWdStrictFileInteractability(rs.getBoolean("wd_strict_file_interactability"))
                 .setWdUnhandledPromptBehavior(rs.getString("wd_unhandled_prompt_behavior"))
-                .setBrwIsFullScreen(rs.getBoolean("brw_is_full_screen"))
+                .setBrw_start_maximize(rs.getBoolean("brw_start_maximize"))
                 .setChromeEnableNetwork(rs.getBoolean("chrome_enable_network"))
                 .setChromeEnablePage(rs.getBoolean("chrome_enable_page"))
                 .setBuildAbortOnFailure(rs.getBoolean("build_abort_on_failure"))));

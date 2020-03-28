@@ -10,7 +10,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class AbstractGetItem extends AbstractStorage {
+abstract class AbstractGetItem extends AbstractStorage {
   
   public AbstractGetItem(APICoreProperties.Webdriver wdProps,
                        BuildCapability buildCapability,

@@ -1,0 +1,12 @@
+# Action functions
+
+openUrl("https://developer.mozilla.org/en-US/docs/Web/API/Document/drag_event")
+frame = findElement("#frame_Examples")
+#scroll(frame)
+switchFrame(frame)
+draggableInFirstDiv = findElementFromElement(".dropzone:nth-of-type(1)", "#draggable")
+assertTrue(length(draggableInFirstDiv) > 0) # draggable is in first div, now drag it to third
+dragAndDrop("#draggable", ".dropzone:nth-of-type(3)")
+# verify it's now in third
+draggableInThirdDiv = findElementFromElement(".dropzone:nth-of-type(3)", "#draggable")
+assertTrue(length(draggableInThirdDiv) > 0)

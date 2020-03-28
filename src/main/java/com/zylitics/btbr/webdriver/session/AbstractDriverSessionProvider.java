@@ -75,7 +75,8 @@ public abstract class AbstractDriverSessionProvider {
             ? wdProps.getDefaultPageLoadStrategy()
             : buildCapability.getWdPageLoadStrategy());
     
-    caps.setCapability("setWindowRect", buildCapability.isWdSetWindowRect());
+    // Looks like this capability isn't supported by chrome, let's not use it for now.
+    //caps.setCapability("setWindowRect", buildCapability.isWdSetWindowRect());
     
     // timeouts
     Map<String, Object> timeouts = new HashMap<>(4);

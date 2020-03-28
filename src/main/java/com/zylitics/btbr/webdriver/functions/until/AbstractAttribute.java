@@ -13,7 +13,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class AbstractAttribute extends AbstractUntilExpectation {
+abstract class AbstractAttribute extends AbstractUntilExpectation {
   
   public AbstractAttribute(APICoreProperties.Webdriver wdProps,
                            BuildCapability buildCapability,

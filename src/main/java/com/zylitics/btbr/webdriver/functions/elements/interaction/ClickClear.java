@@ -11,7 +11,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class ClickClear extends AbstractWebdriverFunction {
+abstract class ClickClear extends AbstractWebdriverFunction {
   
   public ClickClear(APICoreProperties.Webdriver wdProps,
                          BuildCapability buildCapability,

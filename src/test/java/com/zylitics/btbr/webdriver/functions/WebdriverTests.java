@@ -1,0 +1,216 @@
+package com.zylitics.btbr.webdriver.functions;
+
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
+import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.zylitics.btbr.config.APICoreProperties;
+import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.webdriver.Configuration;
+import com.zylitics.btbr.webdriver.WebdriverFunctions;
+import com.zylitics.btbr.webdriver.constants.Colorz;
+import com.zylitics.btbr.webdriver.constants.Exceptions;
+import com.zylitics.btbr.webdriver.constants.Keyz;
+import com.zylitics.zwl.api.Main;
+import com.zylitics.zwl.api.ZwlInterpreterVisitor;
+import com.zylitics.zwl.datatype.MapZwlValue;
+import com.zylitics.zwl.datatype.StringZwlValue;
+import com.zylitics.zwl.datatype.ZwlValue;
+import com.zylitics.zwl.function.debugging.Print;
+import com.zylitics.zwl.function.debugging.PrintF;
+import org.antlr.v4.runtime.ANTLRErrorListener;
+import org.antlr.v4.runtime.ConsoleErrorListener;
+import org.antlr.v4.runtime.DiagnosticErrorListener;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.openqa.selenium.Capabilities;
+import org.openqa.selenium.MutableCapabilities;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeDriverService;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxDriverLogLevel;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.firefox.GeckoDriverService;
+import org.openqa.selenium.remote.CapabilityType;
+import org.openqa.selenium.remote.RemoteWebDriver;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Webdriver tests meant to run locally.
+ */
+public class WebdriverTests {
+  
+  public static List<ANTLRErrorListener> DEFAULT_TEST_LISTENERS =
+      ImmutableList.of(ConsoleErrorListener.INSTANCE, new DiagnosticErrorListener());
+  
+  final BuildCapability buildCapability = getBuildCapability();
+  final APICoreProperties.Webdriver wdProps = getDefaultWDProps();
+  final Storage storage = getStorage();
+  final PrintStream printStream = System.out;
+  
+  Path fakeBuildDir;
+  RemoteWebDriver driver;
+  ZwlInterpreterVisitor interpreterVisitor;
+  
+  @BeforeEach
+  void setup() throws Exception {
+    Capabilities caps = getCapabilities(buildCapability, wdProps);
+    if (buildCapability.getWdBrowserName().equals("chrome")) {
+      ChromeOptions chrome = new ChromeOptions();
+      chrome.merge(caps);
+      driver = new ChromeDriver(ChromeDriverService.createDefaultService(), chrome);
+    } else if (buildCapability.getWdBrowserName().equals("firefox")) {
+      FirefoxOptions ff = new FirefoxOptions();
+      String logLevel = System.getProperty("webdriver.firefox.loglevel");
+      if (logLevel != null) {
+        ff.setLogLevel(FirefoxDriverLogLevel.fromString(logLevel));
+      }
+      ff.merge(caps);
+      driver = new FirefoxDriver(GeckoDriverService.createDefaultService(), ff);
+    } else {
+      throw new RuntimeException("can't run local build on " + buildCapability.getWdBrowserName());
+    }
+    
+    // do some actions on driver based on build capabilities
+    if (buildCapability.isBrw_start_maximize()) {
+      driver.manage().window().maximize();
+    }
+  
+    fakeBuildDir = Paths.get(Configuration.SYS_DEF_TEMP_DIR, "build-111111");
+    if (!Files.isDirectory(fakeBuildDir)) {
+      Files.createDirectory(fakeBuildDir);
+    }
+    
+    WebdriverFunctions wdFunctions = new WebdriverFunctions(wdProps,
+        buildCapability,
+        driver,
+        printStream,
+        storage,
+        "zl-user-data",
+        "11021/uploads",
+        fakeBuildDir);
+  
+    interpreterVisitor = zwlInterpreter -> {
+      zwlInterpreter.setFunctions(wdFunctions.get());
+      //!! add any user-agent specific functions to override the base wd functions
+      
+      // overwrite some zwl functions to use our print stream (although both use same stream)
+      zwlInterpreter.setFunction(new Print(printStream));
+      zwlInterpreter.setFunction(new PrintF(printStream));
+      
+      // readonly variables...
+      // add ZWL & webdriver exceptions
+      Map<String, ZwlValue> exceptions =
+          new HashMap<>(com.zylitics.zwl.constants.Exceptions.asMap());
+      exceptions.putAll(Exceptions.asMap());
+      zwlInterpreter.setReadOnlyVariable("exceptions",
+          new MapZwlValue(Collections.unmodifiableMap(exceptions)));
+      
+      // add colors and keys
+      zwlInterpreter.setReadOnlyVariable("colors", new MapZwlValue(Colorz.asMap()));
+      zwlInterpreter.setReadOnlyVariable("keys", new MapZwlValue(Keyz.asMap()));
+      
+      // browser detail, not adding version as it's not required and given in these tests.
+      Map<String, ZwlValue> browser = ImmutableMap.of(
+          "name", new StringZwlValue(buildCapability.getWdBrowserName())
+      );
+      zwlInterpreter.setReadOnlyVariable("browser", new MapZwlValue(browser));
+    };
+  }
+  
+  @Disabled
+  @Test
+  void basicWdTest() throws IOException {
+    run("BasicWdTest.zwl");
+  }
+  
+  @Test
+  void actionsTest() throws IOException {
+    run("ActionsTest.zwl");
+  }
+  
+  private void run(String file) throws IOException {
+    Main main = new Main("resources/" + file, Charsets.UTF_8, DEFAULT_TEST_LISTENERS);
+    main.interpret(interpreterVisitor);
+  }
+  
+  @AfterEach
+  void tearDown() {
+    int hold = Integer.getInteger("holdWdCloseFor", 0); // in seconds.
+    if (hold > 0) {
+      try {
+        Thread.sleep(hold * 1000);
+      } catch (InterruptedException ignored) {
+        // ignore
+      }
+    }
+    driver.quit();
+  }
+  
+  private APICoreProperties.Webdriver getDefaultWDProps() {
+    APICoreProperties.Webdriver wd = new APICoreProperties.Webdriver();
+    wd.setDefaultPageLoadStrategy("eager");
+    wd.setDefaultTimeoutElementAccess(10_000);
+    wd.setDefaultTimeoutPageLoad(30_000);
+    wd.setDefaultTimeoutNewWindow(10_000);
+    return wd;
+  }
+  
+  private BuildCapability getBuildCapability() {
+    BuildCapability b = new BuildCapability();
+    String browser = System.getProperty("browser");
+    if (browser == null) {
+      browser = "chrome";
+    }
+    b.setWdBrowserName(browser);
+    b.setWdPlatformName("mac");
+    b.setWdSetWindowRect(true);
+    b.setWdUnhandledPromptBehavior("ignore");
+    b.setBrw_start_maximize(true);
+    return b;
+  }
+  
+  private Storage getStorage() {
+    return StorageOptions.getDefaultInstance().getService();
+  }
+  
+  private Capabilities getCapabilities(BuildCapability buildCapability,
+                                       APICoreProperties.Webdriver wdProps) {
+    MutableCapabilities caps = new MutableCapabilities();
+    
+    caps.setCapability(CapabilityType.PLATFORM_NAME, buildCapability.getWdPlatformName());
+    
+    caps.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS,
+        buildCapability.isWdAcceptInsecureCerts());
+    
+    caps.setCapability(CapabilityType.PAGE_LOAD_STRATEGY
+        , Strings.isNullOrEmpty(buildCapability.getWdPageLoadStrategy())
+            ? wdProps.getDefaultPageLoadStrategy()
+            : buildCapability.getWdPageLoadStrategy());
+    
+    Preconditions.checkArgument(
+        !Strings.isNullOrEmpty(buildCapability.getWdUnhandledPromptBehavior()),
+        "unhandled prompt behaviour capability can't be empty");
+    caps.setCapability(CapabilityType.UNHANDLED_PROMPT_BEHAVIOUR,
+        buildCapability.getWdUnhandledPromptBehavior());
+    caps.setCapability(CapabilityType.UNEXPECTED_ALERT_BEHAVIOUR,
+        buildCapability.getWdUnhandledPromptBehavior());
+    
+    return caps;
+  }
+}

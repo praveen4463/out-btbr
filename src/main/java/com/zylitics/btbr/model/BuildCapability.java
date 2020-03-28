@@ -40,7 +40,7 @@ public class BuildCapability {
   
   private String wdUnhandledPromptBehavior;
   
-  private boolean brwIsFullScreen;
+  private boolean brw_start_maximize;
   
   private boolean chromeEnableNetwork;
   
@@ -219,12 +219,12 @@ public class BuildCapability {
     return this;
   }
   
-  public boolean isBrwIsFullScreen() {
-    return brwIsFullScreen;
+  public boolean isBrw_start_maximize() {
+    return brw_start_maximize;
   }
   
-  public BuildCapability setBrwIsFullScreen(boolean brwIsFullScreen) {
-    this.brwIsFullScreen = brwIsFullScreen;
+  public BuildCapability setBrw_start_maximize(boolean brw_start_maximize) {
+    this.brw_start_maximize = brw_start_maximize;
     return this;
   }
   
@@ -277,7 +277,7 @@ public class BuildCapability {
         ", wdTimeoutsElementAccess=" + wdTimeoutsElementAccess +
         ", wdStrictFileInteractability=" + wdStrictFileInteractability +
         ", wdUnhandledPromptBehavior='" + wdUnhandledPromptBehavior + '\'' +
-        ", brwIsFullScreen=" + brwIsFullScreen +
+        ", brwIsFullScreen=" + brw_start_maximize +
         ", chromeEnableNetwork=" + chromeEnableNetwork +
         ", chromeEnablePage=" + chromeEnablePage +
         ", buildAbortOnFailure=" + buildAbortOnFailure +

@@ -1,0 +1,75 @@
+# Some basic webdriver tests just to see simple things work.
+
+# 1. simple google search test
+openUrl("https://google.com")
+typeActive("apple.com", keys.enter)
+# this selector gives all results but findElement will return the first one
+firstResult = findElement("div.r > a > h3")
+assertTrue(getElementText(firstResult) == "Apple")
+click(firstResult)
+untilTitleIs("Apple")
+
+
+# 2. open a page, send keys to it and check if the intended effect took place.
+openUrl("https://jsfiddle.net/praveen4463/vxk59gph/")
+switchFrame("iframe[name='result']")
+sendKeysToPage(".doc-click", keys.shift, "r")
+assertTrue(trim(getElementText(".doc-click")) == "document clicked")
+assertTrue(trim(getElementText(".doc-keydown-key")) == "Shift R")
+assertTrue(trim(getElementText(".doc-keydown-code")) == "ShiftLeft KeyR")
+# again send keys this time lower cased and see lower case is printed since shift went up
+sendKeysToPageF("r")
+assertTrue(trim(getElementText(".doc-click")) == "document clicked")
+# shift went up in last sendKeysToPage call, thus 'r' will print as is without upper case
+assertTrue(trim(getElementText(".doc-keydown-key")) == "Shift R r")
+assertTrue(trim(getElementText(".doc-keydown-code")) == "ShiftLeft KeyR KeyR")
+
+
+
+# 3. text matching single line
+openUrl("https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-classes")
+# when we see wrapped text on a site, it doesn't mean the text has a line break, text is just
+# wrapped by using css on element. Thus when we copy paste that to editor, we will get a whole
+# big line that will need to be put as string.
+expectedText = "Pseudo-classes let you apply a style to an element not only in relation to the" +
+" content of the document tree, but also in relation to external factors like the history of the" +
+" navigator (:visited, for example), the status of its content (like :checked on certain form" +
+" elements), or the position of the mouse (like :hover, which lets you know if the mouse is over" +
+" an element or not)."
+assertTrue(getElementText("#wikiArticle > p:nth-of-type(2)") == expectedText)
+
+
+
+# 4. text matching multi line
+openUrl("https://jsfiddle.net/praveen4463/hvex69tp/")
+switchFrame("iframe[name='result']")
+# I copy/pasted following text from the above fiddle page, using mouse selection. See the
+# whitespaces before 2nd and 3rd line. These whitespace causes the string to be different than what
+# is rendered on page thus a mismatch with selenium's getText. To correctly copy, first paste just
+# the text and then write variable name so that IDE won't put those spaces to indent everything, may
+# be it's just with idea. Mention this for user so they take care while pasting content, probably
+# set the ZWL ide in way that it won't indent on paste.
+/*
+expectedText = `hey you, where were you all day, i was looking for you,
+                I gave that thing to one of your friend, could you take
+                that from him?`
+*/
+expectedText = `hey you, where were you all day, i was looking for you,
+I gave that thing to one of your friend, could you take
+that from him?`
+actual = getElementText("div")
+/*printF("actual: \"%s\", length of actual: %s, length of expected: %s", actual,
+    length(actual), length(expectedText))*/
+assertTrue(trim(actual) == expectedText)
+
+
+
+# 5. special characters
+text = "hi buddy ♻, whats up ⚜"
+if browser.name == "firefox" {
+  text = "hi buddy 😀 what's up 😆"
+}
+openUrl("https://google.com")
+q = activeElement()
+type(q, text)
+assertTrue(getElementValue(q) == text)

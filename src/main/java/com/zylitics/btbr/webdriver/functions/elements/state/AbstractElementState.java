@@ -12,7 +12,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class AbstractElementState extends AbstractWebdriverFunction {
+abstract class AbstractElementState extends AbstractWebdriverFunction {
   
   public AbstractElementState(APICoreProperties.Webdriver wdProps,
                            BuildCapability buildCapability,

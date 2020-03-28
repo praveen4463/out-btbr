@@ -10,7 +10,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class Timeouts extends AbstractWebdriverFunction {
+abstract class Timeouts extends AbstractWebdriverFunction {
   
   public Timeouts(APICoreProperties.Webdriver wdProps,
                           BuildCapability buildCapability,

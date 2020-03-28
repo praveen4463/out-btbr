@@ -10,7 +10,7 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.PrintStream;
 
-public abstract class AbstractStorage extends AbstractWebdriverFunction {
+abstract class AbstractStorage extends AbstractWebdriverFunction {
   
   final LocalStorage localStorage;
   

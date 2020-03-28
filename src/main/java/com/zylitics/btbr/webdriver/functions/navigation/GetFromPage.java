@@ -10,7 +10,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class GetFromPage extends AbstractWebdriverFunction {
+abstract class GetFromPage extends AbstractWebdriverFunction {
   
   public GetFromPage(APICoreProperties.Webdriver wdProps,
                        BuildCapability buildCapability,

@@ -10,7 +10,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class AbstractClear extends AbstractStorage {
+abstract class AbstractClear extends AbstractStorage {
   
   public AbstractClear(APICoreProperties.Webdriver wdProps,
                            BuildCapability buildCapability,

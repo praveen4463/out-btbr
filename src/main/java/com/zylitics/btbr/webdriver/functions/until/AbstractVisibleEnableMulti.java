@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 /**
  * Multi element variant of {@link AbstractVisibleEnable}
  */
-public abstract class AbstractVisibleEnableMulti extends AbstractUntilExpectation {
+abstract class AbstractVisibleEnableMulti extends AbstractUntilExpectation {
   
   public AbstractVisibleEnableMulti(APICoreProperties.Webdriver wdProps,
                                     BuildCapability buildCapability,

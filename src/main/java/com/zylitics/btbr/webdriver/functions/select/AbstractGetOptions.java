@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public abstract class AbstractGetOptions extends AbstractWebdriverFunction {
+abstract class AbstractGetOptions extends AbstractWebdriverFunction {
   
   public AbstractGetOptions(APICoreProperties.Webdriver wdProps,
                     BuildCapability buildCapability,

@@ -10,7 +10,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class BackForward extends AbstractWebdriverFunction {
+abstract class BackForward extends AbstractWebdriverFunction {
   
   public BackForward(APICoreProperties.Webdriver wdProps,
               BuildCapability buildCapability,

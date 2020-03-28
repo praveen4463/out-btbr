@@ -11,7 +11,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class MultiClickClear extends AbstractWebdriverFunction {
+abstract class MultiClickClear extends AbstractWebdriverFunction {
   
   public MultiClickClear(APICoreProperties.Webdriver wdProps,
                          BuildCapability buildCapability,

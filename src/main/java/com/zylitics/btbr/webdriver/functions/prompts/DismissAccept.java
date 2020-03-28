@@ -10,7 +10,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class DismissAccept extends AbstractWebdriverFunction {
+abstract class DismissAccept extends AbstractWebdriverFunction {
   
   public DismissAccept(APICoreProperties.Webdriver wdProps,
                       BuildCapability buildCapability,

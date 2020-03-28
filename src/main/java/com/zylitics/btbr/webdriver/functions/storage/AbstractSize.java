@@ -11,7 +11,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class AbstractSize extends AbstractStorage {
+abstract class AbstractSize extends AbstractStorage {
   
   public AbstractSize(APICoreProperties.Webdriver wdProps,
                       BuildCapability buildCapability,

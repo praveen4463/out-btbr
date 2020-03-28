@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class AbstractGetCookie extends AbstractWebdriverFunction {
+abstract class AbstractGetCookie extends AbstractWebdriverFunction {
   
   public AbstractGetCookie(APICoreProperties.Webdriver wdProps,
                     BuildCapability buildCapability,

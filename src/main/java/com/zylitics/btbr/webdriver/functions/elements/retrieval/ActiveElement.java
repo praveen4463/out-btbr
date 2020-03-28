@@ -5,6 +5,7 @@ import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.ZwlValue;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.io.PrintStream;
 import java.util.List;
@@ -39,9 +40,7 @@ public class ActiveElement extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    return handleWDExceptions(() -> {
-      targetLocator.activeElement();
-      return _void;
-    });
+    return handleWDExceptions(() ->
+        convertIntoZwlElemId((RemoteWebElement) targetLocator.activeElement()));
   }
 }

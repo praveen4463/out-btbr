@@ -11,7 +11,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class AbstractFindFromElement extends AbstractWebdriverFunction {
+abstract class AbstractFindFromElement extends AbstractWebdriverFunction {
   
   public AbstractFindFromElement(APICoreProperties.Webdriver wdProps,
                                 BuildCapability buildCapability,
