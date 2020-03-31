@@ -42,6 +42,7 @@ abstract class AbstractElementNamedProperty extends AbstractWebdriverFunction {
     String propertyName = tryCastString(1, args.get(1));
     String propertyValue = handleWDExceptions(() ->
         get(getElement(elemIdOrSelector), propertyName));
+    
     return tryGetStringZwlValue(propertyValue);
   }
   

@@ -41,7 +41,7 @@ public class UntilSwitchedToFrame extends AbstractUntilExpectation {
     wait.ignoring(NoSuchFrameException.class);
     
     try {
-      int index = ParseUtil.parseDouble(args.get(0), new InvalidTypeException("")).intValue();
+      int index = ParseUtil.parseDouble(args.get(0), () -> new InvalidTypeException("")).intValue();
       return processWithIndex(wait, index);
     } catch (InvalidTypeException ignore) {}
     

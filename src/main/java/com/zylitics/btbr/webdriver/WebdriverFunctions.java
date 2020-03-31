@@ -6,6 +6,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.webdriver.functions.action.ActionFunctions;
 import com.zylitics.btbr.webdriver.functions.action.DragAndDrop;
 import com.zylitics.btbr.webdriver.functions.action.PerformAction;
 import com.zylitics.btbr.webdriver.functions.action.Scroll;
@@ -99,6 +100,23 @@ public class WebdriverFunctions {
         // action
         new DragAndDrop(wdProps, buildCapability, driver, printStream),
         new PerformAction(wdProps, buildCapability, driver, printStream),
+        new ActionFunctions.Focus(),
+        new ActionFunctions.ShiftDown(),
+        new ActionFunctions.ShiftUp(),
+        new ActionFunctions.CtrlDown(),
+        new ActionFunctions.CtrlUp(),
+        new ActionFunctions.AltDown(),
+        new ActionFunctions.AltUp(),
+        new ActionFunctions.CmdDown(),
+        new ActionFunctions.CmdUp(),
+        new ActionFunctions.SendKeys(),
+        new ActionFunctions.Move(),
+        new ActionFunctions.Hold(),
+        new ActionFunctions.Release(),
+        new ActionFunctions.ClickOnce(),
+        new ActionFunctions.DoubleClick(),
+        new ActionFunctions.ContextClick(),
+        new ActionFunctions.Pause(),
         new Scroll(wdProps, buildCapability, driver, printStream),
         // color
         new ColorMatches(wdProps, buildCapability, driver, printStream),

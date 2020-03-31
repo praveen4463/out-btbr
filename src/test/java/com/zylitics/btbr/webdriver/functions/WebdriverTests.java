@@ -25,9 +25,10 @@ import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.DiagnosticErrorListener;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -40,7 +41,6 @@ import org.openqa.selenium.firefox.GeckoDriverService;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,17 +58,66 @@ public class WebdriverTests {
   public static List<ANTLRErrorListener> DEFAULT_TEST_LISTENERS =
       ImmutableList.of(ConsoleErrorListener.INSTANCE, new DiagnosticErrorListener());
   
-  final BuildCapability buildCapability = getBuildCapability();
   final APICoreProperties.Webdriver wdProps = getDefaultWDProps();
   final Storage storage = getStorage();
   final PrintStream printStream = System.out;
   
+  BuildCapability buildCapability;
   Path fakeBuildDir;
   RemoteWebDriver driver;
   ZwlInterpreterVisitor interpreterVisitor;
   
-  @BeforeEach
-  void setup() throws Exception {
+  @Tag("basic")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void basicWdTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "BasicWdTest.zwl");
+  }
+  
+  @Tag("actions")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void actionsTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "ActionsTest.zwl");
+  }
+  
+  @Tag("color")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void colorTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "ColorTest.zwl");
+  }
+  
+  @Tag("context")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void contextTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "ContextTest.zwl");
+  }
+  
+  @Tag("cookie")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void cookieTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "CookieTest.zwl");
+  }
+  
+  private void multipleRuns(String browser, String file) throws Exception {
+    if (shouldSkip(browser)) {
+      return;
+    }
+    setup(browser);
+    Main main = new Main("resources/" + file, Charsets.UTF_8, DEFAULT_TEST_LISTENERS);
+    main.interpret(interpreterVisitor);
+  }
+  
+  private boolean shouldSkip(String browser) {
+    return System.getProperty("skipBrowser") != null
+        && System.getProperty("skipBrowser").equalsIgnoreCase(browser);
+  }
+  
+  private void setup(String browser) throws Exception {
+    buildCapability = getBuildCapability(browser);
     Capabilities caps = getCapabilities(buildCapability, wdProps);
     if (buildCapability.getWdBrowserName().equals("chrome")) {
       ChromeOptions chrome = new ChromeOptions();
@@ -90,7 +139,7 @@ public class WebdriverTests {
     if (buildCapability.isBrw_start_maximize()) {
       driver.manage().window().maximize();
     }
-  
+    
     fakeBuildDir = Paths.get(Configuration.SYS_DEF_TEMP_DIR, "build-111111");
     if (!Files.isDirectory(fakeBuildDir)) {
       Files.createDirectory(fakeBuildDir);
@@ -104,7 +153,7 @@ public class WebdriverTests {
         "zl-user-data",
         "11021/uploads",
         fakeBuildDir);
-  
+    
     interpreterVisitor = zwlInterpreter -> {
       zwlInterpreter.setFunctions(wdFunctions.get());
       //!! add any user-agent specific functions to override the base wd functions
@@ -126,27 +175,11 @@ public class WebdriverTests {
       zwlInterpreter.setReadOnlyVariable("keys", new MapZwlValue(Keyz.asMap()));
       
       // browser detail, not adding version as it's not required and given in these tests.
-      Map<String, ZwlValue> browser = ImmutableMap.of(
+      Map<String, ZwlValue> browserDetail = ImmutableMap.of(
           "name", new StringZwlValue(buildCapability.getWdBrowserName())
       );
-      zwlInterpreter.setReadOnlyVariable("browser", new MapZwlValue(browser));
+      zwlInterpreter.setReadOnlyVariable("browser", new MapZwlValue(browserDetail));
     };
-  }
-  
-  @Disabled
-  @Test
-  void basicWdTest() throws IOException {
-    run("BasicWdTest.zwl");
-  }
-  
-  @Test
-  void actionsTest() throws IOException {
-    run("ActionsTest.zwl");
-  }
-  
-  private void run(String file) throws IOException {
-    Main main = new Main("resources/" + file, Charsets.UTF_8, DEFAULT_TEST_LISTENERS);
-    main.interpret(interpreterVisitor);
   }
   
   @AfterEach
@@ -159,7 +192,9 @@ public class WebdriverTests {
         // ignore
       }
     }
-    driver.quit();
+    if (driver != null) {
+      driver.quit();
+    }
   }
   
   private APICoreProperties.Webdriver getDefaultWDProps() {
@@ -171,12 +206,8 @@ public class WebdriverTests {
     return wd;
   }
   
-  private BuildCapability getBuildCapability() {
+  private BuildCapability getBuildCapability(String browser) {
     BuildCapability b = new BuildCapability();
-    String browser = System.getProperty("browser");
-    if (browser == null) {
-      browser = "chrome";
-    }
     b.setWdBrowserName(browser);
     b.setWdPlatformName("mac");
     b.setWdSetWindowRect(true);

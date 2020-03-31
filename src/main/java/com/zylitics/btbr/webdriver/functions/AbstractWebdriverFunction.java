@@ -50,9 +50,7 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
   // Accepts everything needed to run the webdriver function.
   // In this abstract class we accept RemoteWebDriver rather than WebDriver so that we could
   // access other interfaces that RemoteWebDriver implements like JavascriptExecutor, Interactive,
-  // TakesScreenshot etc. There will be another abstract classes for role interfaces like WebStorage
-  // so that functions those need to access them can extend those abstract classes rather than this
-  // one.
+  // TakesScreenshot etc without a cast.
   protected AbstractWebdriverFunction(APICoreProperties.Webdriver wdProps,
                             BuildCapability buildCapability,
                             RemoteWebDriver driver,

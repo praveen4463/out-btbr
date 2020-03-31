@@ -1,0 +1,2 @@
+openUrl("https://jsfiddle.net/praveen4463/hsotm4xb/")
+addCookie("zwl_cookie", "1188", "/", "jsfiddle.net", 365*24*60*60*1000)

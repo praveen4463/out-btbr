@@ -27,18 +27,22 @@ public class Sleep extends AbstractWebdriverFunction {
   
   @Override
   public int minParamsCount() {
-    return 0;
+    return 1;
   }
   
   @Override
   public int maxParamsCount() {
-    return 0;
+    return 1;
   }
   
   @Override
   public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
+    
+    if (args.size() == 0) {
+      throw unexpectedEndOfFunctionOverload(args.size());
+    }
     
     try {
       Thread.sleep(parseDouble(0, args.get(0)).longValue());

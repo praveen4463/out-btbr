@@ -52,11 +52,10 @@ public class PerformAction extends AbstractWebdriverFunction {
     if (args.size() == 0) {
       throw unexpectedEndOfFunctionOverload(args.size());
     }
-    process(args);
-    return _void;
+    return process(args);
   }
   
-  private void process(List<ZwlValue> args) {
+  private ZwlValue process(List<ZwlValue> args) {
     Actions actions = new Actions(driver);
     for (int i = 0; i < args.size(); i++) {
       Optional<Map<String, ZwlValue>> m = args.get(i).getMapValue();
@@ -135,5 +134,9 @@ public class PerformAction extends AbstractWebdriverFunction {
       }
       actionFunction.process(this, actions, actionFunctionArgs);
     }
+    return handleWDExceptions(() -> {
+      actions.perform();
+      return _void;
+    });
   }
 }

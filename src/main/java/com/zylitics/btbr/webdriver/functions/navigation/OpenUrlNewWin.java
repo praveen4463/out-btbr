@@ -4,6 +4,7 @@ import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.ZwlValue;
+import org.openqa.selenium.WindowType;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.PrintStream;
@@ -26,7 +27,7 @@ public class OpenUrlNewWin extends AbstractWebdriverFunction {
   
   @Override
   public int minParamsCount() {
-    return 2;
+    return 1;
   }
   
   @Override
@@ -39,13 +40,17 @@ public class OpenUrlNewWin extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    if (args.size() < 2) {
+    if (args.size() == 0) {
       throw unexpectedEndOfFunctionOverload(args.size());
     }
     return handleWDExceptions(() -> {
       // control is returned after the switch
-      targetLocator.newWindow(parseWindowType(tryCastString(0, args.get(0))));
-      driver.get(tryCastString(1, args.get(1))); // we've switched, now open url
+      WindowType win = WindowType.TAB;
+      if (args.size() == 2) {
+        win = parseWindowType(tryCastString(1, args.get(1)));
+      }
+      targetLocator.newWindow(win);
+      driver.get(tryCastString(0, args.get(0))); // we've switched, now open url
       return _void;
     });
   }

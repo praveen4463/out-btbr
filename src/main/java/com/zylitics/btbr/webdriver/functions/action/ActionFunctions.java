@@ -10,7 +10,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
-class ActionFunctions {
+public class ActionFunctions {
   
   public static final String FOCUS = "focus";
   
@@ -65,10 +65,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.click(wd.getElement(tryCastString(0, args.get(0))));
-        return null;
-      });
+      actions.click(wd.getElement(wd.tryCastString(0, args.get(0))));
     }
   }
   
@@ -82,10 +79,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.keyDown(Keys.SHIFT);
-        return null;
-      });
+      actions.keyDown(Keys.SHIFT);
     }
   }
   
@@ -99,10 +93,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.keyUp(Keys.SHIFT);
-        return null;
-      });
+      actions.keyUp(Keys.SHIFT);
     }
   }
   
@@ -116,10 +107,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.keyDown(Keys.CONTROL);
-        return null;
-      });
+      actions.keyDown(Keys.CONTROL);
     }
   }
   
@@ -133,10 +121,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.keyUp(Keys.CONTROL);
-        return null;
-      });
+      actions.keyUp(Keys.CONTROL);
     }
   }
   
@@ -150,10 +135,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.keyDown(Keys.COMMAND);
-        return null;
-      });
+      actions.keyDown(Keys.COMMAND);
     }
   }
   
@@ -167,10 +149,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.keyUp(Keys.COMMAND);
-        return null;
-      });
+      actions.keyUp(Keys.COMMAND);
     }
   }
   
@@ -184,10 +163,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.keyDown(Keys.ALT);
-        return null;
-      });
+      actions.keyDown(Keys.ALT);
     }
   }
   
@@ -201,10 +177,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.keyUp(Keys.ALT);
-        return null;
-      });
+      actions.keyUp(Keys.ALT);
     }
   }
   
@@ -228,10 +201,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.sendKeys(args.stream().map(Objects::toString).toArray(String[]::new));
-        return null;
-      });
+      actions.sendKeys(args.stream().map(Objects::toString).toArray(String[]::new));
     }
   }
   
@@ -252,27 +222,26 @@ class ActionFunctions {
       return 3;
     }
   
+    // although Move extends AbstractFunction, access it's methods with AbstractWebdriverFunction
+    // reference because when we invoke process, things like lineNumber doesn't set up.
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        switch (args.size()) {
-          case 1:
-            actions.moveToElement(wd.getElement(tryCastString(0, args.get(0))));
-            break;
-          case 2:
-            actions.moveByOffset(parseDouble(0, args.get(0)).intValue(),
-                parseDouble(1, args.get(1)).intValue());
-            break;
-          case 3:
-            actions.moveToElement(wd.getElement(tryCastString(0, args.get(0))),
-                parseDouble(1, args.get(1)).intValue(),
-                parseDouble(2, args.get(2)).intValue());
-            break;
-          default:
-            throw unexpectedEndOfFunctionOverload(args.size());
-        }
-        return _void;
-      });
+      switch (args.size()) {
+        case 1:
+          actions.moveToElement(wd.getElement(wd.tryCastString(0, args.get(0))));
+          break;
+        case 2:
+          actions.moveByOffset(wd.parseDouble(0, args.get(0)).intValue(),
+              wd.parseDouble(1, args.get(1)).intValue());
+          break;
+        case 3:
+          actions.moveToElement(wd.getElement(wd.tryCastString(0, args.get(0))),
+              wd.parseDouble(1, args.get(1)).intValue(),
+              wd.parseDouble(2, args.get(2)).intValue());
+          break;
+        default:
+          throw unexpectedEndOfFunctionOverload(args.size());
+      }
     }
   }
   
@@ -285,10 +254,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.clickAndHold();
-        return null;
-      });
+      actions.clickAndHold();
     }
   }
   
@@ -302,10 +268,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.release();
-        return null;
-      });
+      actions.release();
     }
   }
   
@@ -319,10 +282,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.click();
-        return null;
-      });
+      actions.click();
     }
   }
   
@@ -336,10 +296,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.doubleClick();
-        return null;
-      });
+      actions.doubleClick();
     }
   }
   
@@ -353,10 +310,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.contextClick();
-        return null;
-      });
+      actions.contextClick();
     }
   }
   
@@ -379,10 +333,7 @@ class ActionFunctions {
   
     @Override
     public void process(AbstractWebdriverFunction wd, Actions actions, List<ZwlValue> args) {
-      wd.handleWDExceptions(() -> {
-        actions.pause(Duration.ofMillis(parseDouble(0, args.get(0)).longValue()));
-        return null;
-      });
+      actions.pause(Duration.ofMillis(wd.parseDouble(0, args.get(0)).longValue()));
     }
   }
 }

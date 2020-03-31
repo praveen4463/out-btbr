@@ -56,10 +56,10 @@ public abstract class AbstractExecuteScript extends AbstractWebdriverFunction {
     if (argsCount > 1) {
       args.subList(1, argsCount).forEach(z -> scriptArgs.add(convertFromZwlValue(z)));
     }
-    return transformJsResponse(execute(script, scriptArgs));
+    return transformJsResponse(execute(script, scriptArgs.toArray()));
   }
   
-  protected abstract Object execute(String script, List<Object> args);
+  protected abstract Object execute(String script, Object... args);
   
   /**
    * The goal of this method is to convert ZwlValue into a type that is acceptable and work as
@@ -87,7 +87,7 @@ public abstract class AbstractExecuteScript extends AbstractWebdriverFunction {
     // !! keep parsing stuff on top and not the string cast because a number may be given as
     // a string and may require parsing.
     try {
-      Double d = ParseUtil.parseDouble(val, iEx);
+      Double d = ParseUtil.parseDouble(val, () -> iEx);
       // if this double wasn't actually a double, check that and if true, return a long value.
       if (d % 1 == 0) {
         return d.longValue();
@@ -96,7 +96,7 @@ public abstract class AbstractExecuteScript extends AbstractWebdriverFunction {
     } catch (InvalidTypeException ignore) {}
     
     try {
-      return ParseUtil.parseBoolean(val, iEx);
+      return ParseUtil.parseBoolean(val, () -> iEx);
     } catch (InvalidTypeException ignore) {}
   
     Optional<String> s = val.getStringValue();

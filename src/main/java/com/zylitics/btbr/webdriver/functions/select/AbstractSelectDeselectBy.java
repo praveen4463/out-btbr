@@ -52,7 +52,7 @@ abstract class AbstractSelectDeselectBy extends AbstractWebdriverFunction {
   
   int parseSelectIndex(ZwlValue value) {
     return ParseUtil.parseDouble(value,
-        new InvalidTypeException(withLineNCol(getName() + " requires a numeric index.")))
+        () -> new InvalidTypeException(withLineNCol(getName() + " requires a numeric index.")))
         .intValue();
   }
 }

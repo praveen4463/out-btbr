@@ -5,7 +5,6 @@ import com.zylitics.btbr.model.BuildCapability;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.PrintStream;
-import java.util.List;
 
 public class ExecuteAsyncScript extends AbstractExecuteScript {
   
@@ -22,7 +21,7 @@ public class ExecuteAsyncScript extends AbstractExecuteScript {
   }
   
   @Override
-  protected Object execute(String script, List<Object> args) {
+  protected Object execute(String script, Object... args) {
     return driver.executeAsyncScript(script, args);
   }
 }
