@@ -1,2 +1,30 @@
+# Cookies functions
+
 openUrl("https://jsfiddle.net/praveen4463/hsotm4xb/")
+deleteAllCookies()
+
 addCookie("zwl_cookie", "1188", "/", "jsfiddle.net", 365*24*60*60*1000)
+c = getNamedCookie("zwl_cookie")
+assertTrue(c.name == "zwl_cookie" && c.value == "1188" && c.domain == ".jsfiddle.net"
+    && c.path == "/" && c.expiry > (365*24*60*60*1000 - 1000)) # assume max 5 secs may have elapsed
+
+cs = getCookies()
+assertTrue(size(cs) == 1)
+assertTrue(cs[0].name == "zwl_cookie")
+
+addCookie("zwl_cookie1", "1111")
+addCookie("zwl_cookie2", "1111")
+
+assertTrue(getNamedCookie("zwl_cookie1").name == "zwl_cookie1")
+assertTrue(getNamedCookie("zwl_cookie2").name == "zwl_cookie2")
+assertTrue(size(getCookies()) == 3)
+
+deleteCookie("zwl_cookie")
+
+assertTrue(size(getCookies()) == 2)
+assertFalse(exists(getNamedCookie("zwl_cookie")))
+
+deleteAllCookies()
+
+assertTrue(size(getCookies()) == 0)
+assertFalse(exists(getNamedCookie("zwl_cookie1")) || exists(getNamedCookie("zwl_cookie2")))

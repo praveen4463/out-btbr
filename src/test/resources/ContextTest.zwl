@@ -45,14 +45,14 @@ switchWin(getAllWinIds()[0]) # switch to dragEventUrl win
 openUrl("https://jsfiddle.net/praveen4463/w0eg4azx/")
 untilSwitchedToFrame(0)
 button = findElement("input")
-assertTrue(length(button) == 36) # uuid with hyphens
+assertTrue(isValidElemId(button))
 # parent frame
 switchParentFrame()
 panelHs = findElements(".panel-h")
 assertTrue(size(panelHs) > 1)
 switchFrame(0)
 button = findElement("input")
-assertTrue(length(button) == 36) # uuid with hyphens
+assertTrue(isValidElemId(button))hyphens
 switchWin()
 panelHs = findElements(".panel-h")
 assertTrue(size(panelHs) > 1)
@@ -85,3 +85,10 @@ setWinSize(500, 500)
 resizeWinBy(100, 100)
 m = getWinSize()
 assertTrue(m.width == 600 && m.height == 600)
+
+maximizeWin()
+m = getWinSize()
+assertTrue(m.width == originalWinSize.width && m.height == originalWinSize.height)
+fullScreenWin()
+m = getWinSize()
+assertTrue(m.width == originalWinSize.width && m.height > originalWinSize.height)

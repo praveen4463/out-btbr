@@ -62,6 +62,7 @@ public class ClickSwitchNew extends AbstractWebdriverFunction {
     
     WebDriverWait wait =
         new WebDriverWait(driver, Duration.ofMillis(wdProps.getDefaultTimeoutNewWindow()));
+    
     int desiredHandles = previousHandles.size() + 1;
     try {
       Set<String> currentHandles = wait.until(d -> {

@@ -102,6 +102,20 @@ public class WebdriverTests {
     multipleRuns(browsers.getName(), "CookieTest.zwl");
   }
   
+  @Tag("document")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void documentTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "DocumentTest.zwl");
+  }
+  
+  @Tag("einteraction")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void eInteractionTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "EInteractionTest.zwl");
+  }
+  
   private void multipleRuns(String browser, String file) throws Exception {
     if (shouldSkip(browser)) {
       return;
@@ -144,7 +158,6 @@ public class WebdriverTests {
     if (!Files.isDirectory(fakeBuildDir)) {
       Files.createDirectory(fakeBuildDir);
     }
-    
     WebdriverFunctions wdFunctions = new WebdriverFunctions(wdProps,
         buildCapability,
         driver,
@@ -158,7 +171,8 @@ public class WebdriverTests {
       zwlInterpreter.setFunctions(wdFunctions.get());
       //!! add any user-agent specific functions to override the base wd functions
       
-      // overwrite some zwl functions to use our print stream (although both use same stream)
+      // overwrite some zwl functions to use our print stream (although both use same System.out
+      // stream for these tests)
       zwlInterpreter.setFunction(new Print(printStream));
       zwlInterpreter.setFunction(new PrintF(printStream));
       
@@ -213,6 +227,8 @@ public class WebdriverTests {
     b.setWdSetWindowRect(true);
     b.setWdUnhandledPromptBehavior("ignore");
     b.setBrw_start_maximize(true);
+    b.setWdTimeoutsPageLoad(wdProps.getDefaultTimeoutPageLoad());
+    b.setWdTimeoutsScript(30_000);
     return b;
   }
   

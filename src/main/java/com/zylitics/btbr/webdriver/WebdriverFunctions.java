@@ -32,6 +32,7 @@ import com.zylitics.btbr.webdriver.functions.timeout.SetElementAccessTimeout;
 import com.zylitics.btbr.webdriver.functions.timeout.SetPageLoadTimeout;
 import com.zylitics.btbr.webdriver.functions.timeout.SetScriptTimeout;
 import com.zylitics.btbr.webdriver.functions.until.*;
+import com.zylitics.btbr.webdriver.functions.util.IsValidElemId;
 import com.zylitics.btbr.webdriver.functions.util.Sleep;
 import com.zylitics.zwl.interpret.Function;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -282,8 +283,9 @@ public class WebdriverFunctions {
         new UntilValueLike(wdProps, buildCapability, driver, printStream),
         new UntilValueNonEmpty(wdProps, buildCapability, driver, printStream),
         new UntilVisible(wdProps, buildCapability, driver, printStream),
-        // sleep
-        new Sleep(wdProps, buildCapability, driver, printStream)
+        // util
+        new Sleep(wdProps, buildCapability, driver, printStream),
+        new IsValidElemId(wdProps, buildCapability, driver, printStream)
     );
     return builder.build();
   }

@@ -462,7 +462,7 @@ public class APICoreProperties {
   
     public void setDefaultTimeoutNewWindow(Integer defaultTimeoutNewWindow) {
       if (this.defaultTimeoutNewWindow == null) {
-        this.defaultTimeoutPageLoad = defaultTimeoutNewWindow;
+        this.defaultTimeoutNewWindow = defaultTimeoutNewWindow;
       }
     }
   

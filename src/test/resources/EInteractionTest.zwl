@@ -1,0 +1,64 @@
+# elements interaction test
+
+# clickNoSwitch and clickSwitchNew test
+openUrl("https://jsfiddle.net/praveen4463/z94ck36L/")
+fiddleWinId = getCurrentWinId()
+resultFrame = findElement("iframe[name='result']") # note that we could find frame and use the
+# elemId everywhere as that frame doesn't reload, it works on chrome but looks like firefox reloads
+# the frame on link click, thus using the selector every time we switch to this frame.
+switchFrame(resultFrame)
+junitA = findElement(".junit-a")
+junitURL = getElementAttribute(junitA, "href")
+click(junitA)
+if (browser.name == "chrome") {
+  # chrome requires to switch browser window
+  switchWin(fiddleWinId)
+  switchFrame(resultFrame)
+}
+clickSwitchNew(junitA) # we're able to click again, verifies that webdriver was still on last page
+untilUrlIs(junitURL)
+# now we've 3 windows, and current is junit page. move to previous page and frame
+switchWin(fiddleWinId)
+if (browser.name == "chrome") {
+  # apparently firefox has frame's browsing context retained, so don't switch in that case.
+  switchFrame(resultFrame)
+}
+mozFormWinIdNewTabNoSwitch = clickNoSwitch(junitA)
+# Should still remain on the first window, keep it's id to switch later on
+if (browser.name == "chrome") {
+  # apparently firefox has frame's browsing context retained, so don't switch in that case.
+  switchFrame(resultFrame)
+  # switch to frame, clickNoSwitch switches to original window to change browser focus that selects
+  # top browsing context
+}
+
+# click, clickAll and submit test
+# filling form clicking each one rather than using tabs to test the intended functions
+txtName = findElement("#name")
+click(txtName)
+type(txtName, "praveen tiwari")
+
+txtPhone = findElement("#phone")
+click(txtPhone)
+type(txtPhone, "98105574747")
+
+clickAll("#ch1", "#ch2")
+
+form1 = findElement("form[name='form1']")
+# for can be submitted only when all elements are populated thus no need to check they have values
+submit(form1)
+
+assertTrue(getElementValue("#formsubmitted") == "1") # verify form was submitted
+
+# clear and clearAll test
+clear(txtName)
+assertFalse(nonEmpty(getElementValue(txtName)))
+
+clearAll("form > input[type='text']")
+clickAll("#ch1", "#ch2")
+assertFalse(nonEmpty(getElementValue(txtPhone)))
+assertFalse(anyElementSelected("#ch1", "#ch2"))
+
+# finally try to move to the junit window that we din't see yet
+switchWin(mozFormWinIdNewTabNoSwitch)
+assertTrue(junitURL == getCurrentUrl())

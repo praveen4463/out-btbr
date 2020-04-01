@@ -41,7 +41,7 @@ public class GetCookies extends AbstractGetCookie {
     super.invoke(args, defaultValue, lineNColumn);
     
     Set<Cookie> cookies = handleWDExceptions(options::getCookies);
-    if (cookies == null) {
+    if (cookies == null || cookies.size() == 0) {
       return new ListZwlValue(new ArrayList<>(0));
     }
     List<ZwlValue> result = new ArrayList<>(CollectionUtil.getInitialCapacity(cookies.size()));
