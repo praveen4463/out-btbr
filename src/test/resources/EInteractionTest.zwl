@@ -11,7 +11,7 @@ junitA = findElement(".junit-a")
 junitURL = getElementAttribute(junitA, "href")
 click(junitA)
 if (browser.name == "chrome") {
-  # chrome requires to switch browser window
+  # chrome requires to switch browser window, if we don't do it clicks but nothing happens.
   switchWin(fiddleWinId)
   switchFrame(resultFrame)
 }

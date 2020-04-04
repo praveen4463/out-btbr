@@ -5,6 +5,7 @@ import com.zylitics.btbr.model.BuildCapability;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.PrintStream;
+import java.util.Arrays;
 
 public class ExecuteScript extends AbstractExecuteScript {
   
@@ -22,6 +23,8 @@ public class ExecuteScript extends AbstractExecuteScript {
   
   @Override
   protected Object execute(String script, Object... args) {
+    System.out.println("script is " + script);
+    System.out.println("args is " + Arrays.toString(args));
     return driver.executeScript(script, args);
   }
 }

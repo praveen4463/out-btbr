@@ -28,6 +28,7 @@ import com.zylitics.btbr.webdriver.functions.prompts.GetAlertText;
 import com.zylitics.btbr.webdriver.functions.prompts.SendAlertText;
 import com.zylitics.btbr.webdriver.functions.select.*;
 import com.zylitics.btbr.webdriver.functions.storage.*;
+import com.zylitics.btbr.webdriver.functions.timeout.GetTimeout;
 import com.zylitics.btbr.webdriver.functions.timeout.SetElementAccessTimeout;
 import com.zylitics.btbr.webdriver.functions.timeout.SetPageLoadTimeout;
 import com.zylitics.btbr.webdriver.functions.timeout.SetScriptTimeout;
@@ -196,9 +197,6 @@ public class WebdriverFunctions {
         new IsElementEnabled(wdProps, buildCapability, driver, printStream),
         new IsElementSelected(wdProps, buildCapability, driver, printStream),
         new IsStale(wdProps, buildCapability, driver, printStream),
-        new NoElementDisplayed(wdProps, buildCapability, driver, printStream),
-        new NoElementEnabled(wdProps, buildCapability, driver, printStream),
-        new NoElementSelected(wdProps, buildCapability, driver, printStream),
         // navigation
         new Back(wdProps, buildCapability, driver, printStream),
         new Forward(wdProps, buildCapability, driver, printStream),
@@ -241,6 +239,7 @@ public class WebdriverFunctions {
         new SetElementAccessTimeout(wdProps, buildCapability, driver, printStream),
         new SetPageLoadTimeout(wdProps, buildCapability, driver, printStream),
         new SetScriptTimeout(wdProps, buildCapability, driver, printStream),
+        new GetTimeout(wdProps, buildCapability, driver, printStream),
         // until expectation
         new UntilAlertPresent(wdProps, buildCapability, driver, printStream),
         new UntilAllDisabled(wdProps, buildCapability, driver, printStream),

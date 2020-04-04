@@ -32,8 +32,6 @@ public class BuildCapability {
   
   private int wdTimeoutsPageLoad;
   
-  private int wdTimeoutsImplicit;
-  
   private int wdTimeoutsElementAccess;
   
   private boolean wdStrictFileInteractability;
@@ -183,15 +181,6 @@ public class BuildCapability {
     return this;
   }
   
-  public int getWdTimeoutsImplicit() {
-    return wdTimeoutsImplicit;
-  }
-  
-  public BuildCapability setWdTimeoutsImplicit(int wdTimeoutsImplicit) {
-    this.wdTimeoutsImplicit = wdTimeoutsImplicit;
-    return this;
-  }
-  
   public int getWdTimeoutsElementAccess() {
     return wdTimeoutsElementAccess;
   }
@@ -273,7 +262,6 @@ public class BuildCapability {
         ", wdSetWindowRect=" + wdSetWindowRect +
         ", wdTimeoutsScript=" + wdTimeoutsScript +
         ", wdTimeoutsPageLoad=" + wdTimeoutsPageLoad +
-        ", wdTimeoutsImplicit=" + wdTimeoutsImplicit +
         ", wdTimeoutsElementAccess=" + wdTimeoutsElementAccess +
         ", wdStrictFileInteractability=" + wdStrictFileInteractability +
         ", wdUnhandledPromptBehavior='" + wdUnhandledPromptBehavior + '\'' +

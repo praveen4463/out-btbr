@@ -2,12 +2,16 @@ package com.zylitics.btbr.webdriver.functions.elements.retrieval;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.ZwlValue;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.PrintStream;
+import java.util.List;
+import java.util.function.Supplier;
 
-public class FindElementWithSelectors extends AbstractFindWithSelectors {
+public class FindElementWithSelectors extends AbstractWebdriverFunction {
   
   public FindElementWithSelectors(APICoreProperties.Webdriver wdProps,
                      BuildCapability buildCapability,
@@ -17,12 +21,39 @@ public class FindElementWithSelectors extends AbstractFindWithSelectors {
   }
   
   @Override
+  public int minParamsCount() {
+    return 1;
+  }
+  
+  @Override
+  public int maxParamsCount() {
+    return Integer.MAX_VALUE;
+  }
+  
+  @Override
   public String getName() {
     return "findElementWithSelectors";
   }
   
   @Override
-  protected ZwlValue find(String selector, boolean wait) {
-    return convertIntoZwlElemId(findElement(driver, selector, wait));
+  public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
+                         Supplier<String> lineNColumn) {
+    super.invoke(args, defaultValue, lineNColumn);
+    
+    return handleWDExceptions(() -> {
+      if (args.size() == 0) {
+        throw unexpectedEndOfFunctionOverload(args.size());
+      }
+      RuntimeException lastException = null;
+      for (int i = 0; i < args.size(); i++) {
+        String selector = tryCastString(i, args.get(i));
+        try {
+          return convertIntoZwlElemId(findElement(driver, selector, false));
+        } catch (NoSuchElementException ne) {
+          lastException = ne;
+        }
+      }
+      throw lastException;
+    });
   }
 }

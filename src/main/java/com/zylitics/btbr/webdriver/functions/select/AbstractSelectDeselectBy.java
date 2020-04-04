@@ -37,7 +37,7 @@ abstract class AbstractSelectDeselectBy extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    if (args.size() == 2) {
+    if (args.size() != 2) {
       throw unexpectedEndOfFunctionOverload(args.size());
     }
     String elemIdOrSelector = tryCastString(0, args.get(0));

@@ -43,6 +43,7 @@ api-core:
     default-page-load-strategy: eager
     default-timeout-element-access: 60000
     default-timeout-page-load: 300000
+    default-timeout-script: 30000
     default-timeout-new-window: 30000
     enable-profiler-logs-prop: webdriver.logging.profiler.enabled
     verbose-client-logs-prop: webbdriver.logging.client.verbose.enabled

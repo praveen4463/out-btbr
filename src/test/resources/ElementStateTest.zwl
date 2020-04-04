@@ -1,0 +1,96 @@
+# element state test
+
+# enabled/displayed/selected
+openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
+switchFrame("iframe[name='result']")
+chk1 = findElement("#chk1")
+chk2 = findElement("#chk2")
+chk3 = findElement("#chk3")
+all = [chk1, chk2, chk3]
+
+# all are displayed
+assertTrue(allElementsDisplayed(all))
+assertTrue(anyElementDisplayed(all))
+
+assertTrue(isElementDisplayed(chk1))
+
+# all are enabled
+assertTrue(allElementsEnabled(all))
+assertTrue(anyElementEnabled(all))
+
+assertTrue(isElementEnabled(chk1))
+
+# none are selected
+assertFalse(allElementsSelected(all))
+assertFalse(anyElementSelected(all))
+
+assertFalse(isElementSelected(chk1))
+
+# now lets hide all
+executeScript("arguments[0].style.display='none';arguments[1].style.display='none';" +
+    "arguments[2].style.display='none';", chk1, chk2, chk3)
+
+assertFalse(isElementDisplayed(chk1))
+
+# all are hidden
+assertFalse(allElementsDisplayed(all))
+assertFalse(anyElementDisplayed(all))
+
+# all are enabled (even if elements are hidden)
+assertTrue(allElementsEnabled(all))
+assertTrue(anyElementEnabled(all))
+
+# let's display one of
+executeScript("arguments[0].style.display='';", chk1)
+assertTrue(anyElementDisplayed(all))
+
+# now lets display and disable all
+executeScript("arguments[0].disabled=true;" +
+    "arguments[1].style.display='';arguments[1].disabled=true;" +
+    "arguments[2].style.display='';arguments[2].disabled=true;", chk1, chk2, chk3)
+
+# all are displayed
+assertTrue(allElementsDisplayed(all))
+assertTrue(anyElementDisplayed(all))
+
+# all are disabled
+assertFalse(allElementsEnabled(all))
+assertFalse(anyElementEnabled(all))
+
+assertFalse(isElementEnabled(chk1))
+
+# let's enable one of
+executeScript("arguments[0].disabled=false;", chk1)
+assertTrue(anyElementEnabled(all))
+
+# let's enable all and check all
+executeScript("arguments[0].checked=true;" +
+    "arguments[1].disabled=false;arguments[1].checked=true;" +
+    "arguments[2].disabled=false;arguments[2].checked=true;", chk1, chk2, chk3)
+
+# all are enabled
+assertTrue(allElementsEnabled(all))
+assertTrue(anyElementEnabled(all))
+
+# all are selected
+assertTrue(allElementsSelected(all))
+assertTrue(anyElementSelected(all))
+
+assertTrue(isElementSelected(chk1))
+
+# now let's uncheck one of
+executeScript("arguments[0].checked=false;", chk1)
+assertFalse(allElementsSelected(all))
+assertTrue(anyElementSelected(all))
+
+#---------------------------------------------------------------------------------------------------
+assertTrue(elementExists("#chk1"))
+assertFalse(isStale(chk1))
+executeScript("document.body.removeChild(arguments[0])", chk1)
+assertFalse(elementExists("#chk1"))
+assertTrue(isStale(chk1))
+
+assertTrue(getTagName(chk2) == "input")
+
+assertTrue(getElementAttributeOrCssValue(chk2, "type") == "checkbox")
+assertTrue(getElementAttributeOrCssValue(chk3, "position") == "absolute")

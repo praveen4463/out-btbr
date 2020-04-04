@@ -38,7 +38,6 @@ public class TypeIntoElements extends AbstractWebdriverFunction {
   public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
-    
     int argsCount = args.size();
     if (argsCount < 2) {
       throw unexpectedEndOfFunctionOverload(argsCount);

@@ -9,24 +9,24 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.util.IOUtil;
 import com.zylitics.btbr.webdriver.Configuration;
 import com.zylitics.btbr.webdriver.WebdriverFunctions;
 import com.zylitics.btbr.webdriver.constants.Colorz;
 import com.zylitics.btbr.webdriver.constants.Exceptions;
 import com.zylitics.btbr.webdriver.constants.Keyz;
+import com.zylitics.btbr.webdriver.constants.Timeouts;
 import com.zylitics.zwl.api.Main;
 import com.zylitics.zwl.api.ZwlInterpreterVisitor;
-import com.zylitics.zwl.datatype.MapZwlValue;
-import com.zylitics.zwl.datatype.StringZwlValue;
-import com.zylitics.zwl.datatype.ZwlValue;
+import com.zylitics.zwl.datatype.*;
 import com.zylitics.zwl.function.debugging.Print;
 import com.zylitics.zwl.function.debugging.PrintF;
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.DiagnosticErrorListener;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.openqa.selenium.Capabilities;
@@ -116,10 +116,80 @@ public class WebdriverTests {
     multipleRuns(browsers.getName(), "EInteractionTest.zwl");
   }
   
+  @Tag("setfiles")
+  @Tag("slow")
+  @Tag("io")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void setFilesTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "SetFilesTest.zwl");
+  }
+  
+  @Tag("einteractionkeys")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void eInteractionKeysTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "EInteractionKeysTest.zwl");
+  }
+  
+  @Tag("elementretrieval")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void elementRetrievalTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "ElementRetrievalTest.zwl");
+  }
+  
+  @Tag("elementstate")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void elementStateTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "ElementStateTest.zwl");
+  }
+  
+  @Tag("navigation")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void navigationTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "NavigationTest.zwl");
+  }
+  
+  @Tag("prompts")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void promptsTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "PromptsTest.zwl");
+  }
+  
+  @Tag("select")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void selectTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "SelectTest.zwl");
+  }
+  
+  @Tag("storage")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void storageTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "StorageTest.zwl");
+  }
+  
+  @Tag("timeout")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void timeoutTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "TimeoutTest.zwl");
+  }
+  
+  @Tag("until")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void untilTest(Browsers browsers) throws Exception {
+    multipleRuns(browsers.getName(), "UntilTest.zwl");
+  }
+  
   private void multipleRuns(String browser, String file) throws Exception {
-    if (shouldSkip(browser)) {
-      return;
-    }
+    Assumptions.assumeFalse(shouldSkip(browser), "Skipped");
     setup(browser);
     Main main = new Main("resources/" + file, Charsets.UTF_8, DEFAULT_TEST_LISTENERS);
     main.interpret(interpreterVisitor);
@@ -155,9 +225,11 @@ public class WebdriverTests {
     }
     
     fakeBuildDir = Paths.get(Configuration.SYS_DEF_TEMP_DIR, "build-111111");
-    if (!Files.isDirectory(fakeBuildDir)) {
-      Files.createDirectory(fakeBuildDir);
+    
+    if (Files.isDirectory(fakeBuildDir)) {
+      IOUtil.deleteDir(fakeBuildDir);
     }
+    Files.createDirectory(fakeBuildDir);
     WebdriverFunctions wdFunctions = new WebdriverFunctions(wdProps,
         buildCapability,
         driver,
@@ -193,11 +265,17 @@ public class WebdriverTests {
           "name", new StringZwlValue(buildCapability.getWdBrowserName())
       );
       zwlInterpreter.setReadOnlyVariable("browser", new MapZwlValue(browserDetail));
+      
+      // add timeout type
+      zwlInterpreter.setReadOnlyVariable("timeouts", new MapZwlValue(Timeouts.asMap()));
     };
   }
   
   @AfterEach
   void tearDown() {
+    if (driver == null) {
+      return;
+    }
     int hold = Integer.getInteger("holdWdCloseFor", 0); // in seconds.
     if (hold > 0) {
       try {
@@ -206,9 +284,7 @@ public class WebdriverTests {
         // ignore
       }
     }
-    if (driver != null) {
-      driver.quit();
-    }
+    driver.quit();
   }
   
   private APICoreProperties.Webdriver getDefaultWDProps() {
@@ -216,6 +292,7 @@ public class WebdriverTests {
     wd.setDefaultPageLoadStrategy("eager");
     wd.setDefaultTimeoutElementAccess(10_000);
     wd.setDefaultTimeoutPageLoad(30_000);
+    wd.setDefaultTimeoutScript(30_000);
     wd.setDefaultTimeoutNewWindow(10_000);
     return wd;
   }
@@ -227,8 +304,10 @@ public class WebdriverTests {
     b.setWdSetWindowRect(true);
     b.setWdUnhandledPromptBehavior("ignore");
     b.setBrw_start_maximize(true);
-    b.setWdTimeoutsPageLoad(wdProps.getDefaultTimeoutPageLoad());
-    b.setWdTimeoutsScript(30_000);
+    // all timeouts in build caps are initialized with -1 in db if no value is given.
+    b.setWdTimeoutsPageLoad(-1);
+    b.setWdTimeoutsElementAccess(-1);
+    b.setWdTimeoutsScript(-1);
     return b;
   }
   

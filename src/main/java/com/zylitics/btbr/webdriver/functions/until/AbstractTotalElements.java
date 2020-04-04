@@ -2,9 +2,8 @@ package com.zylitics.btbr.webdriver.functions.until;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
-import com.zylitics.zwl.datatype.BooleanZwlValue;
+import com.zylitics.btbr.webdriver.TimeoutType;
 import com.zylitics.zwl.datatype.ZwlValue;
-import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;

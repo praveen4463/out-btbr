@@ -1,0 +1,17 @@
+# Set files test
+# These are kept separately to not run multiple times as it involves file system and network IO
+
+openUrl("https://jsfiddle.net/praveen4463/84taeufn/")
+switchFrame("iframe[name='result']")
+file1 = "human_body_anatomy.jpg"
+file1Size = 139622
+file2 = "antlr.pdf"
+file2Size = 6790835
+setFile("#f_single", file1)
+setFiles("#f_mul", file1, file2)
+submit("#form1")
+resultMulti = executeScript("return filesDetail;")
+resultSingle = executeScript("return fileDetail;")
+assertTrue(size(resultMulti) == 2 && size(resultSingle) == 1)
+assertTrue(resultMulti[file1] == file1Size && resultMulti[file2] == file2Size
+    && resultSingle[file1] == file1Size)

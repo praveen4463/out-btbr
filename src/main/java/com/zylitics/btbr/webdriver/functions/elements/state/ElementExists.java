@@ -5,11 +5,11 @@ import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.BooleanZwlValue;
 import com.zylitics.zwl.datatype.ZwlValue;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.PrintStream;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.function.Supplier;
 
 public class ElementExists extends AbstractWebdriverFunction {
@@ -48,7 +48,7 @@ public class ElementExists extends AbstractWebdriverFunction {
     return handleWDExceptions(() -> {
       boolean exists = true;
       try {
-        findElement(driver, selector, true);
+        findElement(driver, selector, false);
       } catch (NoSuchElementException n) {
         exists = false;
       }

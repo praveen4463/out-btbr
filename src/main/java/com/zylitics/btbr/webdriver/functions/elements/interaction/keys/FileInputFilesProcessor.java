@@ -53,7 +53,7 @@ class FileInputFilesProcessor {
         "userAccountBucket can't be empty");
     Preconditions.checkArgument(!Strings.isNullOrEmpty(pathToUploadedFiles),
         "pathToUploadedFiles can't be empty");
-    Preconditions.checkArgument(fileNames.size() == 0, "fileNames can't be empty");
+    Preconditions.checkArgument(fileNames.size() > 0, "fileNames can't be empty");
     Preconditions.checkNotNull(buildDir, "buildDir can't be null");
     
     this.storage = storage;

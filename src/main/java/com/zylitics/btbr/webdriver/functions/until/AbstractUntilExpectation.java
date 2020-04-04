@@ -2,7 +2,9 @@ package com.zylitics.btbr.webdriver.functions.until;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.webdriver.Configuration;
 import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
+import com.zylitics.btbr.webdriver.TimeoutType;
 import com.zylitics.zwl.datatype.ZwlValue;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -105,18 +107,7 @@ abstract class AbstractUntilExpectation extends AbstractWebdriverFunction {
     if (fltTimeoutMillis > 0) {
       timeout = fltTimeoutMillis;
     } else {
-      switch (timeoutType) {
-        case ELEMENT_ACCESS:
-        default:
-          timeout = getElementAccessTimeout();
-          break;
-        case PAGE_LOAD:
-          timeout = buildCapability.getWdTimeoutsPageLoad();
-          break;
-        case JAVASCRIPT:
-          timeout = buildCapability.getWdTimeoutsScript();
-          break;
-      }
+      timeout = new Configuration().getTimeouts(wdProps, buildCapability, timeoutType);
     }
     int poll = fltPollMillis > 0 ? fltPollMillis : DEFAULT_POLL_EVERY_MILLIS;
     

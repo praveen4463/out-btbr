@@ -7,6 +7,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.webdriver.Configuration;
+import com.zylitics.btbr.webdriver.TimeoutType;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.Platform;
@@ -33,6 +35,8 @@ public abstract class AbstractDriverSessionProvider {
   
   // caps those are same for all browsers, maps buildCapability to selenium's capability.
   final Capabilities commonCapabilities;
+  
+  final Configuration configuration = new Configuration();
   
   public AbstractDriverSessionProvider(APICoreProperties.Webdriver wdProps
       , BuildCapability buildCapability) {
@@ -78,25 +82,13 @@ public abstract class AbstractDriverSessionProvider {
     // Looks like this capability isn't supported by chrome, let's not use it for now.
     //caps.setCapability("setWindowRect", buildCapability.isWdSetWindowRect());
     
-    // timeouts
-    Map<String, Object> timeouts = new HashMap<>(4);
-    String timeoutsJson = null;
-    if (buildCapability.getWdTimeoutsScript() > 0) {
-      timeouts.put("script", buildCapability.getWdTimeoutsScript());
-    }
-    if (buildCapability.getWdTimeoutsPageLoad() > 0) {
-      timeouts.put("pageLoad", buildCapability.getWdTimeoutsPageLoad());
-    }
-    if (buildCapability.getWdTimeoutsImplicit() > 0) {
-      timeouts.put("implicit", buildCapability.getWdTimeoutsImplicit());
-    }
-    
-    if (timeouts.size() > 0) {
-      timeoutsJson = JSON.toJson(timeouts);
-    }
-    if (timeoutsJson != null) {
-      caps.setCapability("timeouts", timeoutsJson);
-    }
+    // timeouts, if user sent timeout, use that otherwise use our own defaults.
+    Map<String, Object> timeouts = new HashMap<>(3);
+    timeouts.put("script",
+        configuration.getTimeouts(wdProps, buildCapability, TimeoutType.JAVASCRIPT));
+    timeouts.put("pageLoad",
+        configuration.getTimeouts(wdProps, buildCapability, TimeoutType.PAGE_LOAD));
+    caps.setCapability("timeouts", JSON.toJson(timeouts));
     
     caps.setCapability(CapabilityType.STRICT_FILE_INTERACTABILITY,
         buildCapability.isWdStrictFileInteractability());

@@ -374,6 +374,9 @@ public class APICoreProperties {
     private Integer defaultTimeoutPageLoad;
   
     @Min(1000)
+    private Integer defaultTimeoutScript;
+  
+    @Min(1000)
     private Integer defaultTimeoutNewWindow;
     
     @NotBlank
@@ -453,6 +456,16 @@ public class APICoreProperties {
     public void setDefaultTimeoutPageLoad(Integer defaultTimeoutPageLoad) {
       if (this.defaultTimeoutPageLoad == null) {
         this.defaultTimeoutPageLoad = defaultTimeoutPageLoad;
+      }
+    }
+  
+    public Integer getDefaultTimeoutScript() {
+      return defaultTimeoutScript;
+    }
+  
+    public void setDefaultTimeoutScript(Integer defaultTimeoutScript) {
+      if (this.defaultTimeoutScript == null) {
+        this.defaultTimeoutScript = defaultTimeoutScript;
       }
     }
   

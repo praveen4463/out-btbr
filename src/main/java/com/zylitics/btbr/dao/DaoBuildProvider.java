@@ -63,7 +63,6 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
                 .setWdSetWindowRect(rs.getBoolean("wd_set_window_rect"))
                 .setWdTimeoutsScript(rs.getInt("wd_timeouts_script"))
                 .setWdTimeoutsPageLoad(rs.getInt("wd_timeouts_page_load"))
-                .setWdTimeoutsImplicit(rs.getInt("wd_timeouts_implicit"))
                 .setWdTimeoutsElementAccess(rs.getInt("wd_timeouts_element_access"))
                 .setWdStrictFileInteractability(rs.getBoolean("wd_strict_file_interactability"))
                 .setWdUnhandledPromptBehavior(rs.getString("wd_unhandled_prompt_behavior"))

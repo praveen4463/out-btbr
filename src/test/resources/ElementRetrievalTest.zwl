@@ -1,0 +1,27 @@
+# element retrieval test
+
+openUrl("https://jsfiddle.net/praveen4463/5zr6jcda/")
+switchFrame("iframe[name='result']")
+
+startFindElem = instant()
+assertThrows(exceptions.noSuchElemEx, findElement("unknown-elem", true))
+tookMillisFindElem = elapsed(startFindElem)
+assertTrue(getTimeout(timeouts.elemAccess) > 1 && tookMillisFindElem < testTools.elemAccessTimeout)
+# verifies that giving noWait=true won't wait when some element wasn't immediately found.
+
+form = findElement("#form1")
+assertTrue(getElementAttribute(findElementFromElement(form, "#fname"), "type") == "text")
+
+assertTrue(size(findElementsFromElement(form, "input[type='text']")) == 5)
+
+assertTrue(getElementAttribute(findElementWithSelectors("#unknown1",
+      "#unknown2",
+      "#lname",
+      "#unknown3"), "type"
+    ) == "text")
+
+assertTrue(size(findElementsWithSelectors("#unknown1",
+      "#unknown2",
+      "#unknown3",
+      "input[type='text']")
+    ) == 5)

@@ -56,7 +56,7 @@ public abstract class AbstractExecuteScript extends AbstractWebdriverFunction {
     if (argsCount > 1) {
       args.subList(1, argsCount).forEach(z -> scriptArgs.add(convertFromZwlValue(z)));
     }
-    return transformJsResponse(execute(script, scriptArgs.toArray()));
+    return handleWDExceptions(() -> transformJsResponse(execute(script, scriptArgs.toArray())));
   }
   
   protected abstract Object execute(String script, Object... args);

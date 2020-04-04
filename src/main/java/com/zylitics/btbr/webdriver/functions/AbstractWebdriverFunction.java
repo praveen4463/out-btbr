@@ -4,6 +4,8 @@ import com.google.api.client.util.Preconditions;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.util.CollectionUtil;
+import com.zylitics.btbr.webdriver.Configuration;
+import com.zylitics.btbr.webdriver.TimeoutType;
 import com.zylitics.zwl.datatype.*;
 import com.zylitics.zwl.exception.ZwlLangException;
 import com.zylitics.zwl.function.AbstractFunction;
@@ -82,7 +84,7 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
   // we're going to add all the arguments if function takes any, and finally when it's going to
   // be saved, runner should trim if it's too long, and if not it can remain intact.
   protected void writeFunctionExecutionUpdate(List<ZwlValue> args) {
-    String toWrite = null;
+    String toWrite;
     if (args.size() == 0) {
       toWrite = "Executing function " + getName();
     } else {
@@ -218,7 +220,8 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
     if (wait) {
       // create new instance every time to prevent any threading issue in future.
       WebDriverWait elementAccessWait =
-          new WebDriverWait(driver, Duration.ofMillis(getElementAccessTimeout()));
+          new WebDriverWait(driver, Duration.ofMillis(new Configuration().getTimeouts(wdProps,
+                  buildCapability, TimeoutType.ELEMENT_ACCESS)));
       return elementAccessWait.until(d -> s.get());
     }
     return s.get();
@@ -237,15 +240,6 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
     }
     return new ListZwlValue(remoteWebElements.stream()
         .map(this::convertIntoZwlElemId).collect(Collectors.toList()));
-  }
-  
-  // don't store as global variable because timeout may be updated during build.
-  protected int getElementAccessTimeout() {
-    int timeout = buildCapability.getWdTimeoutsElementAccess();
-    if (timeout == 0) {
-      timeout = wdProps.getDefaultTimeoutElementAccess();
-    }
-    return timeout;
   }
   
   /**

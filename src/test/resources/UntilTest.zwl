@@ -1,0 +1,180 @@
+# until expectation test
+
+# setTimeout returns immediately and once timeout expires, runs the given function thus it will be
+# used here for such scenarios.
+
+# until alert---------------------------------------------------------------------------------------
+elemAccess = 2000
+assertTrue(getTimeout(timeouts.elemAccess) > elemAccess)
+/*
+openUrl("https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout")
+# script shows alert after elemAccess time has passed, asynchronously
+executeScript(format("window.setTimeout(window.alert, %s, 'i am done');", elemAccess))
+# to confirm that after executeScript returns, there is no alert present and a wait is required.
+assertThrows(exceptions.noAlertPresentEx, acceptAlert())
+untilAlertPresent()
+acceptAlert() # shouldn't throw proves that untilAlert.. waited until it saw an alert.
+*/
+# enabled/visible/removed/selections----------------------------------------------------------------
+openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
+switchFrame("iframe[name='result']")
+chk1 = findElement("#chk1")
+chk2 = findElement("#chk2")
+chk3 = findElement("#chk3")
+all = [chk1, chk2, chk3]
+
+# !!! important, take a note that if 'arguments' accessed inside anonymous function body, drivers
+# can't replace them with provided arguments. Thus keeping them out of it.
+hideAll = format(`let arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
+  window.setTimeout(function() {
+    arg0.style.display='none';
+    arg1.style.display='none';
+    arg2.style.display='none';
+  }, %s)`, elemAccess)
+# lets hide all
+executeScript(hideAll, chk1, chk2, chk3)
+# to confirm after executeScript returns, element is not yet hidden and a wait is required
+assertTrue(allElementsDisplayed(all))
+# not using 'all' but multi selector to verify it works, will use 'all' in other related untilXX
+# that extends the same class.
+untilAllInvisible("input[type='checkbox']")
+assertFalse(anyElementDisplayed(all))
+
+showAll = format(`let arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
+  window.setTimeout(function() {
+    arg0.style.display='';
+    arg1.style.display='';
+    arg2.style.display='';
+  }, %s)`, elemAccess)
+executeScript(showAll, all)
+assertFalse(anyElementDisplayed(all))
+untilAllVisible(all)
+assertTrue(allElementsDisplayed(all))
+
+disableAll = format(`let arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
+  window.setTimeout(function() {
+    arg0.disabled=true;
+    arg1.disabled=true;
+    arg2.disabled=true;
+  }, %s)`, elemAccess)
+executeScript(disableAll, all)
+assertTrue(allElementsEnabled(all))
+untilAllDisabled(all)
+assertFalse(anyElementEnabled(all))
+
+enableAll = format(`let arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
+  window.setTimeout(function() {
+    arg0.disabled=false;
+    arg1.disabled=false;
+    arg2.disabled=false;
+  }, %s)`, elemAccess)
+executeScript(enableAll, all)
+assertFalse(anyElementEnabled(all))
+untilAllEnabled(chk1, chk2, chk3)
+assertTrue(allElementsEnabled(all))
+
+removeAll = format(`let arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
+  window.setTimeout(function() {
+    arg0.disabled=false;
+    arg1.disabled=false;
+    arg2.disabled=false;
+  }, %s)`, elemAccess)
+executeScript(removeAll, all)
+assertTrue(elementExists(chk1))
+untilAllRemoved(all)
+assertFalse(elementExists(chk1))
+
+refresh() # bring back original state
+switchFrame("iframe[name='result']")
+chk1 = findElement("#chk1")
+chk2 = findElement("#chk2")
+chk3 = findElement("#chk3")
+all = [chk1, chk2, chk3]
+
+checkAll = format(`let arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
+  window.setTimeout(function() {
+    arg0.checked=true;
+    arg1.checked=true;
+    arg2.checked=true;
+  }, %s)`, elemAccess)
+executeScript(checkAll, all)
+assertFalse(anyElementSelected(all))
+untilAllSelectionsAre(true, "input[type='checkbox']")
+assertTrue(allElementsSelected(all))
+
+uncheckOne = format(`let arg0 = arguments[0];
+  window.setTimeout(function() {
+    arg0.checked=false;
+  }, %s)`, elemAccess)
+executeScript(uncheckOne, chk1)
+assertTrue(isElementSelected(chk1))
+untilAnySelectionIs(false, all)
+assertFalse(isElementSelected(chk1))
+
+uncheckTwo = format(`let arg0 = arguments[0], arg1 = arguments[1]
+  window.setTimeout(function() {
+    arg0.checked=false;
+    arg1.checked=false;
+  }, %s)`, elemAccess)
+executeScript(uncheckTwo, chk2, chk3)
+assertTrue(allElementsSelected(chk2, chk3))
+untilAllSelectionsAre(false, chk2, chk3)
+assertFalse(anyElementSelected(all))
+
+checkOne = format(`let arg0 = arguments[0];
+  window.setTimeout(function() {
+    arg0.checked=true;
+  }, %s)`, elemAccess)
+executeScript(checkOne, chk1)
+assertFalse(isElementSelected(chk1))
+untilAnySelectionIs(true, "input[type='checkbox']")
+assertTrue(isElementSelected(chk1))
+
+executeScript(uncheckOne, chk1)
+assertTrue(isElementSelected(chk1))
+untilSelectionIs(false, chk1)
+assertFalse(isElementSelected(chk1))
+
+executeScript(checkOne, chk1)
+assertFalse(isElementSelected(chk1))
+untilSelectionIs(true, chk1)
+assertTrue(isElementSelected(chk1))
+
+hideOne = format(`let arg0 = arguments[0];
+  window.setTimeout(function() {
+    arg0.style.display='none';
+  }, %s)`, elemAccess)
+executeScript(hideOne, chk1)
+assertTrue(isElementDisplayed(chk1))
+untilInvisible(chk1)
+assertFalse(isElementDisplayed(chk1))
+
+showOne = format(`let arg0 = arguments[0];
+  window.setTimeout(function() {
+    arg0.style.display='';
+  }, %s)`, elemAccess)
+executeScript(showOne, chk1)
+assertFalse(isElementDisplayed(chk1))
+untilVisible(chk1)
+assertTrue(isElementDisplayed(chk1))
+
+disableOne = format(`let arg0 = arguments[0];
+  window.setTimeout(function() {
+    arg0.disabled = true;
+  }, %s)`, elemAccess)
+executeScript(disableOne, chk1)
+assertTrue(isElementEnabled(chk1))
+untilDisabled(chk1)
+assertFalse(isElementEnabled(chk1))
+
+enableOne = format(`let arg0 = arguments[0];
+  window.setTimeout(function() {
+    arg0.disabled = false;
+  }, %s)`, elemAccess)
+executeScript(enableOne, chk1)
+assertFalse(isElementEnabled(chk1))
+untilEnabled(chk1)
+assertTrue(isElementEnabled(chk1))
+
+
+

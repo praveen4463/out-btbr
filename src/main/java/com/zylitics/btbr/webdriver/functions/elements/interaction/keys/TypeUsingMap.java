@@ -44,6 +44,7 @@ public class TypeUsingMap extends AbstractWebdriverFunction {
       throw unexpectedEndOfFunctionOverload(args.size());
     }
     Map<String, ZwlValue> m = tryCastMap(0, args.get(0));
+    System.out.println("given map is " + m);
     return handleWDExceptions(() -> {
       m.forEach((k, v) -> getElement(k).sendKeys(v.toString()));
       return _void;

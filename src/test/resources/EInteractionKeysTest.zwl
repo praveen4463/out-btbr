@@ -1,0 +1,29 @@
+# element interaction using keys test
+
+openUrl("https://jsfiddle.net/praveen4463/5zr6jcda/")
+frame = "iframe[name='result']"
+switchFrame(frame)
+type("#fname", "praveen", keys.tab, "tiwari", keys.tab, 33, keys.tab, 299292993, keys.tab, "noida",
+keys.enter)
+formsubmitted = "#formsubmitted"
+assertTrue(getElementValue(findElement(formsubmitted)) == "1")
+
+refresh()
+switchFrame(frame)
+
+m = {
+  "#fname": "selena",
+  "#lname": "gomez",
+  "#age": 26,
+  "#phone": 888898899,
+  "#address": "LA" + keys.enter
+}
+typeUsingMap(m)
+assertTrue(getElementValue(findElement(formsubmitted)) == "1")
+
+refresh()
+switchFrame(frame)
+
+typeIntoElements("same-illegal-string", "#fname", "#lname", "#age", "#phone", "#address")
+submit("#form1")
+assertTrue(getElementValue(findElement(formsubmitted)) == "1")

@@ -1,0 +1,29 @@
+# set timeout test for different timeouts
+
+timeout = 1000
+totalTimeToTimeout = timeout + 200  # added 200ms to cover possible any delay timing out
+openUrl("https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage")
+setElementAccessTimeout(timeout)
+start = instant()
+assertThrows(exceptions.timeoutEx, findElement(".unknown"))
+end = elapsed(start)
+assertTrue(end <= totalTimeToTimeout)
+
+setScriptTimeout(timeout)
+js = format("window.setTimeout(arguments[arguments.length - 1], %s);", timeout + 200)
+# wait for more than timeout, setTimeout is asynchronous so we need to use executeAsync..
+start = instant()
+assertThrows(exceptions.scriptTimeoutEx, executeAsyncScript(js))
+# when no argument to executeAsyncScript, a null is returned once callback is invoked.
+end = elapsed(start)
+assertTrue(end <= totalTimeToTimeout)
+assertTrue(getTimeout(timeouts.js) == timeout)
+
+# test for until expectation to see build caps correctly updated
+setPageLoadTimeout(timeout)
+assertTrue(getTimeout(timeouts.pageLoad) == timeout)
+openUrl("https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout")
+start = instant()
+assertThrows(exceptions.timeoutEx, untilTitleIs("unknown"))
+end = elapsed(start)
+assertTrue(end <= totalTimeToTimeout)

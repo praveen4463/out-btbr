@@ -52,7 +52,8 @@ public class CaptureElementScreenshot extends AbstractWebdriverFunction {
       throw unexpectedEndOfFunctionOverload(argsCount);
     }
     String elemIdOrSelector = tryCastString(0, args.get(0));
-    String fileName = argsCount == 2 ? args.get(1).toString() : UUID.randomUUID().toString();
+    String fileName = String.format("%s%s", argsCount == 2 ? args.get(1).toString() : "",
+        UUID.randomUUID().toString());
     byte[] screenshot =
         handleWDExceptions(() -> getElement(elemIdOrSelector).getScreenshotAs(OutputType.BYTES));
     // Rather than directly uploading to cloud, write locally and push all after the end of build

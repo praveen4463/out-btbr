@@ -1,0 +1,66 @@
+# select option tests
+
+openUrl("https://jsfiddle.net/praveen4463/wpb65c49/")
+switchFrame("iframe[name='result']")
+multi = findElement("select[name='multi']")
+single = findElement("select[name='single']")
+
+assertTrue(isMultiple(multi))
+assertTrue(size(getOptions(multi)) == 10)
+assertTrue(size(getOptions(single)) == 7)
+
+assertTrue(size(getAllSelectedOptions(multi)) == 0)
+assertThrows(exceptions.noSuchElemEx, getFirstSelectedOption(multi))
+
+assertTrue(getElementValue(getFirstSelectedOption(single)) == 0)
+
+selectByIndex(multi, 2)
+selectByValue(multi, 7)
+selectByValue(multi, 9)
+selectByValue(multi, 10)
+selectByVisibleText(multi, "United states of america")
+
+allSelected = getAllSelectedOptions(multi)
+assertTrue(size(allSelected) == 5)
+assertTrue(getElementText(allSelected[0]) == "hulu")
+assertTrue(getElementText(allSelected[1]) == "Indian republic")
+assertTrue(getElementValue(allSelected[2]) == 8)
+assertTrue(getElementText(allSelected[3]) == "Olympics")
+assertTrue(getElementText(allSelected[4]) == "Mars expedition")
+
+
+selectByIndex(single, 5)
+assertTrue(getElementText(getFirstSelectedOption(single)) == "chich")
+
+selectByValue(single, 6)
+assertTrue(getElementText(getFirstSelectedOption(single)) == "kira")
+
+selectByVisibleText(single, "yanvi")
+assertTrue(getElementValue(getFirstSelectedOption(single)) == 2)
+
+# deselect functions only work for multi select
+deselectByIndex(multi, 5) # nothing happens as this option wasn't selected
+assertTrue(size(getAllSelectedOptions(multi)) == 5)
+deselectByIndex(multi, 8)
+allSelected = getAllSelectedOptions(multi)
+assertTrue(size(allSelected) == 4)
+assertTrue(getElementText(allSelected[0]) == "hulu")
+assertTrue(getElementText(allSelected[1]) == "Indian republic")
+assertTrue(getElementValue(allSelected[2]) == 8)
+assertTrue(getElementText(allSelected[3]) == "Mars expedition")
+
+deselectByValue(multi, 8)
+allSelected = getAllSelectedOptions(multi)
+assertTrue(size(allSelected) == 3)
+assertTrue(getElementText(allSelected[0]) == "hulu")
+assertTrue(getElementText(allSelected[1]) == "Indian republic")
+assertTrue(getElementText(allSelected[2]) == "Mars expedition")
+
+deselectByVisibleText(multi, "Indian republic")
+allSelected = getAllSelectedOptions(multi)
+assertTrue(size(allSelected) == 2)
+assertTrue(getElementText(allSelected[0]) == "hulu")
+assertTrue(getElementText(allSelected[1]) == "Mars expedition")
+
+deselectAll(multi)
+assertTrue(size(getAllSelectedOptions(multi)) == 0)
