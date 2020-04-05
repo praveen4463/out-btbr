@@ -38,19 +38,19 @@ public class UntilAllRemoved extends AbstractUntilExpectation {
       throw unexpectedEndOfFunctionOverload(argsCount);
     }
     if (argsCount == 1) {
-      String s = tryCastString(0, args.get(0));
-      return withMultiSelector(s);
+      String selector = tryCastString(0, args.get(0));
+      return withMultiSelector(selector);
     }
     
     boolean result = false;
     for (int i = 0; i < argsCount; i++) {
-      String s = tryCastString(i, args.get(i));
+      String selector = tryCastString(i, args.get(i));
       WebDriverWait wait = getWait(TimeoutType.ELEMENT_ACCESS);
       
       result = handleWDExceptions(() ->
           wait.until(d -> {
             try {
-              getElement(s, false);
+              findElement(driver, selector, false);
               return false; // when successfully found, we need to find again.
             } catch (NoSuchElementException n) {
               return true;
@@ -62,11 +62,11 @@ public class UntilAllRemoved extends AbstractUntilExpectation {
   
   // When a multi element selector is given, the wait time is equal to just single element access
   // timeout.
-  private ZwlValue withMultiSelector(String s) {
+  private ZwlValue withMultiSelector(String selector) {
     WebDriverWait wait = getWait(TimeoutType.ELEMENT_ACCESS);
     return handleWDExceptions(() ->
         new BooleanZwlValue(wait.until(d -> {
-          List<RemoteWebElement> le = findElements(driver, s, false);
+          List<RemoteWebElement> le = findElements(driver, selector, false);
           return le.size() == 0; // when size is 0, all element are removed otherwise find again.
         })));
   }

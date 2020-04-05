@@ -2,6 +2,7 @@ package com.zylitics.btbr.webdriver.functions.until;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import org.elasticsearch.common.Strings;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
 
@@ -24,7 +25,7 @@ public class UntilValueLike extends AbstractTextValue {
   
   @Override
   boolean desiredState(RemoteWebElement element, String textOrValue) {
-    Pattern p = getPattern(textOrValue);
-    return p.matcher(element.getAttribute("value")).find();
+    String value = element.getAttribute("value");
+    return !Strings.isNullOrEmpty(value) && getPattern(textOrValue).matcher(value).find();
   }
 }

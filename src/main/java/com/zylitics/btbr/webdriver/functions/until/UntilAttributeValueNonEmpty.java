@@ -5,6 +5,7 @@ import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.webdriver.TimeoutType;
 import com.zylitics.zwl.datatype.BooleanZwlValue;
 import com.zylitics.zwl.datatype.ZwlValue;
+import org.elasticsearch.common.Strings;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
@@ -47,7 +48,11 @@ public class UntilAttributeValueNonEmpty extends AbstractUntilExpectation {
     return handleWDExceptions(() ->
         new BooleanZwlValue(wait.until(d -> {
           RemoteWebElement e = getElement(elemOrSelector, false);
-          return e.getAttribute(attribute).trim().length() > 0;
+          String attributeValue = e.getAttribute(attribute);
+          if (Strings.isNullOrEmpty(attributeValue)) {
+            attributeValue = e.getCssValue(attribute);
+          }
+          return !Strings.isNullOrEmpty(attributeValue) && attributeValue.trim().length() > 0;
         })));
   }
 }

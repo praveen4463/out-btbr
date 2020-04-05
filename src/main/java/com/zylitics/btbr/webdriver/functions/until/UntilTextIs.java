@@ -23,6 +23,6 @@ public class UntilTextIs extends AbstractTextValue {
   
   @Override
   boolean desiredState(RemoteWebElement element, String textOrValue) {
-    return element.getText().equals(textOrValue);
+    return textOrValue.equals(element.getAttribute("value"));
   }
 }

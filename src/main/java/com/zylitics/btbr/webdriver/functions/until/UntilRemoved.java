@@ -35,13 +35,13 @@ public class UntilRemoved extends AbstractUntilExpectation {
     if (args.size() != 1) {
       throw unexpectedEndOfFunctionOverload(args.size());
     }
-    String s = tryCastString(0, args.get(0));
+    String selector = tryCastString(0, args.get(0));
     WebDriverWait wait = getWait(TimeoutType.ELEMENT_ACCESS);
     
     return handleWDExceptions(() ->
         new BooleanZwlValue(wait.until(d -> {
             try {
-              getElement(s, false);
+              findElement(driver, selector, false);
               return false; // when successfully found, we need to find again.
             } catch (NoSuchElementException n) {
               return true;

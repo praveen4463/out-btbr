@@ -23,6 +23,7 @@ public class UntilValueContains extends AbstractTextValue {
   
   @Override
   boolean desiredState(RemoteWebElement element, String textOrValue) {
-    return element.getAttribute("value").contains(textOrValue);
+    String value = element.getAttribute("value");
+    return value != null && value.contains(textOrValue);
   }
 }

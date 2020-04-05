@@ -2,6 +2,7 @@ package com.zylitics.btbr.webdriver.functions.until;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import org.elasticsearch.common.Strings;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
 
@@ -23,7 +24,7 @@ public class UntilTextNonEmpty extends AbstractTextValueNonEmpty {
   
   @Override
   boolean desiredState(RemoteWebElement element) {
-    return element.getText().trim().length() > 0;
-    // trim removes new line, tabs etc including whitespaces.
+    String value = element.getText();
+    return !Strings.isNullOrEmpty(value) && value.trim().length() > 0;
   }
 }

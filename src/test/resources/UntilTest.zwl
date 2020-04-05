@@ -1,12 +1,12 @@
 # until expectation test
 
 # setTimeout returns immediately and once timeout expires, runs the given function thus it will be
-# used here for such scenarios.
+# used here to simulate actions happening after a delay to let untilXX wait for given timeout.
 
 # until alert---------------------------------------------------------------------------------------
-elemAccess = 2000
+elemAccess = 3000 # the timeout used in setTimeout for element related untilXX functions
 assertTrue(getTimeout(timeouts.elemAccess) > elemAccess)
-/*
+
 openUrl("https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout")
 # script shows alert after elemAccess time has passed, asynchronously
 executeScript(format("window.setTimeout(window.alert, %s, 'i am done');", elemAccess))
@@ -14,7 +14,7 @@ executeScript(format("window.setTimeout(window.alert, %s, 'i am done');", elemAc
 assertThrows(exceptions.noAlertPresentEx, acceptAlert())
 untilAlertPresent()
 acceptAlert() # shouldn't throw proves that untilAlert.. waited until it saw an alert.
-*/
+
 # enabled/visible/removed/selections----------------------------------------------------------------
 openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
 switchFrame("iframe[name='result']")
@@ -25,7 +25,7 @@ all = [chk1, chk2, chk3]
 
 # !!! important, take a note that if 'arguments' accessed inside anonymous function body, drivers
 # can't replace them with provided arguments. Thus keeping them out of it.
-hideAll = format(`let arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
+hideAll = format(`const arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
   window.setTimeout(function() {
     arg0.style.display='none';
     arg1.style.display='none';
@@ -40,7 +40,7 @@ assertTrue(allElementsDisplayed(all))
 untilAllInvisible("input[type='checkbox']")
 assertFalse(anyElementDisplayed(all))
 
-showAll = format(`let arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
+showAll = format(`const arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
   window.setTimeout(function() {
     arg0.style.display='';
     arg1.style.display='';
@@ -51,7 +51,7 @@ assertFalse(anyElementDisplayed(all))
 untilAllVisible(all)
 assertTrue(allElementsDisplayed(all))
 
-disableAll = format(`let arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
+disableAll = format(`const arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
   window.setTimeout(function() {
     arg0.disabled=true;
     arg1.disabled=true;
@@ -62,7 +62,7 @@ assertTrue(allElementsEnabled(all))
 untilAllDisabled(all)
 assertFalse(anyElementEnabled(all))
 
-enableAll = format(`let arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
+enableAll = format(`const arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
   window.setTimeout(function() {
     arg0.disabled=false;
     arg1.disabled=false;
@@ -73,16 +73,16 @@ assertFalse(anyElementEnabled(all))
 untilAllEnabled(chk1, chk2, chk3)
 assertTrue(allElementsEnabled(all))
 
-removeAll = format(`let arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
+removeAll = format(`const arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
   window.setTimeout(function() {
-    arg0.disabled=false;
-    arg1.disabled=false;
-    arg2.disabled=false;
+    document.body.removeChild(arg0);
+    document.body.removeChild(arg1);
+    document.body.removeChild(arg2);
   }, %s)`, elemAccess)
 executeScript(removeAll, all)
-assertTrue(elementExists(chk1))
-untilAllRemoved(all)
-assertFalse(elementExists(chk1))
+assertTrue(elementExists("#chk1"))
+untilAllRemoved("input[type='checkbox']")
+assertFalse(elementExists("#chk1"))
 
 refresh() # bring back original state
 switchFrame("iframe[name='result']")
@@ -91,7 +91,7 @@ chk2 = findElement("#chk2")
 chk3 = findElement("#chk3")
 all = [chk1, chk2, chk3]
 
-checkAll = format(`let arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
+checkAll = format(`const arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
   window.setTimeout(function() {
     arg0.checked=true;
     arg1.checked=true;
@@ -102,7 +102,7 @@ assertFalse(anyElementSelected(all))
 untilAllSelectionsAre(true, "input[type='checkbox']")
 assertTrue(allElementsSelected(all))
 
-uncheckOne = format(`let arg0 = arguments[0];
+uncheckOne = format(`const arg0 = arguments[0];
   window.setTimeout(function() {
     arg0.checked=false;
   }, %s)`, elemAccess)
@@ -111,7 +111,7 @@ assertTrue(isElementSelected(chk1))
 untilAnySelectionIs(false, all)
 assertFalse(isElementSelected(chk1))
 
-uncheckTwo = format(`let arg0 = arguments[0], arg1 = arguments[1]
+uncheckTwo = format(`const arg0 = arguments[0], arg1 = arguments[1]
   window.setTimeout(function() {
     arg0.checked=false;
     arg1.checked=false;
@@ -121,7 +121,7 @@ assertTrue(allElementsSelected(chk2, chk3))
 untilAllSelectionsAre(false, chk2, chk3)
 assertFalse(anyElementSelected(all))
 
-checkOne = format(`let arg0 = arguments[0];
+checkOne = format(`const arg0 = arguments[0];
   window.setTimeout(function() {
     arg0.checked=true;
   }, %s)`, elemAccess)
@@ -140,7 +140,7 @@ assertFalse(isElementSelected(chk1))
 untilSelectionIs(true, chk1)
 assertTrue(isElementSelected(chk1))
 
-hideOne = format(`let arg0 = arguments[0];
+hideOne = format(`const arg0 = arguments[0];
   window.setTimeout(function() {
     arg0.style.display='none';
   }, %s)`, elemAccess)
@@ -149,7 +149,7 @@ assertTrue(isElementDisplayed(chk1))
 untilInvisible(chk1)
 assertFalse(isElementDisplayed(chk1))
 
-showOne = format(`let arg0 = arguments[0];
+showOne = format(`const arg0 = arguments[0];
   window.setTimeout(function() {
     arg0.style.display='';
   }, %s)`, elemAccess)
@@ -158,7 +158,7 @@ assertFalse(isElementDisplayed(chk1))
 untilVisible(chk1)
 assertTrue(isElementDisplayed(chk1))
 
-disableOne = format(`let arg0 = arguments[0];
+disableOne = format(`const arg0 = arguments[0];
   window.setTimeout(function() {
     arg0.disabled = true;
   }, %s)`, elemAccess)
@@ -167,7 +167,7 @@ assertTrue(isElementEnabled(chk1))
 untilDisabled(chk1)
 assertFalse(isElementEnabled(chk1))
 
-enableOne = format(`let arg0 = arguments[0];
+enableOne = format(`const arg0 = arguments[0];
   window.setTimeout(function() {
     arg0.disabled = false;
   }, %s)`, elemAccess)
@@ -176,5 +176,342 @@ assertFalse(isElementEnabled(chk1))
 untilEnabled(chk1)
 assertTrue(isElementEnabled(chk1))
 
+removeOne = format(`const arg0 = arguments[0];
+  window.setTimeout(function() {
+    document.body.removeChild(arg0);
+  }, %s)`, elemAccess)
+executeScript(removeOne, chk1)
+assertTrue(elementExists("#chk1"))
+untilRemoved("#chk1")
+assertFalse(elementExists("#chk1"))
 
+refresh()
+switchFrame("iframe[name='result']")
+untilStale(chk2)
+untilStale(chk3)
+isStale(chk2)
+isStale(chk3)
 
+chk1 = findElement("#chk1")
+chk2 = findElement("#chk2")
+chk3 = findElement("#chk3")
+all = [chk1, chk2, chk3]
+
+# attribute----------------------------------------------------------------------------------------
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      arg0.setAttribute("data", "was there anything useful?");
+    }, %s)`, elemAccess),
+  chk1
+)
+assertFalse(exists(getElementAttributeOrCssValue(chk1, "data")))
+untilAttributeValueContains(chk1, "data", "anything")
+assertTrue(getElementAttributeOrCssValue(chk1, "data") == "was there anything useful?")
+
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      arg0.style = "margin-left:100px";
+    }, %s)`, elemAccess),
+  chk1
+)
+assertFalse(exists(getElementAttributeOrCssValue(chk1, "margin-left")))
+untilAttributeValueIs(chk1, "margin-left", "100px")
+assertTrue(getElementAttributeOrCssValue(chk1, "margin-left") == "100px")
+
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      arg0.setAttribute("secret", "Ghh89df90");
+    }, %s)`, elemAccess),
+  chk1
+)
+assertFalse(exists(getElementAttributeOrCssValue(chk1, "secret")))
+untilAttributeValueLike(chk1, "secret", "^[a-zA-Z0-9]+$")
+assertTrue(getElementAttributeOrCssValue(chk1, "margin-left") == "100px")
+
+# execute a script that will set an empty attribute immediately, with untilAttributeValueNonEmpty,
+# wait for a short duration elemAccess and expect it fail. Then execute another script with
+# setTimeout that sets non empty value.
+executeScript("arguments[0].setAttribute(\"rel\", \"   \");", chk1)
+assertThrows(exceptions.timeoutEx,
+    untilAttributeValueNonEmpty(chk1, "rel", untilFlt(elemAccess)))
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      arg0.setAttribute("rel", "hello");
+    }, %s)`, elemAccess),
+  chk1
+)
+assertTrue(length(trim(getElementAttributeOrCssValue(chk1, "rel"))) == 0)
+untilAttributeValueNonEmpty(chk1, "rel")
+assertTrue(length(trim(getElementAttributeOrCssValue(chk1, "rel"))) > 0)
+
+# value---------------------------------------------------------------------------------------------
+
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      arg0.value = "agree to consent";
+    }, %s)`, elemAccess),
+  chk1
+)
+assertTrue(getElementValue(chk1) == "on") # checkbox's default value
+untilValueContains(chk1, "consent")
+assertTrue(getElementValue(chk1) == "agree to consent")
+
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      arg0.value = "p#:8987898989";
+    }, %s)`, elemAccess),
+  chk2
+)
+assertTrue(getElementValue(chk2) == "on") # checkbox's default value
+untilValueLike(chk2, "[8-9][0-9]{9}")
+assertTrue(getElementValue(chk2) == "p#:8987898989")
+
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      arg0.value = "accept cookies";
+    }, %s)`, elemAccess),
+  chk2
+)
+assertTrue(getElementValue(chk2) == "p#:8987898989")
+untilValueIs(chk2, "accept cookies")
+assertTrue(getElementValue(chk1) == "accept cookies")
+
+executeScript("arguments[0].value = \"  \";", chk1)
+assertThrows(exceptions.timeoutEx,
+    untilValueNonEmpty(chk1, untilFlt(elemAccess)))
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      arg0.value = "accept cookies";
+    }, %s)`, elemAccess),
+  chk3
+)
+assertTrue(length(trim(getElementValue(chk3))) == 0)
+untilValueNonEmpty(chk1)
+assertTrue(length(trim(getElementValue(chk3))) > 0)
+
+# text----------------------------------------------------------------------------------------------
+openUrl("https://jsfiddle.net/praveen4463/nb9a215e/")
+switchFrame("iframe[name='result']")
+div1 = findElement("#div1")
+div2 = findElement("#div2")
+div3 = findElement("#div3")
+div4 = findElement("#div4")
+
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      arg0.innerHTML = "This may be a long <br/> text with some breaks <br/> in line, watch it.";
+    }, %s)`, elemAccess),
+  div1
+)
+assertTrue(length(trim(getElementText(div1))) == 0)
+untilTextContains(div1, "watch")
+assertTrue(startsWith(getElementText(div1), "This may be a long"))
+
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      arg0.innerHTML = "Are you going there tomorrow? <br/> Could you let me know once you leave?";
+    }, %s)`, elemAccess),
+  div2
+)
+assertTrue(length(trim(getElementText(div2))) == 0)
+expectedText = `Are you going there tomorrow?
+Could you let me know once you leave?
+`
+untilTextIs(div2, expectedText)
+assertTrue(startsWith(getElementText(div2), "Are you going there tomorrow"))
+
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      arg0.innerHTML = "The generated id is: #45868858AB";
+    }, %s)`, elemAccess),
+  div3
+)
+assertTrue(length(trim(getElementText(div3))) == 0)
+untilTextLike(div3, "#[1-9][A-B0-9]{9}")
+assertTrue(startsWith(getElementText(div3), "The generated id is"))
+
+assertThrows(exceptions.timeoutEx,
+    untilTextNonEmpty(div4, untilFlt(elemAccess)))
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      arg0.innerHTML = "anything but empty";
+    }, %s)`, elemAccess),
+  div4
+)
+assertTrue(length(trim(getElementText(div4))) == 0)
+untilTextNonEmpty(div4)
+assertTrue(length(trim(getElementText(div4))) > 0)
+
+# Total elements------------------------------------------------------------------------------------
+allDiv = "div"
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      document.body.removeChild(arg0);
+    }, %s)`, elemAccess),
+  div1
+)
+assertTrue(size(findElements(allDiv)) == 4)
+untilTotalElementsEQ(allDiv, 3)
+assertTrue(size(findElements(allDiv)) == 3)
+
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      document.body.removeChild(arg0);
+    }, %s)`, elemAccess),
+  div2
+)
+assertTrue(size(findElements(allDiv)) == 3)
+untilTotalElementsLT(allDiv, 3)
+assertTrue(size(findElements(allDiv)) == 2)
+
+executeScript(
+  format(`
+    window.setTimeout(function() {
+      let div5 = document.createElement("div");
+      div5.id = "div5";
+      document.body.appendChild(div5);
+    }, %s)`, elemAccess)
+)
+assertTrue(size(findElements(allDiv)) == 2)
+untilTotalElementsGT(allDiv, 2)
+assertTrue(size(findElements(allDiv)) == 3)
+
+# Total windows-------------------------------------------------------------------------------------
+pageLoad = 3000 # the timeout used in setTimeout for page load related untilXX functions
+assertTrue(getTimeout(timeouts.pageLoad) > pageLoad)
+executeScript(
+  format(`
+    window.setTimeout(function() {
+      document.querySelectorAll("a:nth-of-type(1)")[0].click();
+      document.querySelectorAll("a:nth-of-type(2)")[0].click();
+    }, %s)`, pageLoad)
+)
+assertTrue(size(getAllWinIds()) == 1)
+untilTotalWindowsAre(3)
+assertTrue(size(getAllWinIds()) == 3)
+
+# Url and Title-------------------------------------------------------------------------------------
+openUrl("https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute")
+click(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(1) > a")
+untilUrlContains("accessKey")
+assertTrue(containsString(getTitle(), "Element.accessKey"))
+
+click(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(2) > a")
+untilTitleContains("Element.attributes")
+assertTrue(startsWith(getTitle(), "Element.attributes - Web APIs"))
+
+click(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(3) > a")
+untilUrlIs("https://developer.mozilla.org/en-US/docs/Web/API/ParentNode/childElementCount")
+assertTrue(getCurrentUrl() ==
+    "https://developer.mozilla.org/en-US/docs/Web/API/ParentNode/childElementCount")
+
+click(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(4) > a")
+untilTitleIs("ParentNode.lastElementChild - Web APIs | MDN")
+assertTrue(getTitle(), "ParentNode.lastElementChild - Web APIs | MDN")
+
+click(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(2) > a")
+untilUrlLike("children$")
+assertTrue(startsWith(getTitle(), "ParentNode.children"))
+
+# frame---------------------------------------------------------------------------------------------
+openUrl("https://jsfiddle.net/praveen4463/nb9a215e/")
+untilSwitchedToFrame("iframe[name='result']")
+click("a:first-of-type")
+assertTrue(endsWith(getCurrentUrl()) == "innerText")
+
+# js------------------------------------------------------------------------------------------------
+js = 4000 # the timeout used in setTimeout for page load related untilXX functions
+assertTrue(getTimeout(timeouts.js) > js)
+openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
+executeScript(
+  format(`
+    window.setTimeout(function() {
+      let div1 = document.createElement("div");
+      div1.id = "div1";
+      document.body.appendChild(div1);
+    }, %s)`, js)
+)
+getIdScript = "return document.getElementById(\"div1\").id;";
+# should throw js exception if div1 is
+# accessed immediately before setTimeout has added it, adding the wait instead should resolve it.
+assertThrows(exceptions.jsEx, assertTrue(executeScript(getIdScript) == "div1"))
+assertTrue(untilJsReturnsAValue(getIdScript) == "div1")
+
+# same script can be used with untilJsThrowsNoException
+executeScript(
+  format(`
+    window.setTimeout(function() {
+      let div2 = document.createElement("div");
+      div2.id = "div2";
+      document.body.appendChild(div2);
+    }, %s)`, js)
+)
+getIdScript = "return document.getElementById(\"div2\").id;";
+untilJsThrowsNoException(getIdScript)
+assertTrue(executeScript(getIdScript) == "getIdScript")
+
+# flt-----------------------------------------------------------------------------------------------
+originalElemAccess = getTimeout(timeouts.elemAccess)
+# imagine user set element access timeout to 1sec for some code
+setElementAccessTimeout(1000)
+# now they need to check some element being removed from page, but it may take more than what they
+# set as element access above. For only this particular action, they want to give a custom timeout.
+waitFor = 6000
+triggerRemoveAfter = 5000
+openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
+switchFrame("iframe[name='result']")
+chk1 = findElement("#chk1")
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      document.body.removeChild(arg0);
+    }, %s)`, triggerRemoveAfter),
+  chk1
+)
+# if we don't use flt, a timeout should occur.
+assertThrows(exceptions.timeoutEx, untilRemoved("#chk1"))
+# element is still not removed
+assertTrue(elementExists("#chk1"))
+# pass on flt and the custom wait
+untilRemoved("#chk1", untilFlt(waitFor))
+# now it should be removed
+assertFalse(elementExists("#chk1"))
+
+# another test for poll interval in flt
+setElementAccessTimeout(0) # set 0 so there is no role of a preset timeout
+# wait for lesser than 500 which is the default poll time so that we can be sure our untilXX did
+# wait for lesser than that when we took a custom wait and poll time.
+waitFor = 400
+poll = 150
+triggerRemoveAfter = 300
+chk2 = findElement("#chk2")
+executeScript(
+  format(`const arg0 = arguments[0];
+    window.setTimeout(function() {
+      document.body.removeChild(arg0);
+    }, %s)`, triggerRemoveAfter),
+  chk2
+)
+start = instant()
+untilRemoved("#chk2", untilFlt(waitFor, poll))
+spent = elapsed(start)
+assertFalse(elementExists("#chk2"))
+assertTrue(spent <= waitFor)
+
+# restore element access
+setElementAccessTimeout(originalElemAccess)
+# click---------------------------------------------------------------------------------------------
