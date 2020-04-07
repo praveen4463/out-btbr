@@ -3,8 +3,10 @@ package com.zylitics.btbr.webdriver.functions.until;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.webdriver.TimeoutType;
+import com.zylitics.zwl.datatype.BooleanZwlValue;
 import com.zylitics.zwl.datatype.StringZwlValue;
 import com.zylitics.zwl.datatype.ZwlValue;
+import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
@@ -14,18 +16,18 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class UntilClickable extends AbstractUntilExpectation {
+public class UntilClicked extends AbstractUntilExpectation {
   
-  public UntilClickable(APICoreProperties.Webdriver wdProps,
-                               BuildCapability buildCapability,
-                               RemoteWebDriver driver,
-                               PrintStream printStream) {
+  public UntilClicked(APICoreProperties.Webdriver wdProps,
+                      BuildCapability buildCapability,
+                      RemoteWebDriver driver,
+                      PrintStream printStream) {
     super(wdProps, buildCapability, driver, printStream, 1, 1);
   }
   
   @Override
   public String getName() {
-    return "untilClickable";
+    return "untilClicked";
   }
   
   @Override
@@ -43,9 +45,14 @@ public class UntilClickable extends AbstractUntilExpectation {
       wait.ignoring(StaleElementReferenceException.class);
     }
     return handleWDExceptions(() ->
-        new StringZwlValue(wait.until(d -> {
+        new BooleanZwlValue(wait.until(d -> {
           RemoteWebElement e = getElement(s, false);
-          return e.isDisplayed() && e.isEnabled() ? e.getId() : null;
+          try {
+            e.click();
+            return true;
+          } catch (ElementClickInterceptedException ci) {
+            return false;
+          }
         })));
   }
 }

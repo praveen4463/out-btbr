@@ -12,27 +12,28 @@ import java.io.PrintStream;
 
 abstract class AbstractStorage extends AbstractWebdriverFunction {
   
-  final LocalStorage localStorage;
-  
-  final SessionStorage sessionStorage;
-  
   public AbstractStorage(APICoreProperties.Webdriver wdProps,
                        BuildCapability buildCapability,
                        RemoteWebDriver driver,
                        PrintStream printStream) {
     super(wdProps, buildCapability, driver, printStream);
-  
-    WebStorage storage = null;
-    if (driver instanceof WebStorage) {
-      storage = (WebStorage) driver;
-    }
-    localStorage = storage != null ? storage.getLocalStorage() : null;
-    sessionStorage = storage != null ? storage.getSessionStorage() : null;
   }
   
-  void printNoStorageMsg() {
-    writeBuildOutput(String.format("WARNING: %s doesn't support local/session storage," +
-        "  function %s will not return/do anything.", buildCapability.getWdBrowserName(),
-        getName()));
+  LocalStorage getLocalStorage() {
+    if (driver instanceof WebStorage) {
+      WebStorage storage = (WebStorage) driver;
+      return storage.getLocalStorage();
+    } else {
+      return new JsBasedWebStorage(StorageType.LOCAL, driver);
+    }
+  }
+  
+  SessionStorage getSessionStorage() {
+    if (driver instanceof WebStorage) {
+      WebStorage storage = (WebStorage) driver;
+      return storage.getSessionStorage();
+    } else {
+      return new JsBasedWebStorage(StorageType.SESSION, driver);
+    }
   }
 }

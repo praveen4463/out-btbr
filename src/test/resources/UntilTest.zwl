@@ -1,10 +1,17 @@
-# until expectation test
+# until expectation
+# !!NOTE: Some of these tests may fail anytime due to excessive timeout and script execution
+# dependency of these until tests, try rerunning if that happens. All written tests have passed
+# several times for all supported browser, so while they absolutely work they may still fail.
 
 # setTimeout returns immediately and once timeout expires, runs the given function thus it will be
 # used here to simulate actions happening after a delay to let untilXX wait for given timeout.
 
+setElementAccessTimeout(60000)
+setPageLoadTimeout(60000)
+setScriptTimeout(60000)
 # until alert---------------------------------------------------------------------------------------
 elemAccess = 3000 # the timeout used in setTimeout for element related untilXX functions
+fiddleFrame = "iframe[name='result']"
 assertTrue(getTimeout(timeouts.elemAccess) > elemAccess)
 
 openUrl("https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout")
@@ -17,7 +24,7 @@ acceptAlert() # shouldn't throw proves that untilAlert.. waited until it saw an 
 
 # enabled/visible/removed/selections----------------------------------------------------------------
 openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
-switchFrame("iframe[name='result']")
+switchFrame(fiddleFrame)
 chk1 = findElement("#chk1")
 chk2 = findElement("#chk2")
 chk3 = findElement("#chk3")
@@ -27,9 +34,9 @@ all = [chk1, chk2, chk3]
 # can't replace them with provided arguments. Thus keeping them out of it.
 hideAll = format(`const arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
   window.setTimeout(function() {
-    arg0.style.display='none';
-    arg1.style.display='none';
-    arg2.style.display='none';
+    arg0.style.display = 'none';
+    arg1.style.display = 'none';
+    arg2.style.display = 'none';
   }, %s)`, elemAccess)
 # lets hide all
 executeScript(hideAll, chk1, chk2, chk3)
@@ -42,33 +49,33 @@ assertFalse(anyElementDisplayed(all))
 
 showAll = format(`const arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
   window.setTimeout(function() {
-    arg0.style.display='';
-    arg1.style.display='';
-    arg2.style.display='';
+    arg0.style.display = '';
+    arg1.style.display = '';
+    arg2.style.display = '';
   }, %s)`, elemAccess)
-executeScript(showAll, all)
+executeScript(showAll, chk1, chk2, chk3)
 assertFalse(anyElementDisplayed(all))
 untilAllVisible(all)
 assertTrue(allElementsDisplayed(all))
 
 disableAll = format(`const arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
   window.setTimeout(function() {
-    arg0.disabled=true;
-    arg1.disabled=true;
-    arg2.disabled=true;
+    arg0.disabled = true;
+    arg1.disabled = true;
+    arg2.disabled = true;
   }, %s)`, elemAccess)
-executeScript(disableAll, all)
+executeScript(disableAll, chk1, chk2, chk3)
 assertTrue(allElementsEnabled(all))
 untilAllDisabled(all)
 assertFalse(anyElementEnabled(all))
 
 enableAll = format(`const arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
   window.setTimeout(function() {
-    arg0.disabled=false;
-    arg1.disabled=false;
-    arg2.disabled=false;
+    arg0.disabled = false;
+    arg1.disabled = false;
+    arg2.disabled = false;
   }, %s)`, elemAccess)
-executeScript(enableAll, all)
+executeScript(enableAll, chk1, chk2, chk3)
 assertFalse(anyElementEnabled(all))
 untilAllEnabled(chk1, chk2, chk3)
 assertTrue(allElementsEnabled(all))
@@ -79,13 +86,13 @@ removeAll = format(`const arg0 = arguments[0], arg1 = arguments[1], arg2 = argum
     document.body.removeChild(arg1);
     document.body.removeChild(arg2);
   }, %s)`, elemAccess)
-executeScript(removeAll, all)
+executeScript(removeAll, chk1, chk2, chk3)
 assertTrue(elementExists("#chk1"))
 untilAllRemoved("input[type='checkbox']")
 assertFalse(elementExists("#chk1"))
 
 refresh() # bring back original state
-switchFrame("iframe[name='result']")
+switchFrame(fiddleFrame)
 chk1 = findElement("#chk1")
 chk2 = findElement("#chk2")
 chk3 = findElement("#chk3")
@@ -93,18 +100,18 @@ all = [chk1, chk2, chk3]
 
 checkAll = format(`const arg0 = arguments[0], arg1 = arguments[1], arg2 = arguments[2];
   window.setTimeout(function() {
-    arg0.checked=true;
-    arg1.checked=true;
-    arg2.checked=true;
+    arg0.checked = true;
+    arg1.checked = true;
+    arg2.checked = true;
   }, %s)`, elemAccess)
-executeScript(checkAll, all)
+executeScript(checkAll, chk1, chk2, chk3)
 assertFalse(anyElementSelected(all))
 untilAllSelectionsAre(true, "input[type='checkbox']")
 assertTrue(allElementsSelected(all))
 
 uncheckOne = format(`const arg0 = arguments[0];
   window.setTimeout(function() {
-    arg0.checked=false;
+    arg0.checked = false;
   }, %s)`, elemAccess)
 executeScript(uncheckOne, chk1)
 assertTrue(isElementSelected(chk1))
@@ -113,8 +120,8 @@ assertFalse(isElementSelected(chk1))
 
 uncheckTwo = format(`const arg0 = arguments[0], arg1 = arguments[1]
   window.setTimeout(function() {
-    arg0.checked=false;
-    arg1.checked=false;
+    arg0.checked = false;
+    arg1.checked = false;
   }, %s)`, elemAccess)
 executeScript(uncheckTwo, chk2, chk3)
 assertTrue(allElementsSelected(chk2, chk3))
@@ -123,7 +130,7 @@ assertFalse(anyElementSelected(all))
 
 checkOne = format(`const arg0 = arguments[0];
   window.setTimeout(function() {
-    arg0.checked=true;
+    arg0.checked = true;
   }, %s)`, elemAccess)
 executeScript(checkOne, chk1)
 assertFalse(isElementSelected(chk1))
@@ -132,17 +139,17 @@ assertTrue(isElementSelected(chk1))
 
 executeScript(uncheckOne, chk1)
 assertTrue(isElementSelected(chk1))
-untilSelectionIs(false, chk1)
+untilSelectionIs(chk1, false)
 assertFalse(isElementSelected(chk1))
 
 executeScript(checkOne, chk1)
 assertFalse(isElementSelected(chk1))
-untilSelectionIs(true, chk1)
+untilSelectionIs(chk1, true)
 assertTrue(isElementSelected(chk1))
 
 hideOne = format(`const arg0 = arguments[0];
   window.setTimeout(function() {
-    arg0.style.display='none';
+    arg0.style.display = 'none';
   }, %s)`, elemAccess)
 executeScript(hideOne, chk1)
 assertTrue(isElementDisplayed(chk1))
@@ -151,7 +158,7 @@ assertFalse(isElementDisplayed(chk1))
 
 showOne = format(`const arg0 = arguments[0];
   window.setTimeout(function() {
-    arg0.style.display='';
+    arg0.style.display = '';
   }, %s)`, elemAccess)
 executeScript(showOne, chk1)
 assertFalse(isElementDisplayed(chk1))
@@ -186,7 +193,7 @@ untilRemoved("#chk1")
 assertFalse(elementExists("#chk1"))
 
 refresh()
-switchFrame("iframe[name='result']")
+switchFrame(fiddleFrame)
 untilStale(chk2)
 untilStale(chk3)
 isStale(chk2)
@@ -205,18 +212,17 @@ executeScript(
     }, %s)`, elemAccess),
   chk1
 )
-assertFalse(exists(getElementAttributeOrCssValue(chk1, "data")))
+assertTrue(length(getElementAttributeOrCssValue(chk1, "data")) == 0)
 untilAttributeValueContains(chk1, "data", "anything")
 assertTrue(getElementAttributeOrCssValue(chk1, "data") == "was there anything useful?")
 
 executeScript(
   format(`const arg0 = arguments[0];
     window.setTimeout(function() {
-      arg0.style = "margin-left:100px";
+      arg0.style = "margin-left: 100px";
     }, %s)`, elemAccess),
   chk1
 )
-assertFalse(exists(getElementAttributeOrCssValue(chk1, "margin-left")))
 untilAttributeValueIs(chk1, "margin-left", "100px")
 assertTrue(getElementAttributeOrCssValue(chk1, "margin-left") == "100px")
 
@@ -227,16 +233,16 @@ executeScript(
     }, %s)`, elemAccess),
   chk1
 )
-assertFalse(exists(getElementAttributeOrCssValue(chk1, "secret")))
+assertTrue(length(getElementAttributeOrCssValue(chk1, "secret")) == 0)
 untilAttributeValueLike(chk1, "secret", "^[a-zA-Z0-9]+$")
-assertTrue(getElementAttributeOrCssValue(chk1, "margin-left") == "100px")
+assertTrue(getElementAttributeOrCssValue(chk1, "secret") == "Ghh89df90")
 
 # execute a script that will set an empty attribute immediately, with untilAttributeValueNonEmpty,
-# wait for a short duration elemAccess and expect it fail. Then execute another script with
+# wait for a short duration and expect it fail. Then execute another script with
 # setTimeout that sets non empty value.
 executeScript("arguments[0].setAttribute(\"rel\", \"   \");", chk1)
 assertThrows(exceptions.timeoutEx,
-    untilAttributeValueNonEmpty(chk1, "rel", untilFlt(elemAccess)))
+    untilAttributeValueNonEmpty(chk1, "rel", untilFlt(1000)))
 executeScript(
   format(`const arg0 = arguments[0];
     window.setTimeout(function() {
@@ -268,8 +274,8 @@ executeScript(
     }, %s)`, elemAccess),
   chk2
 )
-assertTrue(getElementValue(chk2) == "on") # checkbox's default value
-untilValueLike(chk2, "[8-9][0-9]{9}")
+assertTrue(getElementValue(chk2) == "on")
+untilValueLike(chk2, "[8-9][0-9]{9}$")
 assertTrue(getElementValue(chk2) == "p#:8987898989")
 
 executeScript(
@@ -281,25 +287,24 @@ executeScript(
 )
 assertTrue(getElementValue(chk2) == "p#:8987898989")
 untilValueIs(chk2, "accept cookies")
-assertTrue(getElementValue(chk1) == "accept cookies")
+assertTrue(getElementValue(chk2) == "accept cookies")
 
-executeScript("arguments[0].value = \"  \";", chk1)
+executeScript("arguments[0].value = \"  \";", chk3)
 assertThrows(exceptions.timeoutEx,
-    untilValueNonEmpty(chk1, untilFlt(elemAccess)))
+    untilValueNonEmpty(chk3, untilFlt(elemAccess)))
 executeScript(
   format(`const arg0 = arguments[0];
     window.setTimeout(function() {
-      arg0.value = "accept cookies";
+      arg0.value = "privacy policy";
     }, %s)`, elemAccess),
   chk3
 )
 assertTrue(length(trim(getElementValue(chk3))) == 0)
-untilValueNonEmpty(chk1)
-assertTrue(length(trim(getElementValue(chk3))) > 0)
+assertTrue(length(trim(untilValueNonEmpty(chk3))) > 0)
 
 # text----------------------------------------------------------------------------------------------
 openUrl("https://jsfiddle.net/praveen4463/nb9a215e/")
-switchFrame("iframe[name='result']")
+switchFrame(fiddleFrame)
 div1 = findElement("#div1")
 div2 = findElement("#div2")
 div3 = findElement("#div3")
@@ -325,8 +330,7 @@ executeScript(
 )
 assertTrue(length(trim(getElementText(div2))) == 0)
 expectedText = `Are you going there tomorrow?
-Could you let me know once you leave?
-`
+Could you let me know once you leave?`
 untilTextIs(div2, expectedText)
 assertTrue(startsWith(getElementText(div2), "Are you going there tomorrow"))
 
@@ -338,11 +342,11 @@ executeScript(
   div3
 )
 assertTrue(length(trim(getElementText(div3))) == 0)
-untilTextLike(div3, "#[1-9][A-B0-9]{9}")
+untilTextLike(div3, "#[1-9][A-B0-9]{9}$")
 assertTrue(startsWith(getElementText(div3), "The generated id is"))
 
 assertThrows(exceptions.timeoutEx,
-    untilTextNonEmpty(div4, untilFlt(elemAccess)))
+    untilTextNonEmpty(div4, untilFlt(1000)))
 executeScript(
   format(`const arg0 = arguments[0];
     window.setTimeout(function() {
@@ -351,29 +355,17 @@ executeScript(
   div4
 )
 assertTrue(length(trim(getElementText(div4))) == 0)
-untilTextNonEmpty(div4)
-assertTrue(length(trim(getElementText(div4))) > 0)
+assertTrue(length(trim(untilTextNonEmpty(div4))) > 0)
 
 # Total elements------------------------------------------------------------------------------------
 allDiv = "div"
-executeScript(
-  format(`const arg0 = arguments[0];
-    window.setTimeout(function() {
-      document.body.removeChild(arg0);
-    }, %s)`, elemAccess),
-  div1
-)
+
+executeScript(removeOne, div1)
 assertTrue(size(findElements(allDiv)) == 4)
 untilTotalElementsEQ(allDiv, 3)
 assertTrue(size(findElements(allDiv)) == 3)
 
-executeScript(
-  format(`const arg0 = arguments[0];
-    window.setTimeout(function() {
-      document.body.removeChild(arg0);
-    }, %s)`, elemAccess),
-  div2
-)
+executeScript(removeOne, div2)
 assertTrue(size(findElements(allDiv)) == 3)
 untilTotalElementsLT(allDiv, 3)
 assertTrue(size(findElements(allDiv)) == 2)
@@ -393,6 +385,7 @@ assertTrue(size(findElements(allDiv)) == 3)
 # Total windows-------------------------------------------------------------------------------------
 pageLoad = 3000 # the timeout used in setTimeout for page load related untilXX functions
 assertTrue(getTimeout(timeouts.pageLoad) > pageLoad)
+currentWinId = getCurrentWinId()
 executeScript(
   format(`
     window.setTimeout(function() {
@@ -403,6 +396,15 @@ executeScript(
 assertTrue(size(getAllWinIds()) == 1)
 untilTotalWindowsAre(3)
 assertTrue(size(getAllWinIds()) == 3)
+# close others and switch to original cause the js clicks opened new windows while wd still seeing
+# the original and future commands will be run on that.
+for win in getAllWinIds() {
+  if (win != currentWinId) {
+    switchWin(win)
+    close()
+  }
+}
+switchWin(currentWinId)
 
 # Url and Title-------------------------------------------------------------------------------------
 openUrl("https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute")
@@ -421,22 +423,26 @@ assertTrue(getCurrentUrl() ==
 
 click(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(4) > a")
 untilTitleIs("ParentNode.lastElementChild - Web APIs | MDN")
-assertTrue(getTitle(), "ParentNode.lastElementChild - Web APIs | MDN")
+assertTrue(getTitle() == "ParentNode.lastElementChild - Web APIs | MDN")
 
 click(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(2) > a")
 untilUrlLike("children$")
 assertTrue(startsWith(getTitle(), "ParentNode.children"))
 
 # frame---------------------------------------------------------------------------------------------
-openUrl("https://jsfiddle.net/praveen4463/nb9a215e/")
-untilSwitchedToFrame("iframe[name='result']")
-click("a:first-of-type")
-assertTrue(endsWith(getCurrentUrl()) == "innerText")
+openUrl("https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setInterval")
+# note that this is explicit navigation and thus webdriver won't wait for page to load.
+click(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(9) > a")
+# If we try switching to page's frame using selector it will succeed without an
+# explicit wait cause the frame will be searched using a wait automatically but if we try using
+# index, it may throw exception as there is no frame available immediately after clicking the link.
+untilSwitchedToFrame(0)
+assertTrue(startsWith(getElementText("button:first-of-type"), "Show an alert"))
 
 # js------------------------------------------------------------------------------------------------
-js = 4000 # the timeout used in setTimeout for page load related untilXX functions
+js = 4000 # the timeout used in setTimeout for js related untilXX functions
 assertTrue(getTimeout(timeouts.js) > js)
-openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
+openUrl("https://jsfiddle.net/praveen4463/0afkonjd/") # any page works
 executeScript(
   format(`
     window.setTimeout(function() {
@@ -445,7 +451,7 @@ executeScript(
       document.body.appendChild(div1);
     }, %s)`, js)
 )
-getIdScript = "return document.getElementById(\"div1\").id;";
+getIdScript = "return document.getElementById(\"div1\").id;"
 # should throw js exception if div1 is
 # accessed immediately before setTimeout has added it, adding the wait instead should resolve it.
 assertThrows(exceptions.jsEx, assertTrue(executeScript(getIdScript) == "div1"))
@@ -460,27 +466,28 @@ executeScript(
       document.body.appendChild(div2);
     }, %s)`, js)
 )
-getIdScript = "return document.getElementById(\"div2\").id;";
+getIdScript = "return document.getElementById(\"div2\").id;"
 untilJsThrowsNoException(getIdScript)
-assertTrue(executeScript(getIdScript) == "getIdScript")
+assertTrue(executeScript(getIdScript) == "div2")
 
 # flt-----------------------------------------------------------------------------------------------
 originalElemAccess = getTimeout(timeouts.elemAccess)
+# switch frame before resetting timeout
+openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
+switchFrame(fiddleFrame)
 # imagine user set element access timeout to 1sec for some code
 setElementAccessTimeout(1000)
 # now they need to check some element being removed from page, but it may take more than what they
 # set as element access above. For only this particular action, they want to give a custom timeout.
 waitFor = 6000
 triggerRemoveAfter = 5000
-openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
-switchFrame("iframe[name='result']")
 chk1 = findElement("#chk1")
 executeScript(
   format(`const arg0 = arguments[0];
     window.setTimeout(function() {
       document.body.removeChild(arg0);
-    }, %s)`, triggerRemoveAfter),
-  chk1
+    }, %s)`, triggerRemoveAfter)
+  , chk1
 )
 # if we don't use flt, a timeout should occur.
 assertThrows(exceptions.timeoutEx, untilRemoved("#chk1"))
@@ -492,26 +499,35 @@ untilRemoved("#chk1", untilFlt(waitFor))
 assertFalse(elementExists("#chk1"))
 
 # another test for poll interval in flt
-setElementAccessTimeout(0) # set 0 so there is no role of a preset timeout
 # wait for lesser than 500 which is the default poll time so that we can be sure our untilXX did
 # wait for lesser than that when we took a custom wait and poll time.
 waitFor = 400
-poll = 150
-triggerRemoveAfter = 300
+poll = 20
+triggerRemoveAfter = 100
 chk2 = findElement("#chk2")
 executeScript(
   format(`const arg0 = arguments[0];
     window.setTimeout(function() {
       document.body.removeChild(arg0);
-    }, %s)`, triggerRemoveAfter),
-  chk2
+    }, %s)`, triggerRemoveAfter)
+  , chk2
 )
 start = instant()
-untilRemoved("#chk2", untilFlt(waitFor, poll))
+untilStale(chk2, untilFlt(waitFor, poll))
 spent = elapsed(start)
-assertFalse(elementExists("#chk2"))
-assertTrue(spent <= waitFor)
+assertTrue(isStale(chk2))
+assertTrue(spent <= waitFor) # if poll time was correctly set, spent can't be more than waitFor
 
 # restore element access
 setElementAccessTimeout(originalElemAccess)
 # click---------------------------------------------------------------------------------------------
+openUrl("https://jsfiddle.net/praveen4463/wupqetgh/")
+switchFrame(fiddleFrame)
+overlay = findElement(".o")
+button = findElement(".b")
+executeScript(hideOne, overlay)
+# if click is made right now, elemClickInterceptedEx should occur
+assertThrows(exceptions.elemClickInterceptedEx, click(button))
+# wait until overlay goes off and clicked
+untilClicked(button)
+assertTrue(getElementValue("#hd1") == 1) # tells that it clicked

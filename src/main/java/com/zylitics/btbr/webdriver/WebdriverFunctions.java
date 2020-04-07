@@ -253,7 +253,7 @@ public class WebdriverFunctions {
         new UntilAttributeValueIs(wdProps, buildCapability, driver, printStream),
         new UntilAttributeValueLike(wdProps, buildCapability, driver, printStream),
         new UntilAttributeValueNonEmpty(wdProps, buildCapability, driver, printStream),
-        new UntilClickable(wdProps, buildCapability, driver, printStream),
+        new UntilClicked(wdProps, buildCapability, driver, printStream),
         new UntilDisabled(wdProps, buildCapability, driver, printStream),
         new UntilEnabled(wdProps, buildCapability, driver, printStream),
         new UntilFlt(),

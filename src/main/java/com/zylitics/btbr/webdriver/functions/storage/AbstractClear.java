@@ -34,10 +34,6 @@ abstract class AbstractClear extends AbstractStorage {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    if (localStorage == null || sessionStorage == null) {
-      printNoStorageMsg();
-      return new NothingZwlValue();
-    }
     return handleWDExceptions(() -> {
       clear();
       return _void;

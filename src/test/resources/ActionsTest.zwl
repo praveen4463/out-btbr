@@ -135,4 +135,5 @@ performAction(
   shiftUp(),
   sendKeys(" I was thinking India is a nice country.")
 )
-assertTrue(getElementText(div1) == "HEY MAN! I was thinking India is a nice country.")
+# sometimes chrome doesn't get any text, let's put a wait until a text is found.
+assertTrue(untilTextNonEmpty(div1) == "HEY MAN! I was thinking India is a nice country.")

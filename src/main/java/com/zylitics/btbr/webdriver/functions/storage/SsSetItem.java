@@ -22,6 +22,6 @@ public class SsSetItem extends AbstractSetItem {
   
   @Override
   protected void set(String key, String value) {
-    sessionStorage.setItem(key, value);
+    getSessionStorage().setItem(key, value);
   }
 }

@@ -6,7 +6,8 @@ switchFrame("iframe[name='result']")
 startFindElem = instant()
 assertThrows(exceptions.noSuchElemEx, findElement("unknown-elem", true))
 tookMillisFindElem = elapsed(startFindElem)
-assertTrue(getTimeout(timeouts.elemAccess) > 1 && tookMillisFindElem < testTools.elemAccessTimeout)
+elemAccessTimeout = getTimeout(timeouts.elemAccess)
+assertTrue(elemAccessTimeout > 1 && tookMillisFindElem < elemAccessTimeout)
 # verifies that giving noWait=true won't wait when some element wasn't immediately found.
 
 form = findElement("#form1")

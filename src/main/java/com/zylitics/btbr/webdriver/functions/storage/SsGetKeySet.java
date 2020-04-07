@@ -23,6 +23,6 @@ public class SsGetKeySet extends AbstractGetKeySet {
   
   @Override
   protected Set<String> get() {
-    return sessionStorage.keySet();
+    return getSessionStorage().keySet();
   }
 }

@@ -22,6 +22,6 @@ public class LsSetItem extends AbstractSetItem {
   
   @Override
   protected void set(String key, String value) {
-    localStorage.setItem(key, value);
+    getLocalStorage().setItem(key, value);
   }
 }

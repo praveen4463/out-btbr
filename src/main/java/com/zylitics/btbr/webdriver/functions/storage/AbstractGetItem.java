@@ -33,11 +33,6 @@ abstract class AbstractGetItem extends AbstractStorage {
   public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
-  
-    if (localStorage == null || sessionStorage == null) {
-      printNoStorageMsg();
-      return new NothingZwlValue();
-    }
     
     if (args.size() == 0) {
       throw unexpectedEndOfFunctionOverload(args.size());

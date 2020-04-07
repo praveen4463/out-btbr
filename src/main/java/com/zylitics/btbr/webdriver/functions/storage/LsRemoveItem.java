@@ -22,6 +22,6 @@ public class LsRemoveItem extends AbstractRemoveItem {
   
   @Override
   protected void remove(String key) {
-    localStorage.removeItem(key);
+    getLocalStorage().removeItem(key);
   }
 }

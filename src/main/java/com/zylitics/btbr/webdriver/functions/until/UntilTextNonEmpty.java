@@ -23,8 +23,7 @@ public class UntilTextNonEmpty extends AbstractTextValueNonEmpty {
   }
   
   @Override
-  boolean desiredState(RemoteWebElement element) {
-    String value = element.getText();
-    return !Strings.isNullOrEmpty(value) && value.trim().length() > 0;
+  String textOrValue(RemoteWebElement element) {
+    return element.getText();
   }
 }

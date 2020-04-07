@@ -43,7 +43,7 @@ switchWin(getAllWinIds()[0]) # switch to dragEventUrl win
 # switch frame using index, switch back and forth to test switchParentFrame and switchWin without
 # parameters that switches to default content.
 openUrl("https://jsfiddle.net/praveen4463/w0eg4azx/")
-untilSwitchedToFrame(0)
+untilSwitchedToFrame(0) # when not using frame selector, 'until' is needed.
 button = findElement("input")
 assertTrue(isValidElemId(button))
 # parent frame
@@ -52,7 +52,7 @@ panelHs = findElements(".panel-h")
 assertTrue(size(panelHs) > 1)
 switchFrame(0)
 button = findElement("input")
-assertTrue(isValidElemId(button))hyphens
+assertTrue(isValidElemId(button))
 switchWin()
 panelHs = findElements(".panel-h")
 assertTrue(size(panelHs) > 1)

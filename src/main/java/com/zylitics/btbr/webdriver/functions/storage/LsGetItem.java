@@ -22,6 +22,6 @@ public class LsGetItem extends AbstractGetItem {
   
   @Override
   protected String get(String key) {
-    return localStorage.getItem(key);
+    return getLocalStorage().getItem(key);
   }
 }

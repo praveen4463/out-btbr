@@ -22,6 +22,6 @@ public class LsSize extends AbstractSize {
   
   @Override
   protected int size() {
-    return localStorage.size();
+    return getLocalStorage().size();
   }
 }

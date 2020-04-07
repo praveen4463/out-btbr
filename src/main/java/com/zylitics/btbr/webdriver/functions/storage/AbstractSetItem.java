@@ -34,11 +34,6 @@ abstract class AbstractSetItem extends AbstractStorage {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    if (localStorage == null || sessionStorage == null) {
-      printNoStorageMsg();
-      return new NothingZwlValue();
-    }
-    
     if (args.size() < 2) {
       throw unexpectedEndOfFunctionOverload(args.size());
     }

@@ -22,6 +22,6 @@ public class SsSize extends AbstractSize {
   
   @Override
   protected int size() {
-    return sessionStorage.size();
+    return getSessionStorage().size();
   }
 }

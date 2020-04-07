@@ -23,6 +23,6 @@ public class LsGetKeySet extends AbstractGetKeySet {
   
   @Override
   protected Set<String> get() {
-    return localStorage.keySet();
+    return getLocalStorage().keySet();
   }
 }

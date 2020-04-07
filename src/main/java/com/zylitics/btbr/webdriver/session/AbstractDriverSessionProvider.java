@@ -88,7 +88,8 @@ public abstract class AbstractDriverSessionProvider {
         configuration.getTimeouts(wdProps, buildCapability, TimeoutType.JAVASCRIPT));
     timeouts.put("pageLoad",
         configuration.getTimeouts(wdProps, buildCapability, TimeoutType.PAGE_LOAD));
-    caps.setCapability("timeouts", JSON.toJson(timeouts));
+    caps.setCapability("timeouts", timeouts); // no need to convert timeout to json from here, every
+    // map will be converted internally.
     
     caps.setCapability(CapabilityType.STRICT_FILE_INTERACTABILITY,
         buildCapability.isWdStrictFileInteractability());

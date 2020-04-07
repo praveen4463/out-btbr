@@ -22,6 +22,6 @@ public class LsClear extends AbstractClear {
   
   @Override
   protected void clear() {
-    localStorage.clear();
+    getLocalStorage().clear();
   }
 }

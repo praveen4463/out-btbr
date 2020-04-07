@@ -1,11 +1,12 @@
 package com.zylitics.btbr.webdriver.functions;
 
-import org.openqa.selenium.Keys;
+import org.openqa.selenium.remote.BrowserType;
 
 public enum Browsers {
   
-  CHROME  ("chrome"),
-  FIREFOX ("firefox");
+  CHROME  (BrowserType.CHROME),
+  FIREFOX (BrowserType.FIREFOX),
+  IE (BrowserType.IE);
   
   private final String name;
   

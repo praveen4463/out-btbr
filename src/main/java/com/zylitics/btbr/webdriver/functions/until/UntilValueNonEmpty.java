@@ -23,9 +23,7 @@ public class UntilValueNonEmpty extends AbstractTextValueNonEmpty {
   }
   
   @Override
-  boolean desiredState(RemoteWebElement element) {
-    String value = element.getAttribute("value");
-    return !Strings.isNullOrEmpty(value) && value.trim().length() > 0;
-    // trim removes new line, tabs etc including whitespaces.
+  String textOrValue(RemoteWebElement element) {
+    return element.getAttribute("value");
   }
 }

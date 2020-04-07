@@ -18,7 +18,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.io.PrintStream;
 import java.time.Duration;
 import java.util.*;
-import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -162,8 +161,6 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
    * Should be used by functions that expect more than one element. User can either send multiple
    * elemIds or selectors or just one selector that is meant to fetch multiple elements. If
    * succeeded, this method is guaranteed to return some element(s).
-   * <p>This method throws {@link NoSuchElementException} if argument list has just one item,
-   * the selector, and it couldn't retrieve any element.</p>
    * @param args The raw arguments received by function.
    * @return List of {@link RemoteWebElement}s
    */

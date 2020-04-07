@@ -35,11 +35,6 @@ abstract class AbstractSize extends AbstractStorage {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
     
-    if (localStorage == null || sessionStorage == null) {
-      printNoStorageMsg();
-      return new NothingZwlValue();
-    }
-    
     return new DoubleZwlValue(handleWDExceptions(this::size));
   }
   

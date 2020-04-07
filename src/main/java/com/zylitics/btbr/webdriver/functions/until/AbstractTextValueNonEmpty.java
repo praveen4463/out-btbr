@@ -4,7 +4,9 @@ import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.webdriver.TimeoutType;
 import com.zylitics.zwl.datatype.BooleanZwlValue;
+import com.zylitics.zwl.datatype.StringZwlValue;
 import com.zylitics.zwl.datatype.ZwlValue;
+import org.elasticsearch.common.Strings;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
@@ -39,11 +41,14 @@ abstract class AbstractTextValueNonEmpty extends AbstractUntilExpectation {
       wait.ignoring(StaleElementReferenceException.class);
     }
     return handleWDExceptions(() ->
-        new BooleanZwlValue(wait.until(d -> {
+        new StringZwlValue(wait.until(d -> {
           RemoteWebElement e = getElement(elemOrSelector, false);
-          return desiredState(e);
+          String textOrValue = textOrValue(e);
+          // trim removes new line, tabs etc including whitespaces.
+          return !Strings.isNullOrEmpty(textOrValue) && textOrValue.trim().length() > 0
+              ? textOrValue : null;
         })));
   }
   
-  abstract boolean desiredState(RemoteWebElement element);
+  abstract String textOrValue(RemoteWebElement element);
 }

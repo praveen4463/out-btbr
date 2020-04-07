@@ -22,6 +22,6 @@ public class SsRemoveItem extends AbstractRemoveItem {
   
   @Override
   protected void remove(String key) {
-    sessionStorage.removeItem(key);
+    getSessionStorage().removeItem(key);
   }
 }

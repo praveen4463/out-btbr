@@ -378,6 +378,12 @@ public class APICoreProperties {
   
     @Min(1000)
     private Integer defaultTimeoutNewWindow;
+  
+    @Min(1000)
+    private Integer ieDefaultBrowserAttachTimeout;
+  
+    @Min(1000)
+    private Integer ieDefaultFileUploadDialogTimeout;
     
     @NotBlank
     private String enableProfilerLogsProp;
@@ -476,6 +482,26 @@ public class APICoreProperties {
     public void setDefaultTimeoutNewWindow(Integer defaultTimeoutNewWindow) {
       if (this.defaultTimeoutNewWindow == null) {
         this.defaultTimeoutNewWindow = defaultTimeoutNewWindow;
+      }
+    }
+  
+    public Integer getIeDefaultBrowserAttachTimeout() {
+      return ieDefaultBrowserAttachTimeout;
+    }
+  
+    public void setIeDefaultBrowserAttachTimeout(Integer ieDefaultBrowserAttachTimeout) {
+      if (this.ieDefaultBrowserAttachTimeout == null) {
+        this.ieDefaultBrowserAttachTimeout = ieDefaultBrowserAttachTimeout;
+      }
+    }
+  
+    public Integer getIeDefaultFileUploadDialogTimeout() {
+      return ieDefaultFileUploadDialogTimeout;
+    }
+  
+    public void setIeDefaultFileUploadDialogTimeout(Integer ieDefaultFileUploadDialogTimeout) {
+      if (this.ieDefaultFileUploadDialogTimeout == null) {
+        this.ieDefaultFileUploadDialogTimeout = ieDefaultFileUploadDialogTimeout;
       }
     }
   

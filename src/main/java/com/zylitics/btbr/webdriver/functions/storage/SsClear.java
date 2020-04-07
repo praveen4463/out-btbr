@@ -22,6 +22,6 @@ public class SsClear extends AbstractClear {
   
   @Override
   protected void clear() {
-    sessionStorage.clear();
+    getSessionStorage().clear();
   }
 }

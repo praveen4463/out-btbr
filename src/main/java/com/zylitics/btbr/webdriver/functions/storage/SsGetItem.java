@@ -22,6 +22,6 @@ public class SsGetItem extends AbstractGetItem {
   
   @Override
   protected String get(String key) {
-    return sessionStorage.getItem(key);
+    return getSessionStorage().getItem(key);
   }
 }
