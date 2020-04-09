@@ -1,5 +1,6 @@
 # Action functions
 
+staticSitePrefix = staticSite.urlPrefix
 # SCROLL--------------------------------------------------------------------------------------------
 # scroll to element
 openUrl("https://developer.mozilla.org/en-US/docs/Web/API/Document/drag_event")
@@ -34,7 +35,8 @@ assertTrue(getElementViewportCoordinates(frame, false).y <= 1)
 
 # scroll to element in a frame, to see whether scrolling working in a frame cause we're using js
 # under the hood
-openUrl("https://jsfiddle.net/praveen4463/w0eg4azx/")
+#openUrl("https://jsfiddle.net/praveen4463/w0eg4azx/")
+openUrl(staticSitePrefix + "long_scroll_c.html")
 switchFrame("iframe[name='result']")
 viewportHeight = executeScript("return window.innerHeight;")
 button = findElement("input")
@@ -63,9 +65,11 @@ switchFrame(".demo-frame")
 # both content and as it's found and is intractable, these will return true. The only reliable way
 # i found is to wait for the text of draggable since it is different in both contents, the 'until'
 # expectation here will wait until it finds draggable with mentioned text. Had both the text were
-# same, we would have tried something else.
-draggable = findElement("#draggable")
-untilTextIs(draggable, "Drag me down")
+# same, we would have tried something else. Also use draggable's selector in untilTextIs so that
+# if default page's element is found, code wouldn't throw stale exception, the function will ignore
+# that and will try to find element again.
+untilTextIs("#draggable", "Drag me down")
+draggable = findElement("#draggable") # safe to find now.
 performAction(
   move(draggable),
   hold(),
@@ -77,7 +81,8 @@ performAction(
 # Check that actions can move, click and hold/release properly which looks fine
 # and proves that problem is in native events firing in chrome/ff both drivers. Will log an issue
 # for drivers later.
-openUrl("https://jsfiddle.net/praveen4463/w63xLyu7/")
+#openUrl("https://jsfiddle.net/praveen4463/w63xLyu7/")
+openUrl(staticSitePrefix + "mouse_move_click_c.html")
 switchFrame("iframe[name='result']")
 performAction(
   move(".div1"),
@@ -89,7 +94,8 @@ performAction(
   move(".div4"),
   clickOnce()
 )
-openUrl("https://jsfiddle.net/praveen4463/qfxkoc39/")
+#openUrl("https://jsfiddle.net/praveen4463/qfxkoc39/")mouse_down_then_up
+openUrl(staticSitePrefix + "mouse_down_then_up_c.html")
 switchFrame("iframe[name='result']")
 performAction(
   move(".div1"),
@@ -111,21 +117,23 @@ performAction(
   move(400, 170),
   release()
 )
-
+/*
 # Following doesn't work, example like https://jsfiddle.net/tabalinas/drp1cgar/8/ doesn't
 # work as well.
-openUrl("https://jsfiddle.net/praveen4463/ex05Lgpz/")
+#openUrl("https://jsfiddle.net/praveen4463/ex05Lgpz/")
+openUrl(staticSitePrefix + "drag_drop_c.html")
 switchFrame("iframe[name='result']")
 performAction(
   move("#draggable"),
   hold(),
   move(".dropzone:nth-of-type(4)"),
   release()
-)
+)*/
 
 # PERFORM_ACTION KEYS-------------------------------------------------------------------------------
 # send keys to elements with some key down using performAction
-openUrl("https://jsfiddle.net/praveen4463/hsotm4xb/")
+#openUrl("https://jsfiddle.net/praveen4463/hsotm4xb/")
+openUrl(staticSitePrefix + "content_editable_c.html")
 switchFrame("iframe[name='result']")
 div1 = findElement(".div1")
 performAction(

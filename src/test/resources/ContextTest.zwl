@@ -56,6 +56,16 @@ assertTrue(isValidElemId(button))
 switchWin()
 panelHs = findElements(".panel-h")
 assertTrue(size(panelHs) > 1)
+/* Use when own page are in use not fiddle.
+wrapper = findElements(".wrapper")
+assertTrue(size(container) > 1)
+switchFrame(0)
+button = findElement("input")
+assertTrue(isValidElemId(button))
+switchWin()
+wrapper = findElements(".wrapper")
+assertTrue(size(container) > 1)
+*/
 
 # resizing
 originalWinSize = getWinSize()

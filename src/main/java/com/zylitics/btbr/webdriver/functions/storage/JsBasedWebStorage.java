@@ -8,6 +8,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Used for drivers that don't support webstorage access.
+ */
 public class JsBasedWebStorage implements LocalStorage, SessionStorage {
   
   private final String storageType;

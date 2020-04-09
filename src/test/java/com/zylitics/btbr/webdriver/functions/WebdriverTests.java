@@ -22,7 +22,6 @@ import com.zylitics.zwl.api.ZwlInterpreterVisitor;
 import com.zylitics.zwl.datatype.*;
 import com.zylitics.zwl.function.debugging.Print;
 import com.zylitics.zwl.function.debugging.PrintF;
-import jnr.ffi.annotations.In;
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.DiagnosticErrorListener;
@@ -44,7 +43,6 @@ import org.openqa.selenium.firefox.GeckoDriverService;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.ie.InternetExplorerDriverService;
 import org.openqa.selenium.ie.InternetExplorerOptions;
-import org.openqa.selenium.remote.BrowserType;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
@@ -279,10 +277,10 @@ public class WebdriverTests {
       // enablePersistentHovering, not using as it can cause issues while hovering over, like
       // continues mouse move even after reaching target element.
       // elementScrollTo, keeping the default Top, don't want to give to user.
-      ie.destructivelyEnsureCleanSession();
+      ie.destructivelyEnsureCleanSession(); // holds up browser start and shows dialog that
+      // 'browser history being cleaned". I don't want users to view it but lets use it for now.
       // useCreateProcessApiToLaunchIe, useShellWindowsApiToAttachToIe not using for now until
       // we get some problem in launch.
-      ie.withInitialBrowserUrl("about:blank");
       ie.requireWindowFocus(); // this will be important for using native events, note that
       // the browser window should always be in focus while the test is running.
       ie.waitForUploadDialogUpTo(Duration.ofMillis(wdProps.getIeDefaultFileUploadDialogTimeout()));
@@ -341,6 +339,12 @@ public class WebdriverTests {
       
       // add timeout type
       zwlInterpreter.setReadOnlyVariable("timeouts", new MapZwlValue(Timeouts.asMap()));
+      
+      // test specific only
+      Map<String, ZwlValue> staticSite = ImmutableMap.of(
+          "urlPrefix", new StringZwlValue("http://static.wditp.zylitics.io/html/")
+      );
+      zwlInterpreter.setReadOnlyVariable("staticSite", new MapZwlValue(staticSite));
     };
   }
   

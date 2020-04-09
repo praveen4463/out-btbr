@@ -94,7 +94,7 @@ class FileInputFilesProcessor {
       
       WritableByteChannel channel = null;
       try {
-        Blob blob = storage.get(BlobId.of(userAccountBucket, constructFilePath(fileName)));
+        Blob blob = storage.get(BlobId.of(userAccountBucket, constructStorageFilePath(fileName)));
         if (blob == null) {
           throw new ZwlLangException(fileName + " doesn't exists. Please check whether this file" +
               " was really uploaded. " + lineNColumn.get());
@@ -159,7 +159,7 @@ class FileInputFilesProcessor {
     }
   }
   
-  private String constructFilePath(String fileName) {
+  private String constructStorageFilePath(String fileName) {
     return pathToUploadedFiles + (pathToUploadedFiles.endsWith("/") ? "" : "/") + fileName;
   }
 }
