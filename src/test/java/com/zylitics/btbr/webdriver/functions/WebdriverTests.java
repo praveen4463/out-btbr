@@ -277,8 +277,8 @@ public class WebdriverTests {
       // enablePersistentHovering, not using as it can cause issues while hovering over, like
       // continues mouse move even after reaching target element.
       // elementScrollTo, keeping the default Top, don't want to give to user.
-      ie.destructivelyEnsureCleanSession(); // holds up browser start and shows dialog that
-      // 'browser history being cleaned". I don't want users to view it but lets use it for now.
+      // ie.destructivelyEnsureCleanSession(); // holds up browser start and shows dialog that
+      // 'browser history being cleaned". We can do this on shutdown, so let's not use it.
       // useCreateProcessApiToLaunchIe, useShellWindowsApiToAttachToIe not using for now until
       // we get some problem in launch.
       ie.requireWindowFocus(); // this will be important for using native events, note that
@@ -372,6 +372,7 @@ public class WebdriverTests {
     wd.setDefaultTimeoutScript(30_000);
     wd.setDefaultTimeoutNewWindow(10_000);
     wd.setIeDefaultBrowserAttachTimeout(5000);
+    wd.setIeDefaultFileUploadDialogTimeout(5000);
     return wd;
   }
   
