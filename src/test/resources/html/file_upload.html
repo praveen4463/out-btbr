@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>file upload</title>
+    <style type="text/css">
+
+    </style>
+</head>
+
+<body>
+    <form id="form1" action="" method="post">
+        Upload multiple
+        <input type="file" id="f_mul" multiple/>
+        <br/>
+        <br/>
+        <br/> Upload single
+        <input type="file" id="f_single" />
+        <br/>
+        <br/>
+        <br/>
+        <input type="submit" value="upload selected files" id="submit" />
+    </form>
+    <script type="text/javascript">
+        var filesDetail = {};
+        var fileDetail = {};
+        document.getElementById("form1").onsubmit = function(e) {
+            console.log("submit");
+            let files = document.getElementById("f_mul").files;
+            if (files.length > 0) {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    filesDetail[file.name] = file.size;
+                }
+            }
+
+            files = document.getElementById("f_single").files;
+            if (files.length > 0) {
+                const file = files[0];
+                fileDetail[file.name] = file.size;
+            }
+            e.preventDefault();
+        }
+    </script>
+</body>
+
+</html>

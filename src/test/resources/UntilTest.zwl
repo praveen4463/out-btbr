@@ -1,4 +1,5 @@
 # until expectation
+staticSitePrefix = staticSite.urlPrefix
 # !!NOTE: Some of these tests may fail anytime due to excessive timeout and script execution
 # dependency of these until tests, try rerunning if that happens. All written tests have passed
 # several times for all supported browser, so while they absolutely work they may still fail.
@@ -11,7 +12,7 @@ setPageLoadTimeout(60000)
 setScriptTimeout(60000)
 # until alert---------------------------------------------------------------------------------------
 elemAccess = 3000 # the timeout used in setTimeout for element related untilXX functions
-fiddleFrame = "iframe[name='result']"
+resultFrame = "iframe[name='result']"
 assertTrue(getTimeout(timeouts.elemAccess) > elemAccess)
 
 openUrl("https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout")
@@ -23,8 +24,9 @@ untilAlertPresent()
 acceptAlert() # shouldn't throw proves that untilAlert.. waited until it saw an alert.
 
 # enabled/visible/removed/selections----------------------------------------------------------------
-openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
-switchFrame(fiddleFrame)
+#openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
+openUrl(staticSitePrefix + "selectable_elements_c.html")
+switchFrame(resultFrame)
 chk1 = findElement("#chk1")
 chk2 = findElement("#chk2")
 chk3 = findElement("#chk3")
@@ -92,7 +94,7 @@ untilAllRemoved("input[type='checkbox']")
 assertFalse(elementExists("#chk1"))
 
 refresh() # bring back original state
-switchFrame(fiddleFrame)
+switchFrame(resultFrame)
 chk1 = findElement("#chk1")
 chk2 = findElement("#chk2")
 chk3 = findElement("#chk3")
@@ -193,7 +195,7 @@ untilRemoved("#chk1")
 assertFalse(elementExists("#chk1"))
 
 refresh()
-switchFrame(fiddleFrame)
+switchFrame(resultFrame)
 untilStale(chk2)
 untilStale(chk3)
 isStale(chk2)
@@ -303,8 +305,9 @@ assertTrue(length(trim(getElementValue(chk3))) == 0)
 assertTrue(length(trim(untilValueNonEmpty(chk3))) > 0)
 
 # text----------------------------------------------------------------------------------------------
-openUrl("https://jsfiddle.net/praveen4463/nb9a215e/")
-switchFrame(fiddleFrame)
+#openUrl("https://jsfiddle.net/praveen4463/nb9a215e/")
+openUrl(staticSitePrefix + "until_text_c.html")
+switchFrame(resultFrame)
 div1 = findElement("#div1")
 div2 = findElement("#div2")
 div3 = findElement("#div3")
@@ -442,7 +445,8 @@ assertTrue(startsWith(getElementText("button:first-of-type"), "Show an alert"))
 # js------------------------------------------------------------------------------------------------
 js = 4000 # the timeout used in setTimeout for js related untilXX functions
 assertTrue(getTimeout(timeouts.js) > js)
-openUrl("https://jsfiddle.net/praveen4463/0afkonjd/") # any page works
+#openUrl("https://jsfiddle.net/praveen4463/0afkonjd/") # any page works
+openUrl(staticSitePrefix + "selectable_elements_c.html")
 executeScript(
   format(`
     window.setTimeout(function() {
@@ -473,8 +477,9 @@ assertTrue(executeScript(getIdScript) == "div2")
 # flt-----------------------------------------------------------------------------------------------
 originalElemAccess = getTimeout(timeouts.elemAccess)
 # switch frame before resetting timeout
-openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
-switchFrame(fiddleFrame)
+#openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
+openUrl(staticSitePrefix + "selectable_elements_c.html")
+switchFrame(resultFrame)
 # imagine user set element access timeout to 1sec for some code
 setElementAccessTimeout(1000)
 # now they need to check some element being removed from page, but it may take more than what they
@@ -521,8 +526,9 @@ assertTrue(spent <= waitFor) # if poll time was correctly set, spent can't be mo
 # restore element access
 setElementAccessTimeout(originalElemAccess)
 # click---------------------------------------------------------------------------------------------
-openUrl("https://jsfiddle.net/praveen4463/wupqetgh/")
-switchFrame(fiddleFrame)
+#openUrl("https://jsfiddle.net/praveen4463/wupqetgh/")
+openUrl(staticSitePrefix + "button_and_overlay_c.html")
+switchFrame(resultFrame)
 overlay = findElement(".o")
 button = findElement(".b")
 executeScript(hideOne, overlay)

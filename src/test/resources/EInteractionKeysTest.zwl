@@ -1,6 +1,7 @@
 # element interaction using keys test
-
-openUrl("https://jsfiddle.net/praveen4463/5zr6jcda/")
+staticSitePrefix = staticSite.urlPrefix
+#openUrl("https://jsfiddle.net/praveen4463/5zr6jcda/")
+openUrl(staticSitePrefix + "form_long_submittable_c.html")
 frame = "iframe[name='result']"
 switchFrame(frame)
 type("#fname", "praveen", keys.tab, "tiwari", keys.tab, 33, keys.tab, 299292993, keys.tab, "noida",

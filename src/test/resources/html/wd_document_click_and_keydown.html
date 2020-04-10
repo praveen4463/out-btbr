@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>webdriver document click and key down</title>
+    <style type="text/css">
+
+    </style>
+</head>
+
+<body>
+    <input type="button" value="click here" />
+    <div class="doc-click">
+
+    </div>
+    <div class="doc-keydown-code">
+
+    </div>
+    <div class="doc-keydown-key">
+
+    </div>
+    <script type="text/javascript">
+        function docClicked(e) {
+            //alert(e);
+            document.querySelectorAll(".doc-click")[0].appendChild(document.createTextNode(" document clicked"));
+        }
+
+        function down(e) {
+            //alert(e.code);
+            document.querySelectorAll(".doc-keydown-code")[0].appendChild(document.createTextNode(" " + e.code));
+            document.querySelectorAll(".doc-keydown-key")[0].appendChild(document.createTextNode(" " + e.key));
+        }
+        //document.addEventListener("click", docClicked);
+        //document.addEventListener("keydown", down);
+        document.getElementsByTagName("html")[0].addEventListener("click", docClicked);
+        document.getElementsByTagName("html")[0].addEventListener("keydown", down);
+    </script>
+</body>
+
+</html>

@@ -1,7 +1,8 @@
 # document function tests
-
+staticSitePrefix = staticSite.urlPrefix
 # execute script
-openUrl("https://jsfiddle.net/praveen4463/w0eg4azx/")
+#openUrl("https://jsfiddle.net/praveen4463/w0eg4azx/")
+openUrl(staticSitePrefix + "long_scroll_c.html")
 switchFrame("iframe[name='result']")
 button = findElement("input")
 viewportHeight = executeScript("return window.innerHeight;") # no argument script

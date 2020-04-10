@@ -287,7 +287,7 @@ public class WebdriverTests {
       // ignoreZoomSettings, don't ignore zoom settings
       driver = new InternetExplorerDriver(InternetExplorerDriverService.createDefaultService(), ie);
     } else {
-      throw new RuntimeException("can't run local build on " + buildCapability.getWdBrowserName());
+      throw new RuntimeException("can't run local build on " + browser.getName());
     }
     
     // do some actions on driver based on build capabilities
@@ -333,7 +333,7 @@ public class WebdriverTests {
       
       // browser detail, not adding version as it's not required and given in these tests.
       Map<String, ZwlValue> browserDetail = ImmutableMap.of(
-          "name", new StringZwlValue(buildCapability.getWdBrowserName())
+          "name", new StringZwlValue(browser.getAlias())
       );
       zwlInterpreter.setReadOnlyVariable("browser", new MapZwlValue(browserDetail));
       

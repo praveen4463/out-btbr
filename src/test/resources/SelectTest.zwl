@@ -1,6 +1,7 @@
 # select option tests
-
-openUrl("https://jsfiddle.net/praveen4463/wpb65c49/")
+staticSitePrefix = staticSite.urlPrefix
+#openUrl("https://jsfiddle.net/praveen4463/wpb65c49/")
+openUrl(staticSitePrefix + "select_list_c.html")
 switchFrame("iframe[name='result']")
 multi = findElement("select[name='multi']")
 single = findElement("select[name='single']")

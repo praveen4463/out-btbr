@@ -7,6 +7,33 @@
     <meta name="googlebot" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>drag drop</title>
+    <style type="text/css">
+        #draggable {
+            width: 200px;
+            height: 20px;
+            text-align: center;
+            background: white;
+        }
+
+        .dropzone {
+            width: 200px;
+            height: 20px;
+            background: blueviolet;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dropzone">
+        <div id="draggable" draggable="true" ondragstart="event.dataTransfer.setData('text/plain',null)">
+            This div is draggable
+        </div>
+    </div>
+    <div class="dropzone"></div>
+    <div class="dropzone"></div>
+    <div class="dropzone"></div>
     <script type="text/javascript">
         var dragged;
 
@@ -87,33 +114,6 @@
               d.appendChild(t);
             }*/
     </script>
-    <style type="text/css">
-        #draggable {
-            width: 200px;
-            height: 20px;
-            text-align: center;
-            background: white;
-        }
-
-        .dropzone {
-            width: 200px;
-            height: 20px;
-            background: blueviolet;
-            margin-bottom: 10px;
-            padding: 10px;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="dropzone">
-        <div id="draggable" draggable="true" ondragstart="event.dataTransfer.setData('text/plain',null)">
-            This div is draggable
-        </div>
-    </div>
-    <div class="dropzone"></div>
-    <div class="dropzone"></div>
-    <div class="dropzone"></div>
 </body>
 
 </html>

@@ -1,5 +1,5 @@
 # context functions
-
+staticSitePrefix = staticSite.urlPrefix
 # open more than one window, confirm last one can't be closed
 mozAttrUrl = "https://developer.mozilla.org/en-US/docs/Web/API/Element/attributes"
 openUrl(mozAttrUrl)
@@ -42,30 +42,21 @@ switchWin(getAllWinIds()[0]) # switch to dragEventUrl win
 
 # switch frame using index, switch back and forth to test switchParentFrame and switchWin without
 # parameters that switches to default content.
-openUrl("https://jsfiddle.net/praveen4463/w0eg4azx/")
+#openUrl("https://jsfiddle.net/praveen4463/w0eg4azx/")
+openUrl(staticSitePrefix + "long_scroll_c.html")
 untilSwitchedToFrame(0) # when not using frame selector, 'until' is needed.
 button = findElement("input")
 assertTrue(isValidElemId(button))
 # parent frame
 switchParentFrame()
-panelHs = findElements(".panel-h")
-assertTrue(size(panelHs) > 1)
-switchFrame(0)
-button = findElement("input")
-assertTrue(isValidElemId(button))
-switchWin()
-panelHs = findElements(".panel-h")
-assertTrue(size(panelHs) > 1)
-/* Use when own page are in use not fiddle.
 wrapper = findElements(".wrapper")
-assertTrue(size(container) > 1)
+assertTrue(size(wrapper) == 1)
 switchFrame(0)
 button = findElement("input")
 assertTrue(isValidElemId(button))
 switchWin()
 wrapper = findElements(".wrapper")
-assertTrue(size(container) > 1)
-*/
+assertTrue(size(wrapper) == 1)
 
 # resizing
 originalWinSize = getWinSize()

@@ -1,7 +1,8 @@
 # Set files test
 # These are kept separately to not run multiple times as it involves file system and network IO
-
-openUrl("https://jsfiddle.net/praveen4463/84taeufn/")
+staticSitePrefix = staticSite.urlPrefix
+#openUrl("https://jsfiddle.net/praveen4463/84taeufn/")
+openUrl(staticSitePrefix + "file_upload_c.html")
 switchFrame("iframe[name='result']")
 file1 = "human_body_anatomy.jpg"
 file1Size = 139622

@@ -1,7 +1,8 @@
 # element state test
-
+staticSitePrefix = staticSite.urlPrefix
 # enabled/displayed/selected
-openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
+#openUrl("https://jsfiddle.net/praveen4463/0afkonjd/")
+openUrl(staticSitePrefix + "selectable_elements_c.html")
 switchFrame("iframe[name='result']")
 chk1 = findElement("#chk1")
 chk2 = findElement("#chk2")

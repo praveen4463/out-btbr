@@ -1,6 +1,7 @@
 # element retrieval test
-
-openUrl("https://jsfiddle.net/praveen4463/5zr6jcda/")
+staticSitePrefix = staticSite.urlPrefix
+#openUrl("https://jsfiddle.net/praveen4463/5zr6jcda/")
+openUrl(staticSitePrefix + "form_long_submittable_c.html")
 switchFrame("iframe[name='result']")
 
 startFindElem = instant()

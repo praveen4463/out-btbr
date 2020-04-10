@@ -1,5 +1,5 @@
 # Some basic webdriver tests just to see simple things work.
-
+staticSitePrefix = staticSite.urlPrefix
 # 1. simple google search test
 openUrl("https://google.com")
 typeActive("apple.com", keys.enter)
@@ -11,7 +11,8 @@ untilTitleIs("Apple")
 
 
 # 2. open a page, send keys to it and check if the intended effect took place.
-openUrl("https://jsfiddle.net/praveen4463/vxk59gph/")
+#openUrl("https://jsfiddle.net/praveen4463/vxk59gph/")
+openUrl(staticSitePrefix + "wd_document_click_and_keydown_c.html")
 switchFrame("iframe[name='result']")
 sendKeysToPage(".doc-click", keys.shift, "r")
 assertTrue(trim(getElementText(".doc-click")) == "document clicked")
@@ -41,9 +42,10 @@ assertTrue(getElementText("#wikiArticle > p:nth-of-type(2)") == expectedText)
 
 
 # 4. text matching multi line
-openUrl("https://jsfiddle.net/praveen4463/hvex69tp/")
+#openUrl("https://jsfiddle.net/praveen4463/hvex69tp/")
+openUrl(staticSitePrefix + "multi_line_text_c.html")
 switchFrame("iframe[name='result']")
-# I copy/pasted following text from the above fiddle page, using mouse selection. See the
+# I copy/pasted following text from the above page, using mouse selection. See the
 # whitespaces before 2nd and 3rd line. These whitespace causes the string to be different than what
 # is rendered on page thus a mismatch with selenium's getText. To correctly copy, first paste just
 # the text and then write variable name so that IDE won't put those spaces to indent everything, may
@@ -65,11 +67,12 @@ assertTrue(trim(actual) == expectedText)
 
 
 # 5. special characters
-text = "hi buddy ♻, whats up ⚜"
-if browser.name == "firefox" {
-  text = "hi buddy 😀 what's up 😆"
-}
 openUrl("https://google.com")
 q = activeElement()
+if browser.name == "chrome" {
+  text = "hi buddy ♻, whats up ⚜"
+} else {
+  text = "hi buddy 😀 what's up 😆"
+}
 type(q, text)
 assertTrue(getElementValue(q) == text)

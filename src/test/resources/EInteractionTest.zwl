@@ -1,8 +1,9 @@
 # elements interaction test
-
+staticSitePrefix = staticSite.urlPrefix
 # clickNoSwitch and clickSwitchNew test
-openUrl("https://jsfiddle.net/praveen4463/z94ck36L/")
-fiddleWinId = getCurrentWinId()
+#openUrl("https://jsfiddle.net/praveen4463/z94ck36L/")
+openUrl(staticSitePrefix + "form_submittable_c.html")
+originalWinId = getCurrentWinId()
 resultFrame = findElement("iframe[name='result']") # note that we could find frame and use the
 # elemId everywhere as that frame doesn't reload, it works on chrome but looks like firefox reloads
 # the frame on link click, thus using the selector every time we switch to this frame.
@@ -12,13 +13,13 @@ junitURL = getElementAttribute(junitA, "href")
 click(junitA)
 if (browser.name == "chrome") {
   # chrome requires to switch browser window, if we don't do it clicks but nothing happens.
-  switchWin(fiddleWinId)
+  switchWin(originalWinId)
   switchFrame(resultFrame)
 }
 clickSwitchNew(junitA) # we're able to click again, verifies that webdriver was still on last page
 untilUrlIs(junitURL)
 # now we've 3 windows, and current is junit page. move to previous page and frame
-switchWin(fiddleWinId)
+switchWin(originalWinId)
 if (browser.name == "chrome") {
   # apparently firefox has frame's browsing context retained, so don't switch in that case.
   switchFrame(resultFrame)

@@ -1,11 +1,12 @@
 # Cookies functions
-
-openUrl("https://jsfiddle.net/praveen4463/hsotm4xb/")
+staticSitePrefix = staticSite.urlPrefix
+#openUrl("https://jsfiddle.net/praveen4463/hsotm4xb/")
+openUrl(staticSitePrefix + "content_editable_c.html")
 deleteAllCookies()
 
-addCookie("zwl_cookie", "1188", "/", "jsfiddle.net", 365*24*60*60*1000)
+addCookie("zwl_cookie", "1188", "/", "zylitics.io", 365*24*60*60*1000)
 c = getNamedCookie("zwl_cookie")
-assertTrue(c.name == "zwl_cookie" && c.value == "1188" && c.domain == ".jsfiddle.net"
+assertTrue(c.name == "zwl_cookie" && c.value == "1188" && c.domain == ".zylitics.io"
     && c.path == "/" && c.expiry > (365*24*60*60*1000 - 1000)) # assume max 5 secs may have elapsed
 
 cs = getCookies()

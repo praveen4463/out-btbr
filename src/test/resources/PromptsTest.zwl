@@ -1,6 +1,7 @@
 # prompts test
-
-openUrl("https://jsfiddle.net/praveen4463/0c58wzsx/")
+staticSitePrefix = staticSite.urlPrefix
+#openUrl("https://jsfiddle.net/praveen4463/0c58wzsx/")
+openUrl(staticSitePrefix + "prompts_alerts_c.html")
 switchFrame("iframe[name='result']")
 confirmValue = findElement("#confirmvalue")
 promptValue = findElement("#promptmvalue")

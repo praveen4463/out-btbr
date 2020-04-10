@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>button and overlay</title>
+    <style type="text/css">
+        .o {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            bottom: 0px;
+            right: 0px;
+            background-color: rgba(104, 104, 101, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="m">
+        <input type="button" value="click me once possible!" class="b" onclick="set();" />
+        <div class="o">
+        </div>
+    </div>
+    <input type="hidden" id="hd1" value="0" />
+    <script type="text/javascript">
+        function set() {
+            document.getElementById("hd1").value = "1"
+        }
+    </script>
+</body>
+
+</html>
