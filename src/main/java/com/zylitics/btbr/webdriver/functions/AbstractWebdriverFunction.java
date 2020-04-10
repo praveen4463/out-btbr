@@ -210,7 +210,13 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
       }
       return elements.stream().map(e -> (RemoteWebElement) e).collect(Collectors.toList());
     };
-    return waitOrNot(s, wait);
+    try {
+      return waitOrNot(s, wait);
+    } catch (TimeoutException timeoutWhileWaiting) {
+      // if waiting and a timeout occurs, findElements should return empty list rather than
+      // exception.
+      return Collections.emptyList();
+    }
   }
   
   private <T> T waitOrNot(Supplier<T> s, boolean wait) {

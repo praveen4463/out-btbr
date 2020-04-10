@@ -42,7 +42,7 @@ public class GetCookies extends AbstractGetCookie {
     
     Set<Cookie> cookies = handleWDExceptions(options::getCookies);
     if (cookies == null || cookies.size() == 0) {
-      return new ListZwlValue(new ArrayList<>(0));
+      return new ListZwlValue(Collections.emptyList());
     }
     List<ZwlValue> result = new ArrayList<>(CollectionUtil.getInitialCapacity(cookies.size()));
     cookies.forEach(c -> result.add(new MapZwlValue(cookieToZwlMap(c))));

@@ -10,6 +10,7 @@ import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -54,7 +55,7 @@ public class FindElementsWithSelectors extends AbstractWebdriverFunction {
         }
         return convertIntoZwlElemIds(elements);
       }
-      return new ListZwlValue(new ArrayList<>(0));
+      return new ListZwlValue(Collections.emptyList());
     });
   }
 }
