@@ -10,6 +10,7 @@ confirm = findElement("#confirm")
 prompt = findElement("#prompt")
 
 click(alert)
+untilAlertPresent()
 acceptAlert()
 click(alert)
 dismissAlert()

@@ -2,6 +2,19 @@
 staticSitePrefix = staticSite.urlPrefix
 # 1. simple google search test
 openUrl("https://google.com")
+# sometime when IE opens, google tries to bully it by luring user towards downloading it.
+chromeDownloadOffer = findElements("div#gbw a.gb_0", true)
+if size(chromeDownloadOffer) > 0 {
+  click(chromeDownloadOffer[0])
+  click("input[name='q']") # since we changed the focus, let's make search box active so further code runs fine.
+}
+# when user doesn't give attention to previous offer, google tells to make google their homepage, hell.
+chromeHomePageOffer = findElements("div#gbw a.gb_Nd", true)
+if size(chromeHomePageOffer) > 0 {
+  click(chromeHomePageOffer[0])
+  click("input[name='q']") # since we changed the focus, let's make search box active so further code runs fine.
+}
+
 typeActive("apple.com", keys.enter)
 # this selector gives all results but findElement will return the first one
 firstResult = findElement("div.r > a > h3")
@@ -17,13 +30,19 @@ switchFrame("iframe[name='result']")
 sendKeysToPage(".doc-click", keys.shift, "r")
 assertTrue(trim(getElementText(".doc-click")) == "document clicked")
 assertTrue(trim(getElementText(".doc-keydown-key")) == "Shift R")
-assertTrue(trim(getElementText(".doc-keydown-code")) == "ShiftLeft KeyR")
+# key's code property isn't supported in IE, thus not asserting there.
+if browser.name != "IE" {
+  assertTrue(trim(getElementText(".doc-keydown-code")) == "ShiftLeft KeyR")
+}
 # again send keys this time lower cased and see lower case is printed since shift went up
 sendKeysToPageF("r")
 assertTrue(trim(getElementText(".doc-click")) == "document clicked")
 # shift went up in last sendKeysToPage call, thus 'r' will print as is without upper case
 assertTrue(trim(getElementText(".doc-keydown-key")) == "Shift R r")
-assertTrue(trim(getElementText(".doc-keydown-code")) == "ShiftLeft KeyR KeyR")
+# key's code property isn't supported in IE, thus not asserting there.
+if browser.name != "IE" {
+  assertTrue(trim(getElementText(".doc-keydown-code")) == "ShiftLeft KeyR KeyR")
+}
 
 
 
@@ -68,7 +87,18 @@ assertTrue(trim(actual) == expectedText)
 
 # 5. special characters
 openUrl("https://google.com")
-q = activeElement()
+# check this here too so tht when chrome offer is declined, google opened again, it shows something, we've this to
+# handle.
+chromeHomePageOffer = findElements("div#gbw a.gb_Nd", true)
+if size(chromeHomePageOffer) > 0 {
+  click(chromeHomePageOffer[0])
+  click("input[name='q']") # since we changed the focus, let's make search box active so further code runs fine.
+}q
+q
+
+ q
+
+ = activeElement()
 if browser.name == "chrome" {
   text = "hi buddy ♻, whats up ⚜"
 } else {

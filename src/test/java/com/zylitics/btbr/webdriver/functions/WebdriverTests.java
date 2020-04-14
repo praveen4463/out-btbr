@@ -25,14 +25,10 @@ import com.zylitics.zwl.function.debugging.PrintF;
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.DiagnosticErrorListener;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.openqa.selenium.Capabilities;
-import org.openqa.selenium.MutableCapabilities;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -97,6 +93,9 @@ public class WebdriverTests {
         if (i < winHandles.size() - 1) {
           driver.close();
         }
+      }
+      if (buildCapability.isBrw_start_maximize()) {
+        driver.manage().window().maximize();
       }
       driver.get("about:blank"); // "about local scheme" can be given to 'get' as per webdriver spec
       driver.manage().deleteAllCookies(); // delete all cookies
@@ -281,7 +280,19 @@ public class WebdriverTests {
       // 'browser history being cleaned". We can do this on shutdown, so let's not use it.
       // useCreateProcessApiToLaunchIe, useShellWindowsApiToAttachToIe not using for now until
       // we get some problem in launch.
-      ie.requireWindowFocus(); // this will be important for using native events, note that
+
+      /*
+      Let's not enable this by default and give it to use to decide, give mostly all IE caps to them to decide as
+      there are of uncertainties and different use case may require different set of capabilities. requireWindowFocus
+      still have problems with element.sendKeys and doesn't send all keys which is very important requirement for
+      every test. Jim said in a post he has fixed it so it now doesn't truncate keys but this doesn't seems to be true.
+      When not using it there are some problems in mouse related tests, no all mouse related tests work well like drag
+      and drop but most others do and like other drivers the mouse pointer doesn't shows while moving, on the other hand
+      when using it, it shows a mouse moving and have better control (although much slower). Let's leave it on user to
+      decide what to do since we can't fix it, users that may want better mouse control perhaps use actions.sendKeys
+      instead while using this capability.
+      */
+      //ie.requireWindowFocus(); // this will be important for using native events, note that
       // the browser window should always be in focus while the test is running.
       ie.waitForUploadDialogUpTo(Duration.ofMillis(wdProps.getIeDefaultFileUploadDialogTimeout()));
       // ignoreZoomSettings, don't ignore zoom settings

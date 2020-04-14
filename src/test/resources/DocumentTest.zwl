@@ -70,4 +70,4 @@ assertTrue(r.origin == "china")
 
 # page source
 r = getPageSource()
-assertTrue(containsString(r, "<input type=\"button\" value=\"bring me to viewport\""))
+assertTrue(containsString(r, "value=\"bring me to viewport\""))

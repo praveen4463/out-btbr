@@ -198,8 +198,11 @@ refresh()
 switchFrame(resultFrame)
 untilStale(chk2)
 untilStale(chk3)
-isStale(chk2)
-isStale(chk3)
+if browser.name == "IE" {
+  assertTrue(!elementExists(chk2) && !elementExists(chk3))
+} else {
+  assertTrue(isStale(chk2) && isStale(chk3))
+}
 
 chk1 = findElement("#chk1")
 chk2 = findElement("#chk2")
@@ -221,7 +224,7 @@ assertTrue(getElementAttributeOrCssValue(chk1, "data") == "was there anything us
 executeScript(
   format(`const arg0 = arguments[0];
     window.setTimeout(function() {
-      arg0.style = "margin-left: 100px";
+      arg0.style["margin-left"] = "100px";
     }, %s)`, elemAccess),
   chk1
 )
@@ -410,37 +413,74 @@ for win in getAllWinIds() {
 switchWin(currentWinId)
 
 # Url and Title-------------------------------------------------------------------------------------
+# This conditional click had to be done because of the wrong rendering of mozilla page on IE and perhaps due to that
+# IE driver seeing the anchors as not displayed, the only quick way is to do a js click.
 openUrl("https://developer.mozilla.org/en-US/docs/Web/API/Element/setAttribute")
-click(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(1) > a")
+aToClick = findElement(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(1) > a")
+if browser.name == "IE" {
+  executeScript("arguments[0].click();", aToClick)
+} else {
+  click(aToClick)
+}
 untilUrlContains("accessKey")
 assertTrue(containsString(getTitle(), "Element.accessKey"))
 
-click(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(2) > a")
+aToClick = findElement(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(2) > a")
+if browser.name == "IE" {
+  executeScript("arguments[0].click();", aToClick)
+} else {
+  click(aToClick)
+}
 untilTitleContains("Element.attributes")
 assertTrue(startsWith(getTitle(), "Element.attributes - Web APIs"))
 
-click(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(3) > a")
+aToClick = findElement(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(3) > a")
+if browser.name == "IE" {
+  executeScript("arguments[0].click();", aToClick)
+} else {
+  click(aToClick)
+}
 untilUrlIs("https://developer.mozilla.org/en-US/docs/Web/API/ParentNode/childElementCount")
 assertTrue(getCurrentUrl() ==
     "https://developer.mozilla.org/en-US/docs/Web/API/ParentNode/childElementCount")
 
-click(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(4) > a")
+aToClick = findElement(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(4) > a")
+if browser.name == "IE" {
+  executeScript("arguments[0].click();", aToClick)
+} else {
+  click(aToClick)
+}
 untilTitleIs("ParentNode.lastElementChild - Web APIs | MDN")
 assertTrue(getTitle() == "ParentNode.lastElementChild - Web APIs | MDN")
 
-click(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(2) > a")
+aToClick = findElement(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(2) > a")
+if browser.name == "IE" {
+  executeScript("arguments[0].click();", aToClick)
+} else {
+  click(aToClick)
+}
 untilUrlLike("children$")
 assertTrue(startsWith(getTitle(), "ParentNode.children"))
 
 # frame---------------------------------------------------------------------------------------------
 openUrl("https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setInterval")
 # note that this is explicit navigation and thus webdriver won't wait for page to load.
-click(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(9) > a")
-# If we try switching to page's frame using selector it will succeed without an
-# explicit wait cause the frame will be searched using a wait automatically but if we try using
-# index, it may throw exception as there is no frame available immediately after clicking the link.
-untilSwitchedToFrame(0)
-assertTrue(startsWith(getElementText("button:first-of-type"), "Show an alert"))
+aToClick = findElement(".quick-links > div:nth-child(2) > ol > li:nth-child(3) > details > ol > li:nth-child(9) > a")
+if browser.name == "IE" {
+  executeScript("arguments[0].click();", aToClick)
+} else {
+  click(aToClick)
+}
+
+# switched to frame doesn't always work correctly with IE when index is used, sometimes it work, sometimes it
+# just remain on top window and treat it as switched to frame. Don't want to to test this in IE.
+if browser.name != "IE" {
+  # If we try switching to page's frame using selector it will succeed without an
+  # explicit wait cause the frame will be searched using a wait automatically but if we try using
+  # index, it may throw exception as there is no frame available immediately after clicking the link.
+  untilSwitchedToFrame(0)
+  assertTrue(startsWith(getElementText("button:first-of-type"), "Show an alert"))
+}
 
 # js------------------------------------------------------------------------------------------------
 js = 4000 # the timeout used in setTimeout for js related untilXX functions
@@ -520,7 +560,11 @@ executeScript(
 start = instant()
 untilStale(chk2, untilFlt(waitFor, poll))
 spent = elapsed(start)
-assertTrue(isStale(chk2))
+if browser.name == "IE" {
+  assertTrue(!elementExists(chk2))
+} else {
+  assertTrue(isStale(chk2))
+}
 assertTrue(spent <= waitFor) # if poll time was correctly set, spent can't be more than waitFor
 
 # restore element access

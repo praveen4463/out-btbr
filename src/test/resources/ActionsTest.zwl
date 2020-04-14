@@ -49,27 +49,27 @@ assertTrue(buttonRectBefore.y > viewportHeight && buttonRectAfter.y <= 1)
 # drag and drop, only one that works in chrome/ff both.
 openUrl("http://demo.guru99.com/test/drag_drop.html")
 dragAndDrop("#credit2", "#bank")
-assertTrue(getElementText(findElement("#bank > li")) == "BANK")
+if browser.name != "IE" {
+  # this works only when requireWindowFocus is true and currently we may not use it as it has issues in elem.sendKeys.
+  assertTrue(getElementText(findElement("#bank > li")) == "BANK")
+}
 
 # drag and drop using performAction
 # Doesn't work in chrome as the item being dropped drops to end, it doesn't find a gap in
 # between, work manually. Possible problem of events not firing on dragstart.
 openUrl("https://jqueryui.com/draggable/#sortable")
-switchFrame(".demo-frame")
 # sometimes when js runs late on load, first the default functionality content opens, then js runs
 # and switches to 'sortable' content. They both have the #draggable element so when we find it,
 # both of them have it but if the default content goes away to load 'sortable' a stale exception
 # occurs. This doesn't happen all the time and especially never in chrome, it always shows the
-# sortable content first. We can't use anything like untilStale because draggable won't always stale
-# . We can't use some new function like untilNotStale or untilEnabled because this element is on
+# sortable content first. We can't use anything like untilStale because draggable won't always stale.
+# We can't use some new function like untilNotStale or untilEnabled because this element is on
 # both content and as it's found and is intractable, these will return true. The only reliable way
-# i found is to wait for the text of draggable since it is different in both contents, the 'until'
-# expectation here will wait until it finds draggable with mentioned text. Had both the text were
-# same, we would have tried something else. Also use draggable's selector in untilTextIs so that
-# if default page's element is found, code wouldn't throw stale exception, the function will ignore
-# that and will try to find element again.
-untilTextIs("#draggable", "Drag me down")
-draggable = findElement("#draggable") # safe to find now.
+# i found is to wait for the text since it is different in both contents.
+untilTextContains("div.demo-description > p", "seamlessly with sortables")
+switchFrame("iframe[src='/resources/demos/draggable/sortable.html']")
+
+draggable = findElement("li#draggable") # safe to find now.
 performAction(
   move(draggable),
   hold(),

@@ -8,6 +8,12 @@
 
 # first session storage
 openUrl("https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage")
+# clear any zwl key from storage in case the test left uncleared values due to an error.
+for s in ssGetKeySet() {
+  if startsWith(s, "zwl") {
+    ssRemoveItem(s)
+  }
+}
 originalSize = ssSize()
 
 ssSetItem("zwl-key", "ABzz34$#")
@@ -27,12 +33,23 @@ assertTrue(ssGetItem("zwl-hash") == "A===5474")
 
 ssRemoveItem("zwl-lang")
 assertTrue(ssSize() == originalSize + 2)
-ssClear()
+for s in ssGetKeySet() {
+  if startsWith(s, "zwl") {
+    ssRemoveItem(s)
+  }
+}
 assertTrue(ssSize() == originalSize)
 
 winId = getCurrentWinId()
+
 # now local storage
 openUrlNewWin("https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage")
+# clear any zwl key from storage in case the test left uncleared values due to an error.
+for s in lsGetKeySet() {
+  if startsWith(s, "zwl") {
+    lsRemoveItem(s)
+  }
+}
 originalSize = lsSize()
 
 lsSetItem("zwl-key", "ABzz34$#")
@@ -54,5 +71,9 @@ assertTrue(lsGetItem("zwl-hash") == "A===5474")
 
 lsRemoveItem("zwl-lang")
 assertTrue(lsSize() == originalSize + 2)
-lsClear()
+for s in lsGetKeySet() {
+  if startsWith(s, "zwl") {
+    lsRemoveItem(s)
+  }
+}
 assertTrue(lsSize() == originalSize)

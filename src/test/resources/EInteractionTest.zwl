@@ -4,33 +4,42 @@ staticSitePrefix = staticSite.urlPrefix
 #openUrl("https://jsfiddle.net/praveen4463/z94ck36L/")
 openUrl(staticSitePrefix + "form_submittable_c.html")
 originalWinId = getCurrentWinId()
-resultFrame = findElement("iframe[name='result']") # note that we could find frame and use the
-# elemId everywhere as that frame doesn't reload, it works on chrome but looks like firefox reloads
-# the frame on link click, thus using the selector every time we switch to this frame.
+resultFrame = findElement("iframe[name='result']")
 switchFrame(resultFrame)
 junitA = findElement(".junit-a")
 junitURL = getElementAttribute(junitA, "href")
 click(junitA)
-if (browser.name == "chrome") {
-  # chrome requires to switch browser window, if we don't do it clicks but nothing happens.
-  switchWin(originalWinId)
-  switchFrame(resultFrame)
+if browser.name == "IE" {
+  # IE requires that the current window should always be in foreground, when clicking on link the driver opens new pages
+  # in separate windows rather than tabs, so the original window remains visible but it loses the focus, this js would
+  # focus that again. Note that using requireWindowFocus caps does this out of box and this script is not required there
+  # but since we not using it, js is required. Also note had the driver opened the links in tab and browser switched to
+  # tab, we would need to switch to original window to get it in foreground using the driver and in that case this
+  # shouldn't be required because the window is already focused. This is required when separate window is opened.
+  executeScript("window.focus();")
+  # Note that i am not going to do this focus inside of functions that opens new window but leave it on user to decide
+  # on case by case basis.
 }
 clickSwitchNew(junitA) # we're able to click again, verifies that webdriver was still on last page
+assertTrue(size(getAllWinIds()) == 3)
 untilUrlIs(junitURL)
 # now we've 3 windows, and current is junit page. move to previous page and frame
 switchWin(originalWinId)
-if (browser.name == "chrome") {
+if browser.name != "firefox" {
   # apparently firefox has frame's browsing context retained, so don't switch in that case.
   switchFrame(resultFrame)
 }
-mozFormWinIdNewTabNoSwitch = clickNoSwitch(junitA)
-# Should still remain on the first window, keep it's id to switch later on
-if (browser.name == "chrome") {
-  # apparently firefox has frame's browsing context retained, so don't switch in that case.
-  switchFrame(resultFrame)
-  # switch to frame, clickNoSwitch switches to original window to change browser focus that selects
-  # top browsing context
+
+# clickNoSwitch is not needed in IE because click doesn't move focus to new window by default as it's new window not tab
+if browser.name != "IE" {
+  noSwitchWin = clickNoSwitch(junitA)
+  # Should still remain on the first window, keep it's id to switch later on
+  if browser.name != "firefox" {
+    # apparently firefox has frame's browsing context retained, so don't switch in that case.
+    switchFrame(resultFrame)
+    # switch to frame, clickNoSwitch switches to original window to change browser focus that selects
+    # top browsing context
+  }
 }
 
 # click, clickAll and submit test
@@ -60,6 +69,8 @@ clickAll("#ch1", "#ch2")
 assertFalse(nonEmpty(getElementValue(txtPhone)))
 assertFalse(anyElementSelected("#ch1", "#ch2"))
 
-# finally try to move to the junit window that we din't see yet
-switchWin(mozFormWinIdNewTabNoSwitch)
-assertTrue(junitURL == getCurrentUrl())
+if browser.name != "IE" {
+  # finally try to move to the junit window that we din't see yet
+  switchWin(noSwitchWin)
+  assertTrue(junitURL == getCurrentUrl())
+}

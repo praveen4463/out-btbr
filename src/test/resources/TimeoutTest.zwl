@@ -4,7 +4,7 @@ originalElemAccessTimeout = getTimeout(timeouts.elemAccess)
 originalJsTimeout = getTimeout(timeouts.js)
 originalPageLoadTimeout = getTimeout(timeouts.pageLoad)
 timeout = 1000
-totalTimeToTimeout = timeout + 200  # added 200ms to cover possible delay timing out
+totalTimeToTimeout = timeout + 500  # added 500ms to cover possible delay timing out
 openUrl("https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage")
 setElementAccessTimeout(timeout)
 start = instant()
@@ -15,7 +15,7 @@ assertTrue(end <= totalTimeToTimeout)
 setElementAccessTimeout(originalElemAccessTimeout)
 
 setScriptTimeout(timeout)
-js = format("window.setTimeout(arguments[arguments.length - 1], %s);", timeout + 200)
+js = format("window.setTimeout(arguments[arguments.length - 1], %s);", timeout + 500)
 # wait for more than timeout, setTimeout is asynchronous so we need to use executeAsync..
 start = instant()
 assertThrows(exceptions.scriptTimeoutEx, executeAsyncScript(js))
@@ -34,4 +34,4 @@ start = instant()
 assertThrows(exceptions.timeoutEx, untilTitleIs("unknown"))
 end = elapsed(start)
 assertTrue(end <= totalTimeToTimeout)
-setScriptTimeout(originalPageLoadTimeout)
+setPageLoadTimeout(originalPageLoadTimeout)
