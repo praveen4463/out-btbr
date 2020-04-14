@@ -93,12 +93,8 @@ chromeHomePageOffer = findElements("div#gbw a.gb_Nd", true)
 if size(chromeHomePageOffer) > 0 {
   click(chromeHomePageOffer[0])
   click("input[name='q']") # since we changed the focus, let's make search box active so further code runs fine.
-}q
-q
-
- q
-
- = activeElement()
+}
+q = activeElement()
 if browser.name == "chrome" {
   text = "hi buddy ♻, whats up ⚜"
 } else {
