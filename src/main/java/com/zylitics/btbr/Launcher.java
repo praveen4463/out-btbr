@@ -8,9 +8,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.runner.CaptureShotHandler;
-import com.zylitics.btbr.runner.GlobalWebdriverService;
 import com.zylitics.btbr.shot.CaptureShotHandlerImpl;
-import com.zylitics.btbr.webdriver.GlobalWebdriverServiceImpl;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -34,7 +32,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 
 // TODO: I am not too sure what DataAccessExceptions should be re-tried, let's first watch logs and
-//  decide if retry can help recovering from them. Hikari automatically retires until connection
+//  decide if retry can help recovering from them. Hikari automatically retries until connection
 //  timeout so probably we could retry on lock failure, deadlock etc. Any code that invokes methods
 //  on NamedParameterJdbcTemplate or JdbcTemplate can throw subclasses of this exception.
 //  Perhaps the best way to do it would be to extend NamedParameterJdbcTemplate and the methods
@@ -127,12 +125,6 @@ public class Launcher {
   @Profile({"production", "e2e"})
   CaptureShotHandler.Factory captureShotHandlerFactory() {
     return new CaptureShotHandlerImpl.Factory();
-  }
-  
-  @Bean
-  @Profile({"production", "e2e"})
-  GlobalWebdriverService.Factory globalWebdriverServiceFactory() {
-    return new GlobalWebdriverServiceImpl.Factory();
   }
   
   /** published when all beans are loaded */

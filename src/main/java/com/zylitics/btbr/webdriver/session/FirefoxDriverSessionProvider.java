@@ -4,17 +4,19 @@ import com.google.common.base.Preconditions;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxDriverLogLevel;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.GeckoDriverService;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.File;
+import java.nio.file.Path;
 
 public class FirefoxDriverSessionProvider extends AbstractDriverSessionProvider {
   
   public FirefoxDriverSessionProvider(APICoreProperties.Webdriver wdProps
-      , BuildCapability buildCapability) {
-    super(wdProps, buildCapability);
+      , BuildCapability buildCapability, Path buildDir) {
+    super(wdProps, buildCapability, buildDir);
   }
   
   @Override
@@ -30,6 +32,11 @@ public class FirefoxDriverSessionProvider extends AbstractDriverSessionProvider 
     FirefoxOptions firefox = new FirefoxOptions();
     firefox.merge(commonCapabilities);
     firefox.setBinary(getBrowserBinaryPath());
+    FirefoxDriverLogLevel logLevel =
+        FirefoxDriverLogLevel.fromString(buildCapability.getWdFirefoxLogLevel());
+    if (logLevel != null) {
+      firefox.setLogLevel(logLevel);
+    }
     // add more browser specific arguments
     
     return new FirefoxDriver(driverService, firefox);

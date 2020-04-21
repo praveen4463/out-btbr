@@ -2,8 +2,10 @@ package com.zylitics.btbr.webdriver.functions.elements.retrieval;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.webdriver.TimeoutType;
 import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.ZwlValue;
+import com.zylitics.zwl.exception.InvalidTypeException;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.PrintStream;
@@ -26,7 +28,7 @@ abstract class AbstractFindElement extends AbstractWebdriverFunction {
   
   @Override
   public int maxParamsCount() {
-    return 2;
+    return 3;
   }
   
   @Override
@@ -38,9 +40,35 @@ abstract class AbstractFindElement extends AbstractWebdriverFunction {
     if (argsCount == 0) {
       throw unexpectedEndOfFunctionOverload(argsCount);
     }
-    boolean noWait = argsCount == 2 ? parseBoolean(1, args.get(1)) : false;
-    return handleWDExceptions(() -> find(tryCastString(0, args.get(0)), !noWait));
+  
+    return handleWDExceptions(() -> {
+      boolean noWait = false;
+      ByType byType = null;
+      switch (argsCount) {
+        case 2:
+          // argument 2 could be either By or noWait
+          try {
+            // Most of the times, when 2 args are given, 2nd should be a 'By', that's why first try
+            // parse it, if it can't be parsed, it should be noWait.
+            byType = parseEnum(1, args.get(1), ByType.class);
+          } catch (InvalidTypeException ignore) { }
+          // When argument is not a string value or threw exception parsing to a 'By', parse it as
+          // boolean.
+          if (byType == null) {
+            byType = ByType.CSS_SELECTOR; // our default By is a css selector.
+            noWait = parseBoolean(1, args.get(1));
+          }
+          break;
+        case 3:
+          byType = parseEnum(1, args.get(1), ByType.class);
+          noWait = parseBoolean(2, args.get(2));
+          break;
+        default:
+          byType = ByType.CSS_SELECTOR;  // our default By is a css selector.
+      }
+      return find(tryCastString(0, args.get(0)), byType, !noWait);
+    });
   }
   
-  protected abstract ZwlValue find(String selector, boolean wait);
+  protected abstract ZwlValue find(String using, ByType byType, boolean wait);
 }

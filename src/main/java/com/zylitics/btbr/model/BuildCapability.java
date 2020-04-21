@@ -38,13 +38,39 @@ public class BuildCapability {
   
   private String wdUnhandledPromptBehavior;
   
-  private boolean brw_start_maximize;
+  private String wdIeElementScrollBehavior;
   
-  private boolean chromeEnableNetwork;
+  private boolean wdIeEnablePersistentHovering;
   
-  private boolean chromeEnablePage;
+  private boolean wdIeIntroduceFlakinessByIgnoringSecurityDomains;
+  
+  private boolean wdIeRequireWindowFocus;
+  
+  private boolean wdIeDisableNativeEvents;
+  
+  private String wdIeLogLevel;
+  
+  private boolean wdChromeVerboseLogging;
+  
+  private boolean wdChromeSilentOutput;
+  
+  private boolean wdChromeEnableNetwork;
+  
+  private boolean wdChromeEnablePage;
+  
+  private String wdFirefoxLogLevel;
+  
+  private boolean wdBrwStartMaximize;
   
   private boolean buildAbortOnFailure;
+  
+  private boolean buildAetKeepSingleWindow;
+  
+  private boolean buildAetUpdateUrlBlank;
+  
+  private boolean buildAetResetTimeouts;
+  
+  private boolean buildAetDeleteAllCookies;
   
   public int getBuildCapabilityId() {
     return buildCapabilityId;
@@ -208,30 +234,113 @@ public class BuildCapability {
     return this;
   }
   
-  public boolean isBrw_start_maximize() {
-    return brw_start_maximize;
+  public String getWdIeElementScrollBehavior() {
+    return wdIeElementScrollBehavior;
   }
   
-  public BuildCapability setBrw_start_maximize(boolean brw_start_maximize) {
-    this.brw_start_maximize = brw_start_maximize;
+  public BuildCapability setWdIeElementScrollBehavior(String wdIeElementScrollBehavior) {
+    this.wdIeElementScrollBehavior = wdIeElementScrollBehavior;
     return this;
   }
   
-  public boolean isChromeEnableNetwork() {
-    return chromeEnableNetwork;
+  public boolean isWdIeEnablePersistentHovering() {
+    return wdIeEnablePersistentHovering;
   }
   
-  public BuildCapability setChromeEnableNetwork(boolean chromeEnableNetwork) {
-    this.chromeEnableNetwork = chromeEnableNetwork;
+  public BuildCapability setWdIeEnablePersistentHovering(boolean wdIeEnablePersistentHovering) {
+    this.wdIeEnablePersistentHovering = wdIeEnablePersistentHovering;
     return this;
   }
   
-  public boolean isChromeEnablePage() {
-    return chromeEnablePage;
+  public boolean isWdIeIntroduceFlakinessByIgnoringSecurityDomains() {
+    return wdIeIntroduceFlakinessByIgnoringSecurityDomains;
   }
   
-  public BuildCapability setChromeEnablePage(boolean chromeEnablePage) {
-    this.chromeEnablePage = chromeEnablePage;
+  public BuildCapability setWdIeIntroduceFlakinessByIgnoringSecurityDomains(
+      boolean wdIeIntroduceFlakinessByIgnoringSecurityDomains) {
+    this.wdIeIntroduceFlakinessByIgnoringSecurityDomains =
+        wdIeIntroduceFlakinessByIgnoringSecurityDomains;
+    return this;
+  }
+  
+  public boolean isWdIeRequireWindowFocus() {
+    return wdIeRequireWindowFocus;
+  }
+  
+  public BuildCapability setWdIeRequireWindowFocus(boolean wdIeRequireWindowFocus) {
+    this.wdIeRequireWindowFocus = wdIeRequireWindowFocus;
+    return this;
+  }
+  
+  public boolean isWdIeDisableNativeEvents() {
+    return wdIeDisableNativeEvents;
+  }
+  
+  public BuildCapability setWdIeDisableNativeEvents(boolean wdIeDisableNativeEvents) {
+    this.wdIeDisableNativeEvents = wdIeDisableNativeEvents;
+    return this;
+  }
+  
+  public String getWdIeLogLevel() {
+    return wdIeLogLevel;
+  }
+  
+  public BuildCapability setWdIeLogLevel(String wdIeLogLevel) {
+    this.wdIeLogLevel = wdIeLogLevel;
+    return this;
+  }
+  
+  public boolean isWdChromeVerboseLogging() {
+    return wdChromeVerboseLogging;
+  }
+  
+  public BuildCapability setWdChromeVerboseLogging(boolean wdChromeVerboseLogging) {
+    this.wdChromeVerboseLogging = wdChromeVerboseLogging;
+    return this;
+  }
+  
+  public boolean isWdChromeSilentOutput() {
+    return wdChromeSilentOutput;
+  }
+  
+  public BuildCapability setWdChromeSilentOutput(boolean wdChromeSilentOutput) {
+    this.wdChromeSilentOutput = wdChromeSilentOutput;
+    return this;
+  }
+  
+  public boolean isWdChromeEnableNetwork() {
+    return wdChromeEnableNetwork;
+  }
+  
+  public BuildCapability setWdChromeEnableNetwork(boolean wdChromeEnableNetwork) {
+    this.wdChromeEnableNetwork = wdChromeEnableNetwork;
+    return this;
+  }
+  
+  public boolean isWdChromeEnablePage() {
+    return wdChromeEnablePage;
+  }
+  
+  public BuildCapability setWdChromeEnablePage(boolean wdChromeEnablePage) {
+    this.wdChromeEnablePage = wdChromeEnablePage;
+    return this;
+  }
+  
+  public String getWdFirefoxLogLevel() {
+    return wdFirefoxLogLevel;
+  }
+  
+  public BuildCapability setWdFirefoxLogLevel(String wdFirefoxLogLevel) {
+    this.wdFirefoxLogLevel = wdFirefoxLogLevel;
+    return this;
+  }
+  
+  public boolean isWdBrwStartMaximize() {
+    return wdBrwStartMaximize;
+  }
+  
+  public BuildCapability setWdBrwStartMaximize(boolean wdBrwStartMaximize) {
+    this.wdBrwStartMaximize = wdBrwStartMaximize;
     return this;
   }
   
@@ -241,6 +350,42 @@ public class BuildCapability {
   
   public BuildCapability setBuildAbortOnFailure(boolean buildAbortOnFailure) {
     this.buildAbortOnFailure = buildAbortOnFailure;
+    return this;
+  }
+  
+  public boolean isBuildAetKeepSingleWindow() {
+    return buildAetKeepSingleWindow;
+  }
+  
+  public BuildCapability setBuildAetKeepSingleWindow(boolean buildAetKeepSingleWindow) {
+    this.buildAetKeepSingleWindow = buildAetKeepSingleWindow;
+    return this;
+  }
+  
+  public boolean isBuildAetUpdateUrlBlank() {
+    return buildAetUpdateUrlBlank;
+  }
+  
+  public BuildCapability setBuildAetUpdateUrlBlank(boolean buildAetUpdateUrlBlank) {
+    this.buildAetUpdateUrlBlank = buildAetUpdateUrlBlank;
+    return this;
+  }
+  
+  public boolean isBuildAetResetTimeouts() {
+    return buildAetResetTimeouts;
+  }
+  
+  public BuildCapability setBuildAetResetTimeouts(boolean buildAetResetTimeouts) {
+    this.buildAetResetTimeouts = buildAetResetTimeouts;
+    return this;
+  }
+  
+  public boolean isBuildAetDeleteAllCookies() {
+    return buildAetDeleteAllCookies;
+  }
+  
+  public BuildCapability setBuildAetDeleteAllCookies(boolean buildAetDeleteAllCookies) {
+    this.buildAetDeleteAllCookies = buildAetDeleteAllCookies;
     return this;
   }
   
@@ -265,10 +410,24 @@ public class BuildCapability {
         ", wdTimeoutsElementAccess=" + wdTimeoutsElementAccess +
         ", wdStrictFileInteractability=" + wdStrictFileInteractability +
         ", wdUnhandledPromptBehavior='" + wdUnhandledPromptBehavior + '\'' +
-        ", brwIsFullScreen=" + brw_start_maximize +
-        ", chromeEnableNetwork=" + chromeEnableNetwork +
-        ", chromeEnablePage=" + chromeEnablePage +
+        ", wdIeElementScrollBehavior='" + wdIeElementScrollBehavior + '\'' +
+        ", wdIeEnablePersistentHovering=" + wdIeEnablePersistentHovering +
+        ", wdIeIntroduceFlakinessByIgnoringSecurityDomains=" +
+        wdIeIntroduceFlakinessByIgnoringSecurityDomains +
+        ", wdIeRequireWindowFocus=" + wdIeRequireWindowFocus +
+        ", wdIeDisableNativeEvents=" + wdIeDisableNativeEvents +
+        ", wdIeLogLevel='" + wdIeLogLevel + '\'' +
+        ", wdChromeVerboseLogging=" + wdChromeVerboseLogging +
+        ", wdChromeSilentOutput=" + wdChromeSilentOutput +
+        ", wdChromeEnableNetwork=" + wdChromeEnableNetwork +
+        ", wdChromeEnablePage=" + wdChromeEnablePage +
+        ", wdFirefoxLogLevel='" + wdFirefoxLogLevel + '\'' +
+        ", wdBrwStartMaximize=" + wdBrwStartMaximize +
         ", buildAbortOnFailure=" + buildAbortOnFailure +
+        ", buildAetKeepSingleWindow=" + buildAetKeepSingleWindow +
+        ", buildAetUpdateUrlBlank=" + buildAetUpdateUrlBlank +
+        ", buildAetResetTimeouts=" + buildAetResetTimeouts +
+        ", buildAetDeleteAllCookies=" + buildAetDeleteAllCookies +
         '}';
   }
 }

@@ -102,3 +102,44 @@ if browser.name == "chrome" {
 }
 type(q, text)
 assertTrue(getElementValue(q) == text)
+
+
+
+# 6. test various selector types
+openUrl("https://docs.microsoft.com/en-us/")
+
+click(findElement("Microsoft Kaizala", by.lt)) # link text
+untilTitleContains("Microsoft Kaizala")
+
+click(findElement("Integrate with other business apps", by.plt)) # partial link text
+untilTitleContains("Automating business process using Kaizala")
+
+assertTrue(
+    getElementText(findElement(".//h3[@id='sample-screenshot-of-the-email-received']", by.xp))
+        == "Sample screenshot of the email received:") # xpath
+
+assertTrue(getElementText(findElement("steps", by.id)) == "Steps:") # id
+
+main = findElement("main", by.tn) # tag name
+assertTrue(getElementAttribute(main, "dir") == "ltr")
+
+openUrl("http://static.wditp.zylitics.io/html/mouse_move_click_c.html")
+switchFrame(findElement("result", by.name)) # name
+assertTrue(getElementText(findElement("div4", by.cn)) == "to the far right now") # class name
+assertTrue(getElementText(findElement(".div1", by.cs, true)) == "I am here") # css selector
+
+openUrl("https://docs.microsoft.com/en-us/")
+totalAzureLinks = findElements("Azure", by.plt, true) # multiple links by partial text
+assertTrue(size(totalAzureLinks) > 1)
+click(totalAzureLinks[0])
+untilTitleContains("Azure documentation")
+
+back()
+dirContainer = findElement("section.directory-container")
+assertTrue(getElementText(
+    findElementFromElement(dirContainer, "docs-directory", by.id, true)) == "Docs Directory")
+
+allLinks = findElementsFromElement(dirContainer, "barLink", by.cn)
+assertTrue(size(allLinks) > 1)
+click(allLinks[2])
+untilTitleContains("ASP.NET documentation")

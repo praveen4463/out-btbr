@@ -6,6 +6,7 @@ import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.util.CollectionUtil;
 import com.zylitics.btbr.webdriver.Configuration;
 import com.zylitics.btbr.webdriver.TimeoutType;
+import com.zylitics.btbr.webdriver.functions.elements.retrieval.ByType;
 import com.zylitics.zwl.datatype.*;
 import com.zylitics.zwl.exception.ZwlLangException;
 import com.zylitics.zwl.function.AbstractFunction;
@@ -194,17 +195,25 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
   }
   
   protected RemoteWebElement findElement(SearchContext ctx, String cssSelector, boolean wait) {
-    // findElement throws exception when no element is found
-    Supplier<RemoteWebElement> s = () ->
-        (RemoteWebElement) ctx.findElement(By.cssSelector(cssSelector));
-    return waitOrNot(s, wait);
+    return findElement(ctx, By.cssSelector(cssSelector), wait);
   }
   
   protected List<RemoteWebElement> findElements(SearchContext ctx, String cssSelector,
                                                 boolean wait) {
+    return findElements(ctx, By.cssSelector(cssSelector), wait);
+  }
+  
+  protected RemoteWebElement findElement(SearchContext ctx, By by, boolean wait) {
+    // findElement throws exception when no element is found
+    Supplier<RemoteWebElement> s = () ->
+        (RemoteWebElement) ctx.findElement(by);
+    return waitOrNot(s, wait);
+  }
+  
+  protected List<RemoteWebElement> findElements(SearchContext ctx, By by, boolean wait) {
     // findElements don't throw exception rather sends an empty list.
     Supplier<List<RemoteWebElement>> s = () -> {
-      List<WebElement> elements = ctx.findElements(By.cssSelector(cssSelector));
+      List<WebElement> elements = ctx.findElements(by);
       if (elements.size() == 0 && wait) {
         return null; // so that Wait can continue waiting when nothing found.
       }
@@ -291,5 +300,37 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
     }
     
     return new StringZwlValue(o.toString());
+  }
+  
+  protected By getBy(ByType byType, String using) {
+    By by;
+    switch (byType) {
+      case ID:
+        by = By.id(using);
+        break;
+      case LINK_TEXT:
+        by = By.linkText(using);
+        break;
+      case PARTIAL_LINK_TEXT:
+        by = By.partialLinkText(using);
+        break;
+      case NAME:
+        by = By.name(using);
+        break;
+      case TAG_NAME:
+        by = By.tagName(using);
+        break;
+      case XPATH:
+        by = By.xpath(using);
+        break;
+      case CLASS_NAME:
+        by = By.className(using);
+        break;
+      case CSS_SELECTOR:
+      default:
+        by = By.cssSelector(using);
+        break;
+    }
+    return by;
   }
 }

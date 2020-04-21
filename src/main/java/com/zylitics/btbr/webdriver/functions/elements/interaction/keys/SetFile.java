@@ -18,8 +18,6 @@ public class SetFile extends AbstractWebdriverFunction {
   
   private final Storage storage;
   
-  private final String userAccountBucket;
-  
   private final String pathToUploadedFiles;
   
   private final Path buildDir;
@@ -35,12 +33,10 @@ public class SetFile extends AbstractWebdriverFunction {
                  RemoteWebDriver driver,
                  PrintStream printStream,
                  Storage storage,
-                 String userAccountBucket,
                  String pathToUploadedFiles,
                  Path buildDir) {
     super(wdProps, buildCapability, driver, printStream);
     this.storage = storage;
-    this.userAccountBucket = userAccountBucket;
     this.pathToUploadedFiles = pathToUploadedFiles;
     this.buildDir = buildDir;
   }
@@ -73,7 +69,7 @@ public class SetFile extends AbstractWebdriverFunction {
     // don't cast to string, may be possible the file is named like 322323 with no extension and
     // user sent it that way.
     String localFilePathAfterDownload =
-        new FileInputFilesProcessor(storage, userAccountBucket, pathToUploadedFiles,
+        new FileInputFilesProcessor(storage, wdProps.getUserDataBucket(), pathToUploadedFiles,
             Collections.singleton(fileOnCloud), buildDir, lineNColumn).process().iterator().next();
     return handleWDExceptions(() -> {
       element.sendKeys(localFilePathAfterDownload);

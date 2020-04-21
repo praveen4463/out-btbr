@@ -4,9 +4,11 @@ import com.google.common.collect.ImmutableMap;
 import com.zylitics.btbr.runner.provider.ImmutableMapProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
+@Repository
 public class DaoMapProvider extends AbstractDaoProvider implements ImmutableMapProvider {
   
   @Autowired

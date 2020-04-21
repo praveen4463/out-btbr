@@ -13,11 +13,12 @@ import com.zylitics.btbr.util.IOUtil;
 import com.zylitics.btbr.webdriver.Configuration;
 import com.zylitics.btbr.webdriver.TimeoutType;
 import com.zylitics.btbr.webdriver.WebdriverFunctions;
+import com.zylitics.btbr.webdriver.constants.By;
 import com.zylitics.btbr.webdriver.constants.Colorz;
 import com.zylitics.btbr.webdriver.constants.Exceptions;
 import com.zylitics.btbr.webdriver.constants.Keyz;
 import com.zylitics.btbr.webdriver.constants.Timeouts;
-import com.zylitics.zwl.api.Main;
+import com.zylitics.zwl.api.ZwlApi;
 import com.zylitics.zwl.api.ZwlInterpreterVisitor;
 import com.zylitics.zwl.datatype.*;
 import com.zylitics.zwl.function.debugging.Print;
@@ -94,7 +95,7 @@ public class WebdriverTests {
           driver.close();
         }
       }
-      if (buildCapability.isBrw_start_maximize()) {
+      if (buildCapability.isWdBrwStartMaximize()) {
         driver.manage().window().maximize();
       }
       driver.get("about:blank"); // "about local scheme" can be given to 'get' as per webdriver spec
@@ -103,8 +104,9 @@ public class WebdriverTests {
       //-------------------------------Sanitize end-------------------------------------------------
       String file = t.getFile();
       printStream.println("Reading and executing from " + file);
-      Main main = new Main("resources/" + t.getFile(), Charsets.UTF_8, DEFAULT_TEST_LISTENERS);
-      main.interpret(interpreterVisitor);
+      ZwlApi zwlApi =
+          new ZwlApi("resources/" + t.getFile(), Charsets.UTF_8, DEFAULT_TEST_LISTENERS);
+      zwlApi.interpret(interpreterVisitor);
     }
   }
   
@@ -232,8 +234,8 @@ public class WebdriverTests {
   private void run(Browsers browser, String file) throws Exception {
     Assumptions.assumeFalse(shouldSkip(browser), "Skipped");
     setup(browser);
-    Main main = new Main("resources/" + file, Charsets.UTF_8, DEFAULT_TEST_LISTENERS);
-    main.interpret(interpreterVisitor);
+    ZwlApi zwlApi = new ZwlApi("resources/" + file, Charsets.UTF_8, DEFAULT_TEST_LISTENERS);
+    zwlApi.interpret(interpreterVisitor);
   }
   
   private boolean shouldSkip(Browsers browser) {
@@ -273,9 +275,9 @@ public class WebdriverTests {
       InternetExplorerOptions ie = new InternetExplorerOptions();
       ie.merge(caps);
       ie.withAttachTimeout(Duration.ofMillis(wdProps.getIeDefaultBrowserAttachTimeout()));
-      // enablePersistentHovering, not using as it can cause issues while hovering over, like
-      // continues mouse move even after reaching target element.
-      // elementScrollTo, keeping the default Top, don't want to give to user.
+      // enablePersistentHovering, not using for these tests but it may be useful in tests that need
+      // to hover over elements to bring them into visibility.
+      // elementScrollTo, keeping the default Top.
       // ie.destructivelyEnsureCleanSession(); // holds up browser start and shows dialog that
       // 'browser history being cleaned". We can do this on shutdown, so let's not use it.
       // useCreateProcessApiToLaunchIe, useShellWindowsApiToAttachToIe not using for now until
@@ -302,7 +304,7 @@ public class WebdriverTests {
     }
     
     // do some actions on driver based on build capabilities
-    if (buildCapability.isBrw_start_maximize()) {
+    if (buildCapability.isWdBrwStartMaximize()) {
       driver.manage().window().maximize();
     }
     
@@ -317,7 +319,6 @@ public class WebdriverTests {
         driver,
         printStream,
         storage,
-        "zl-user-data",
         "11021/uploads",
         fakeBuildDir);
     
@@ -342,9 +343,13 @@ public class WebdriverTests {
       zwlInterpreter.setReadOnlyVariable("colors", new MapZwlValue(Colorz.asMap()));
       zwlInterpreter.setReadOnlyVariable("keys", new MapZwlValue(Keyz.asMap()));
       
+      // add By
+      zwlInterpreter.setReadOnlyVariable("by", new MapZwlValue(By.asMap()));
+      
       // browser detail, not adding version as it's not required and given in these tests.
       Map<String, ZwlValue> browserDetail = ImmutableMap.of(
           "name", new StringZwlValue(browser.getAlias())
+          // add version when required
       );
       zwlInterpreter.setReadOnlyVariable("browser", new MapZwlValue(browserDetail));
       
@@ -356,6 +361,10 @@ public class WebdriverTests {
           "urlPrefix", new StringZwlValue("http://static.wditp.zylitics.io/html/")
       );
       zwlInterpreter.setReadOnlyVariable("staticSite", new MapZwlValue(staticSite));
+      
+      // single valued
+      zwlInterpreter.setReadOnlyVariable("platform",
+          new StringZwlValue(buildCapability.getWdPlatformName()));
     };
   }
   
@@ -393,7 +402,7 @@ public class WebdriverTests {
     b.setWdPlatformName(System.getProperty("os"));
     b.setWdSetWindowRect(true);
     b.setWdUnhandledPromptBehavior("ignore");
-    b.setBrw_start_maximize(true);
+    b.setWdBrwStartMaximize(true);
     // all timeouts in build caps are initialized with -1 in db if no value is given.
     b.setWdTimeoutsPageLoad(-1);
     b.setWdTimeoutsElementAccess(-1);

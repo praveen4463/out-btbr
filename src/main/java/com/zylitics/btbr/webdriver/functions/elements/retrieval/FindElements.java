@@ -22,7 +22,7 @@ public class FindElements extends AbstractFindElement {
   }
   
   @Override
-  protected ZwlValue find(String selector, boolean wait) {
-    return convertIntoZwlElemIds(findElements(driver, selector, wait));
+  protected ZwlValue find(String using, ByType byType, boolean wait) {
+    return convertIntoZwlElemIds(findElements(driver, getBy(byType, using), wait));
   }
 }

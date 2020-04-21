@@ -19,8 +19,8 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /*
- * A RequestScoped bean, this will be injected into the controller once but will act as a proxy
- * whenever a new request comes, a new instance of this bean will be created with a reference to the
+ * A RequestScoped bean, this will be injected into the controller once but will act as a proxy.
+ * Whenever a new request comes, a new instance of this bean will be created with a reference to the
  * incoming request. Every call on the injected proxy will be delegated to it's own target instance
  * by matching the current request.
  * https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-scopes-other-injection
@@ -39,6 +39,12 @@ class EsdbZwlProgramOutputProvider extends AbstractBulkSaveProvider<ZwlProgramOu
                                  RestHighLevelClient client) {
     this.apiCoreProperties = apiCoreProperties;
     this.client = client;
+  }
+  
+  EsdbZwlProgramOutputProvider(APICoreProperties apiCoreProperties, BulkProcessor bulkProcessor) {
+    this.apiCoreProperties = apiCoreProperties;
+    this.client = null; // won't be required, so this is fine.
+    setBulkProcessor(bulkProcessor);
   }
   
   @Override

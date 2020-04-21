@@ -7,6 +7,7 @@ import com.google.cloud.storage.Storage;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.zylitics.btbr.util.CollectionUtil;
+import com.zylitics.btbr.util.IOUtil;
 import com.zylitics.zwl.exception.ZwlLangException;
 
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -32,7 +34,7 @@ class FileInputFilesProcessor {
   
   private final Storage storage;
   
-  private final String userAccountBucket;
+  private final String userDataBucket;
   
   private final String pathToUploadedFiles;
   
@@ -43,21 +45,21 @@ class FileInputFilesProcessor {
   private final Supplier<String> lineNColumn;
   
   FileInputFilesProcessor(Storage storage,
-                          String userAccountBucket,
+                          String userDataBucket,
                           String pathToUploadedFiles,
                           Set<String> fileNames,
                           Path buildDir,
                           Supplier<String> lineNColumn) {
     Preconditions.checkNotNull(storage, "storage can't be null");
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(userAccountBucket),
-        "userAccountBucket can't be empty");
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(userDataBucket),
+        "userDataBucket can't be empty");
     Preconditions.checkArgument(!Strings.isNullOrEmpty(pathToUploadedFiles),
         "pathToUploadedFiles can't be empty");
     Preconditions.checkArgument(fileNames.size() > 0, "fileNames can't be empty");
     Preconditions.checkNotNull(buildDir, "buildDir can't be null");
     
     this.storage = storage;
-    this.userAccountBucket = userAccountBucket;
+    this.userDataBucket = userDataBucket;
     this.pathToUploadedFiles = pathToUploadedFiles;
     this.fileNames = fileNames;
     this.buildDir = buildDir;
@@ -74,9 +76,10 @@ class FileInputFilesProcessor {
     if (!Files.isDirectory(buildDir)) {
       throw new RuntimeException(buildDir.toAbsolutePath().toString() + " isn't a directory");
     }
-    
+    // put all files as flat hierarchy in same directory, this is also a requirement of IE driver
+    // that when multiple files being given to file input, all files should be in same dir.
     Path userDownloads = buildDir.resolve(USER_DOWNLOAD_DIR);
-    createNotExistDir(userDownloads);
+    IOUtil.createNonExistingDir(userDownloads);
     Set<String> localPaths = new HashSet<>(CollectionUtil.getInitialCapacity(fileNames.size()));
     
     for (String fileName : fileNames) {
@@ -94,7 +97,7 @@ class FileInputFilesProcessor {
       
       WritableByteChannel channel = null;
       try {
-        Blob blob = storage.get(BlobId.of(userAccountBucket, constructStorageFilePath(fileName)));
+        Blob blob = storage.get(BlobId.of(userDataBucket, constructStorageFilePath(fileName)));
         if (blob == null) {
           throw new ZwlLangException(fileName + " doesn't exists. Please check whether this file" +
               " was really uploaded. " + lineNColumn.get());
@@ -106,7 +109,7 @@ class FileInputFilesProcessor {
           throw new RuntimeException("Directory structure in user specified file isn't currently" +
               " supported.");
         }
-        OutputStream stream = createFileAndOpenStream(filePath);
+        OutputStream stream = Files.newOutputStream(filePath, StandardOpenOption.CREATE);
         
         if (blob.getSize() < 1_000_000) {
           stream.write(blob.getContent());
@@ -138,25 +141,6 @@ class FileInputFilesProcessor {
       localPaths.add(filePath.toAbsolutePath().toString());
     }
     return localPaths;
-  }
-  
-  private void createNotExistDir(Path dir) {
-    try {
-      if (!Files.isDirectory(dir)) {
-        Files.createDirectory(dir);
-      }
-    } catch (IOException io) {
-      throw new RuntimeException(io);
-    }
-  }
-  
-  private OutputStream createFileAndOpenStream(Path file) {
-    try {
-      Files.createFile(file);
-      return Files.newOutputStream(file);
-    } catch (IOException io) {
-      throw new RuntimeException(io);
-    }
   }
   
   private String constructStorageFilePath(String fileName) {

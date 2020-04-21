@@ -9,37 +9,28 @@ import com.zylitics.btbr.webdriver.session.IEDriverSessionProvider;
 
 import org.openqa.selenium.remote.BrowserType;
 
+import java.nio.file.Path;
 import java.util.Optional;
-import java.util.function.Function;
 
 public class Configuration {
   
-  public static final String USER_HOME = System.getProperty("user.home");
-  
-  public static final String PATH_SEPARATOR = System.getProperty("file.separator");
-  
   public static final String SYS_DEF_TEMP_DIR = System.getProperty("java.io.tmpdir");
   
-  Function<String, Optional<AbstractDriverSessionProvider>> getSessionProviderByBrowser(
-      APICoreProperties.Webdriver wdProps, BuildCapability buildCapability) {
-    return browser -> {
-      AbstractDriverSessionProvider provider = null;
-      switch (browser) {
-        case BrowserType.CHROME:
-          provider = new ChromeDriverSessionProvider(wdProps, buildCapability);
-          break;
-        case BrowserType.FIREFOX:
-          provider = new FirefoxDriverSessionProvider(wdProps, buildCapability);
-          break;
-        case BrowserType.IE:
-          provider = new IEDriverSessionProvider(wdProps, buildCapability);
-          break;
-      }
-      if (provider == null) {
-        return Optional.empty();
-      }
-      return Optional.of(provider);
-    };
+  Optional<AbstractDriverSessionProvider> getSessionProviderByBrowser(
+      APICoreProperties.Webdriver wdProps, BuildCapability buildCapability, Path buildDir) {
+    AbstractDriverSessionProvider provider = null;
+    switch (buildCapability.getWdBrowserName()) {
+      case BrowserType.CHROME:
+        provider = new ChromeDriverSessionProvider(wdProps, buildCapability, buildDir);
+        break;
+      case BrowserType.FIREFOX:
+        provider = new FirefoxDriverSessionProvider(wdProps, buildCapability, buildDir);
+        break;
+      case BrowserType.IE:
+        provider = new IEDriverSessionProvider(wdProps, buildCapability, buildDir);
+        break;
+    }
+    return Optional.ofNullable(provider);
   }
   
   public int getTimeouts(APICoreProperties.Webdriver wdProps,

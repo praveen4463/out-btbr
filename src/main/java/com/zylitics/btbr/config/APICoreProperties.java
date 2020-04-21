@@ -40,29 +40,34 @@ public class APICoreProperties {
   }
   
   @Valid
-  private DataSource dataSource = new DataSource();
+  private final DataSource dataSource = new DataSource();
   
   public DataSource getDataSource() { return dataSource; }
   
   @Valid
-  private CloudKms cloudKms = new CloudKms();
+  private final CloudKms cloudKms = new CloudKms();
   
   public CloudKms getCloudKms() { return cloudKms; }
   
   @Valid
-  private Esdb esdb = new Esdb();
+  private final Esdb esdb = new Esdb();
   
   public Esdb getEsdb() { return esdb; }
   
   @Valid
-  private Runner runner = new Runner();
+  private final Runner runner = new Runner();
   
   public Runner getRunner() { return runner; }
   
   @Valid
-  private Shot shot = new Shot();
+  private final Shot shot = new Shot();
   
   public Shot getShot() { return shot; }
+  
+  @Valid
+  private final Webdriver webdriver = new Webdriver();
+  
+  public Webdriver getWebdriver() { return webdriver; }
   
   public static class DataSource {
     
@@ -259,9 +264,12 @@ public class APICoreProperties {
   
     @Min(1)
     private Integer programOutputFlushNo;
+    
+    @NotBlank
+    private String wzgpAuthUser;
   
-    @Min(10)
-    private Integer shotMetadataFlushRecords;
+    @NotBlank
+    private String wzgpAuthSecretCloudFile;
     
     /**
      * The default value to use when {@link BuildCapability#getProgramOutputFlushNo()} or
@@ -276,14 +284,24 @@ public class APICoreProperties {
         this.programOutputFlushNo = programOutputFlushNo;
       }
     }
-    
-    public Integer getShotMetadataFlushRecords() {
-      return shotMetadataFlushRecords;
+  
+    public String getWzgpAuthUser() {
+      return wzgpAuthUser;
     }
   
-    public void setShotMetadataFlushRecords(Integer shotMetadataFlushRecords) {
-      if (this.shotMetadataFlushRecords == null) {
-        this.shotMetadataFlushRecords = shotMetadataFlushRecords;
+    public void setWzgpAuthUser(String wzgpAuthUser) {
+      if (this.wzgpAuthUser == null) {
+        this.wzgpAuthUser = wzgpAuthUser;
+      }
+    }
+  
+    public String getWzgpAuthSecretCloudFile() {
+      return wzgpAuthSecretCloudFile;
+    }
+  
+    public void setWzgpAuthSecretCloudFile(String wzgpAuthSecretCloudFile) {
+      if (this.wzgpAuthSecretCloudFile == null) {
+        this.wzgpAuthSecretCloudFile = wzgpAuthSecretCloudFile;
       }
     }
   }
@@ -304,6 +322,9 @@ public class APICoreProperties {
   
     @NotBlank
     private String eosShot;
+  
+    @Min(10)
+    private Integer shotMetadataFlushRecords;
   
     public String getExt() {
       return ext;
@@ -354,9 +375,25 @@ public class APICoreProperties {
         this.eosShot = eosShot;
       }
     }
+  
+    public Integer getShotMetadataFlushRecords() {
+      return shotMetadataFlushRecords;
+    }
+  
+    public void setShotMetadataFlushRecords(Integer shotMetadataFlushRecords) {
+      if (this.shotMetadataFlushRecords == null) {
+        this.shotMetadataFlushRecords = shotMetadataFlushRecords;
+      }
+    }
   }
   
   public static class Webdriver {
+  
+    @NotBlank
+    private String serverLogsBucket;
+  
+    @NotBlank
+    private String userDataBucket;
     
     @NotEmpty
     private Set<String> supportedBrowsers;
@@ -396,6 +433,9 @@ public class APICoreProperties {
   
     @NotBlank
     private String internalLogsDir;
+    
+    @NotBlank
+    private String driverLogsDir;
   
     @NotBlank
     private String browserPerfLogsFile;
@@ -410,10 +450,30 @@ public class APICoreProperties {
     private String driverLogsFile;
   
     @Min(10)
-    private Integer retrieveLogsUponCmd;
+    private Integer waitBetweenLogsCapture;
   
     @NotBlank
     private String elementShotDir;
+  
+    public String getServerLogsBucket() {
+      return serverLogsBucket;
+    }
+  
+    public void setServerLogsBucket(String serverLogsBucket) {
+      if (this.serverLogsBucket == null) {
+        this.serverLogsBucket = serverLogsBucket;
+      }
+    }
+  
+    public String getUserDataBucket() {
+      return userDataBucket;
+    }
+  
+    public void setUserDataBucket(String userDataBucket) {
+      if (this.userDataBucket == null) {
+        this.userDataBucket = userDataBucket;
+      }
+    }
   
     public Set<String> getSupportedBrowsers() {
       return supportedBrowsers;
@@ -545,6 +605,16 @@ public class APICoreProperties {
       }
     }
   
+    public String getDriverLogsDir() {
+      return driverLogsDir;
+    }
+  
+    public void setDriverLogsDir(String driverLogsDir) {
+      if (this.driverLogsDir == null) {
+        this.driverLogsDir = driverLogsDir;
+      }
+    }
+  
     public String getBrowserPerfLogsFile() {
       return browserPerfLogsFile;
     }
@@ -585,13 +655,13 @@ public class APICoreProperties {
       }
     }
   
-    public Integer getRetrieveLogsUponCmd() {
-      return retrieveLogsUponCmd;
+    public Integer getWaitBetweenLogsCapture() {
+      return waitBetweenLogsCapture;
     }
   
-    public void setRetrieveLogsUponCmd(Integer retrieveLogsUponCmd) {
-      if (this.retrieveLogsUponCmd == null) {
-        this.retrieveLogsUponCmd = retrieveLogsUponCmd;
+    public void setWaitBetweenLogsCapture(Integer waitBetweenLogsCapture) {
+      if (this.waitBetweenLogsCapture == null) {
+        this.waitBetweenLogsCapture = waitBetweenLogsCapture;
       }
     }
   

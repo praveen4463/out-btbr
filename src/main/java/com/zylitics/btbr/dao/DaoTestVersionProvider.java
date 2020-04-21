@@ -8,11 +8,13 @@ import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class DaoTestVersionProvider extends AbstractDaoProvider implements TestVersionProvider {
   
   @Autowired

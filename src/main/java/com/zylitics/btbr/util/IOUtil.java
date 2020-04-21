@@ -7,20 +7,50 @@ import java.nio.file.attribute.BasicFileAttributes;
 public class IOUtil {
   
   /**
-   * Creates a file of specified name in the given dir and writes the given bytes into it.
-   * If the file already exists in dir, appends some random identifier to the file name and tries
-   * saving again.
+   * Creates dir if it doesn't exists.
+   * @param dir {@link Path} of the dir to create
+   * @throws RuntimeException Rather than an {@link IOException}, a RuntimeException is thrown so
+   * that caller doesn't have to handle it.
    */
-  // TODO: work on this while working on saving logs, as this will go into the same location where
-  // logs are saved and will then go into cloud storage on build completion at some accessible
-  // location for user.
-  public static void write(byte[] data, String file, String dir) throws IOException {
-  
+  public static void createNonExistingDir(Path dir) throws RuntimeException {
+    if (!Files.isDirectory(dir)) {
+      try {
+        Files.createDirectory(dir);
+      } catch (IOException io) {
+        throw new RuntimeException("Couldn't create directory at " + dir.toAbsolutePath(), io);
+      }
+    }
   }
   
-  public static void createNonExistingDir(Path dir) throws IOException {
-    if (!Files.isDirectory(dir)) {
+  /**
+   * Creates dir.
+   * @param dir {@link Path} of the dir to create
+   * @throws RuntimeException Rather than an {@link IOException}, a RuntimeException is thrown so
+   * that caller doesn't have to handle it.
+   */
+  public static void createDir(Path dir) throws RuntimeException {
+    try {
       Files.createDirectory(dir);
+    } catch (IOException io) {
+      throw new RuntimeException("Couldn't create directory at " + dir.toAbsolutePath(), io);
+    }
+  }
+  
+  /**
+   * Validates whether the given file isn't a directory before attempting to delete.
+   * @param file {@link Path} of the file to delete
+   * @throws RuntimeException Rather than an {@link IOException}, a RuntimeException is thrown so
+   * that caller doesn't have to handle it.
+   */
+  public static void deleteFileIfExists(Path file) throws RuntimeException {
+    if (Files.isDirectory(file)) {
+      throw new RuntimeException("The given file is in fact a directory, path: " +
+          file.toAbsolutePath());
+    }
+    try {
+      Files.deleteIfExists(file);
+    } catch (IOException io) {
+      throw new RuntimeException(io);
     }
   }
   
@@ -30,6 +60,9 @@ public class IOUtil {
    * @throws IOException when any error occurs during the recursive operation.
    */
   public static void deleteDir(Path dir) throws IOException {
+    if (!Files.isDirectory(dir)) {
+      return;
+    }
     Files.walkFileTree(dir, new FileVisitor<Path>() {
       @Override
       public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {

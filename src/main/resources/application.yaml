@@ -23,17 +23,21 @@ api-core:
     min-idle-conn-pool: 2
   runner:
     program_output_flush_no: 10
-    shot_metadata_flush_records: 100
-    server-logs-bucket: zl-server-logs
-    user-asset-bucket: zl-user-asset
-    # keeps things like element shots, uploaded files for testing file input in builds etc.
+    # wzgp_auth_xx are used to authenticate to the vm deletion api.
+    wzgp_auth_user: prod-test
+    wzgp_auth_secret_cloud_file: zl-wzgp-prod-test-auth.encrypt
   shot:
     ext: png
     content-type: image/png
     max-shot-finish-sec: 7200
     error-shot: ERROR
     eos-shot: EOS
+    shot_metadata_flush_records: 100
   webdriver:
+    server-logs-bucket: zl-server-logs
+    user-data-bucket: zl-user-data
+    # this bucket keeps things like user uploaded files for testing file input in builds
+    # etc.
     supported-browsers:
       - chrome
       - firefox
@@ -48,14 +52,14 @@ api-core:
     ie-default-browser-attach-timeout: 5000
     ie-default-file-upload-dialog-timeout: 5000
     enable-profiler-logs-prop: webdriver.logging.profiler.enabled
-    verbose-client-logs-prop: webbdriver.logging.client.verbose.enabled
+    verbose-client-logs-prop: webdriver.logging.client.verbose.enabled
     browser-perf-logs-dir: performance-logs
     internal-logs-dir: all-internal-logs
+    driver-logs-dir: driver-logs
     browser-perf-logs-file: performance.log
     client-logs-file: client.log
     profiler-logs-file: profiler.log
     driver-logs-file: driver.log
-    # every time, upon this many commands run, we should retrieve logs and write to file.
-    retrieve-logs-upon-cmd: 100
+    wait-between-logs-capture: 10000
     element-shot-dir: element-shot
 ---

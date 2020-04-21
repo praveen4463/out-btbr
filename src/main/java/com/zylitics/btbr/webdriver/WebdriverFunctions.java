@@ -61,8 +61,6 @@ public class WebdriverFunctions {
   
   private final Storage storage;
   
-  private final String userAccountBucket;
-  
   private final String pathToUploadedFiles;
   
   private final Path buildDir;
@@ -72,7 +70,6 @@ public class WebdriverFunctions {
                             RemoteWebDriver driver,
                             PrintStream printStream,
                             Storage storage,
-                            String userAccountBucket,
                             String pathToUploadedFiles,
                             Path buildDir) {
     Preconditions.checkNotNull(wdProps, "wdProps can't be null");
@@ -80,8 +77,6 @@ public class WebdriverFunctions {
     Preconditions.checkNotNull(driver, "driver can't be null");
     Preconditions.checkNotNull(printStream, "printStream can't be null");
     Preconditions.checkNotNull(storage, "storage can't be null");
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(userAccountBucket),
-        "userAccountBucket can't be empty");
     Preconditions.checkArgument(!Strings.isNullOrEmpty(pathToUploadedFiles),
         "pathToUploadedFiles can't be empty");
     Preconditions.checkNotNull(buildDir, "buildDir can't be null");
@@ -91,7 +86,6 @@ public class WebdriverFunctions {
     this.driver = driver;
     this.printStream = printStream;
     this.storage = storage;
-    this.userAccountBucket = userAccountBucket;
     this.pathToUploadedFiles = pathToUploadedFiles;
     this.buildDir = buildDir;
   }
@@ -160,9 +154,9 @@ public class WebdriverFunctions {
         // interaction.keys
         new SendKeysToPage(wdProps, buildCapability, driver, printStream),
         new SendKeysToPageF(wdProps, buildCapability, driver, printStream),
-        new SetFile(wdProps, buildCapability, driver, printStream, storage, userAccountBucket,
+        new SetFile(wdProps, buildCapability, driver, printStream, storage,
             pathToUploadedFiles, buildDir),
-        new SetFiles(wdProps, buildCapability, driver, printStream, storage, userAccountBucket,
+        new SetFiles(wdProps, buildCapability, driver, printStream, storage,
             pathToUploadedFiles, buildDir),
         new Type(wdProps, buildCapability, driver, printStream),
         new TypeActive(wdProps, buildCapability, driver, printStream),
@@ -183,7 +177,7 @@ public class WebdriverFunctions {
         new AnyElementDisplayed(wdProps, buildCapability, driver, printStream),
         new AnyElementEnabled(wdProps, buildCapability, driver, printStream),
         new AnyElementSelected(wdProps, buildCapability, driver, printStream),
-        new CaptureElementScreenshot(wdProps, buildCapability, driver, printStream),
+        new CaptureElementScreenshot(wdProps, buildCapability, driver, printStream, buildDir),
         new ElementExists(wdProps, buildCapability, driver, printStream),
         new GetElementAttribute(wdProps, buildCapability, driver, printStream),
         new GetElementAttributeOrCssValue(wdProps, buildCapability, driver, printStream),

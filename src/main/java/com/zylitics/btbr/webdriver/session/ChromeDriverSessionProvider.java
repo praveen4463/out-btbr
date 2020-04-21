@@ -3,6 +3,7 @@ package com.zylitics.btbr.webdriver.session;
 import com.google.common.base.Preconditions;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.util.CollectionUtil;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -12,6 +13,7 @@ import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -19,8 +21,8 @@ import java.util.logging.Level;
 public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
   
   public ChromeDriverSessionProvider(APICoreProperties.Webdriver wdProps
-      , BuildCapability buildCapability) {
-    super(wdProps, buildCapability);
+      , BuildCapability buildCapability, Path buildDir) {
+    super(wdProps, buildCapability, buildDir);
   }
   
   @Override
@@ -32,6 +34,8 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
         .usingAnyFreePort()
         .withLogFile(new File(getDriverLogFilePath()))
         .withAppendLog(true)
+        .withVerbose(buildCapability.isWdChromeVerboseLogging())
+        .withSilent(buildCapability.isWdChromeSilentOutput())
         .build();
   
     ChromeOptions chrome = new ChromeOptions();
@@ -44,13 +48,13 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
     // add more browser specific arguments
     
     // add performance logging if asked to
-    if (buildCapability.isChromeEnableNetwork() || buildCapability.isChromeEnablePage()) {
+    if (buildCapability.isWdChromeEnableNetwork() || buildCapability.isWdChromeEnablePage()) {
       LoggingPreferences loggingPreferences =
           (LoggingPreferences) chrome.getCapability(CapabilityType.LOGGING_PREFS);
       loggingPreferences.enable(LogType.PERFORMANCE, Level.ALL);
-      Map<String, Object> perfLogPrefs = new HashMap<>(3);
-      perfLogPrefs.put("enableNetwork", buildCapability.isChromeEnableNetwork());
-      perfLogPrefs.put("enablePage", buildCapability.isChromeEnablePage());
+      Map<String, Object> perfLogPrefs = new HashMap<>(CollectionUtil.getInitialCapacity(2));
+      perfLogPrefs.put("enableNetwork", buildCapability.isWdChromeEnableNetwork());
+      perfLogPrefs.put("enablePage", buildCapability.isWdChromeEnablePage());
       chrome.setExperimentalOption("perfLoggingPrefs", perfLogPrefs);
     }
     

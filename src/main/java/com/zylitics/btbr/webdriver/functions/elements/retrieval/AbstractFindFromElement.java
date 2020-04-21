@@ -4,6 +4,7 @@ import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.ZwlValue;
+import com.zylitics.zwl.exception.InvalidTypeException;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
 
@@ -27,7 +28,7 @@ abstract class AbstractFindFromElement extends AbstractWebdriverFunction {
   
   @Override
   public int maxParamsCount() {
-    return 3;
+    return 4;
   }
   
   @Override
@@ -40,11 +41,38 @@ abstract class AbstractFindFromElement extends AbstractWebdriverFunction {
     if (argsCount < 2) {
       throw unexpectedEndOfFunctionOverload(argsCount);
     }
-    boolean noWait = argsCount == 3 ? parseBoolean(2, args.get(2)) : false;
-    return handleWDExceptions(() -> find(
-        getElement(tryCastString(0, args.get(0)), !noWait),
-        tryCastString(1, args.get(1)), !noWait));
+    return handleWDExceptions(() -> {
+      boolean noWait = false;
+      ByType byType = null;
+      switch (argsCount) {
+        case 3:
+          // argument 3 could be either By or noWait
+          try {
+            // Most of the times, when 3 args are given, 3rd should be a 'By', that's why first try
+            // parse it, if it can't be parsed, it should be noWait.
+            byType = parseEnum(2, args.get(2), ByType.class);
+          } catch (InvalidTypeException ignore) { }
+          // When argument is not a string value or threw exception parsing to a 'By', parse it as
+          // boolean.
+          if (byType == null) {
+            byType = ByType.CSS_SELECTOR; // our default By is a css selector.
+            noWait = parseBoolean(2, args.get(2));
+          }
+          break;
+        case 4:
+          byType = parseEnum(2, args.get(2), ByType.class);
+          noWait = parseBoolean(3, args.get(3));
+          break;
+        default:
+          byType = ByType.CSS_SELECTOR;  // our default By is a css selector.
+      }
+      return find(getElement(tryCastString(0, args.get(0)), !noWait),
+          tryCastString(1, args.get(1)),
+          byType,
+          !noWait);
+    });
   }
   
-  protected abstract ZwlValue find(RemoteWebElement element, String selector, boolean wait);
+  protected abstract ZwlValue find(RemoteWebElement element, String using, ByType byType,
+                                   boolean wait);
 }

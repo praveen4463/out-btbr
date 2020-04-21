@@ -8,11 +8,13 @@ import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.Map;
 
+@Repository
 public class DaoBuildStatusProvider extends AbstractDaoProvider implements BuildStatusProvider {
   
   @Autowired

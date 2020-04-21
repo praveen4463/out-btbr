@@ -31,7 +31,7 @@ class EsdbShotMetadataProvider extends AbstractBulkSaveProvider<ShotMetadata>
         (request, bulkListener) ->
             client.bulkAsync(request, RequestOptions.DEFAULT, bulkListener),
         new Listener())
-        .setBulkActions(apiCoreProperties.getRunner().getShotMetadataFlushRecords())
+        .setBulkActions(apiCoreProperties.getShot().getShotMetadataFlushRecords())
         .setConcurrentRequests(1) // keep it 1 so that bulk can execute on separate thread
         .setBackoffPolicy(
             BackoffPolicy.exponentialBackoff(TimeValue.timeValueSeconds(1)

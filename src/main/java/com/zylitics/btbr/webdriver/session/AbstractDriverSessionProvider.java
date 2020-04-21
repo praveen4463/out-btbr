@@ -1,30 +1,27 @@
 package com.zylitics.btbr.webdriver.session;
 
-import static com.zylitics.btbr.webdriver.Configuration.USER_HOME;
-import static com.zylitics.btbr.webdriver.Configuration.PATH_SEPARATOR;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.util.IOUtil;
 import com.zylitics.btbr.webdriver.Configuration;
 import com.zylitics.btbr.webdriver.TimeoutType;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.Platform;
-import org.openqa.selenium.json.Json;
 import org.openqa.selenium.logging.LogType;
 import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
 public abstract class AbstractDriverSessionProvider {
-  
-  private static final Json JSON = new Json();
   
   private static final String BROWSER_BINARY_PATH_TEMPLATE_WIN =
       "C:\\ProgramData\\browsers\\BROWSER_NAME\\BROWSER_VERSION\\BROWSER_NAME.exe";
@@ -38,11 +35,15 @@ public abstract class AbstractDriverSessionProvider {
   
   final Configuration configuration = new Configuration();
   
+  private final Path buildDir;
+  
   public AbstractDriverSessionProvider(APICoreProperties.Webdriver wdProps
-      , BuildCapability buildCapability) {
+      , BuildCapability buildCapability, Path buildDir) {
     this.wdProps = wdProps;
     this.buildCapability = buildCapability;
     commonCapabilities = getCommonCapabilities();
+  
+    this.buildDir = buildDir;
   }
   
   public abstract RemoteWebDriver createSession();
@@ -106,11 +107,15 @@ public abstract class AbstractDriverSessionProvider {
   }
   
   String getDriverLogFilePath() {
-    String internalLogsDir = wdProps.getInternalLogsDir();
-    String driverLogsFile = wdProps.getDriverLogsFile();
-    
-    return String.format("%s%s%s%s%s", USER_HOME, PATH_SEPARATOR, internalLogsDir, PATH_SEPARATOR,
-        driverLogsFile);
+    if (!Files.isDirectory(buildDir)) {
+      throw new RuntimeException(buildDir.toAbsolutePath().toString() + " isn't a directory");
+    }
+    Path driverLogsDir = buildDir.resolve(wdProps.getDriverLogsDir());
+    IOUtil.createNonExistingDir(driverLogsDir);
+    Path driverLogsFile = driverLogsDir.resolve(wdProps.getDriverLogsFile());
+    // just send absolute path in string and don't create file, drivers should create the file if
+    // it doesn't exist.
+    return driverLogsFile.toAbsolutePath().toString();
   }
   
   String getBrowserBinaryPath() {

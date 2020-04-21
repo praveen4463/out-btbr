@@ -48,7 +48,7 @@ public class GetTimeout extends AbstractWebdriverFunction {
     }
     String t = tryCastString(0, args.get(0));
     try {
-      TimeoutType timeoutType = TimeoutType.valueOf(t);
+      TimeoutType timeoutType = parseEnum(0, args.get(0), TimeoutType.class);
       return new DoubleZwlValue(new Configuration().getTimeouts(wdProps, buildCapability,
           timeoutType));
     } catch (IllegalArgumentException i) {

@@ -1,6 +1,7 @@
 # index definition for index zwl_program_output
 # ended column specified that the output for the build+version combination is ended.
-
+# later we may need to add output_level field so that user can opt the verbosity of the output
+# logs.
 curl -X PUT "localhost:9200/zwl_program_output?pretty" -H 'Content-Type: application/json' -d'
 {
   "mappings": {

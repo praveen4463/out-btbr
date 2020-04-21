@@ -23,7 +23,7 @@ public class FindElementsFromElement extends AbstractFindFromElement {
   }
   
   @Override
-  protected ZwlValue find(RemoteWebElement element, String selector, boolean wait) {
-    return convertIntoZwlElemIds(findElements(element, selector, wait));
+  protected ZwlValue find(RemoteWebElement element, String using, ByType byType, boolean wait) {
+    return convertIntoZwlElemIds(findElements(element, getBy(byType, using), wait));
   }
 }

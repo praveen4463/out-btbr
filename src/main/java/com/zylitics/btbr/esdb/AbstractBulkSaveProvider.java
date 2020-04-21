@@ -70,7 +70,7 @@ abstract class AbstractBulkSaveProvider<T> implements BulkSaveProvider<T> {
     } catch (InterruptedException i) {
       LOG.error("Thread interrupted while waiting for bulkProcessor to finish request");
     }
-    closeNow();
+    closeNow(); // invoke even if close normally to mark it down.
   }
   
   private void throwOnDown() {
@@ -96,15 +96,15 @@ abstract class AbstractBulkSaveProvider<T> implements BulkSaveProvider<T> {
     
     @Override
     public void beforeBulk(long executionId, BulkRequest request) {
-      LOG.debug("Executing bulk operation with executionId {} for total {} request",
-          executionId, request.numberOfActions());
+      LOG.debug("Executing bulk operation with executionId {} for total {} request. Index {}",
+          executionId, request.numberOfActions(), getIndex());
     }
     
     @Override
     public void afterBulk(long executionId, BulkRequest request, BulkResponse response) {
       if (response.hasFailures()) {
-        LOG.error("Bulk operation with executionId {} completed with failures, will mention the" +
-            " details of all failures", executionId);
+        LOG.error("Bulk operation with executionId {} Index {} completed with failures, after" +
+            " this error, all failures will be logged separately.", executionId, getIndex());
         for (BulkItemResponse bulkItemResponse : response) {
           if (bulkItemResponse.isFailed()) {
             BulkItemResponse.Failure failure = bulkItemResponse.getFailure();
@@ -112,14 +112,14 @@ abstract class AbstractBulkSaveProvider<T> implements BulkSaveProvider<T> {
           }
         }
       } else {
-        LOG.debug("Bulk operation with executionId {} took {} millis to finish"
-            , executionId, response.getTook().getMillis());
+        LOG.debug("Bulk operation with executionId {} took {} millis to finish for index {}"
+            , executionId, response.getTook().getMillis(), getIndex());
       }
     }
     
     @Override
     public void afterBulk(long executionId, BulkRequest request, Throwable t) {
-      LOG.error("Failed to execute bulk, closing down elastic shot store", t);
+      LOG.error("Failed to execute bulk, closing down esdb store for index " + getIndex(), t);
       closeNow();
     }
   }

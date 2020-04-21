@@ -30,7 +30,7 @@ I'm going to explain the whole process point by point from normal scenarios to e
 To begin, webDriver thread starts 2, 2 starts 3 by giving it shots to process.
   a) In normal scenario, 2 captures shots until DELETE command is issued from client and submits
   captured shots to 3 which would process them. Once a DELETE issued, 2 halts but 3 continues if
-  all shots in it hasn't yet processed. When blockUntilFinish is invoked after DELETE was send,
+  all shots in it hasn't yet processed. When blockUntilFinish is invoked after DELETE was sent,
   it will let 3 complete and blocks by issuing a shutdown followed by await. If 3 completes
   within allotted time, an EOS (end of shot) is saved as shot, db provider is asked to process its
   pending records before returning.
