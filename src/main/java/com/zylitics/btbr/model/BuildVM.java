@@ -4,16 +4,16 @@ import java.time.ZonedDateTime;
 
 public class BuildVM {
 
-  private int buildId;
+  private int buildVMId;
   
   private ZonedDateTime deleteDate;
   
-  public int getBuildId() {
-    return buildId;
+  public int getBuildVMId() {
+    return buildVMId;
   }
   
-  public BuildVM setBuildId(int buildId) {
-    this.buildId = buildId;
+  public BuildVM setBuildVMId(int buildVMId) {
+    this.buildVMId = buildVMId;
     return this;
   }
   

@@ -4,6 +4,8 @@ public class TestVersion {
 
   private int testVersionId;
   
+  private String name;
+  
   private ZwlProgram zwlProgram;
   
   public int getTestVersionId() {
@@ -12,6 +14,15 @@ public class TestVersion {
   
   public TestVersion setTestVersionId(int testVersionId) {
     this.testVersionId = testVersionId;
+    return this;
+  }
+  
+  public String getName() {
+    return name;
+  }
+  
+  public TestVersion setName(String name) {
+    this.name = name;
     return this;
   }
   

@@ -10,11 +10,15 @@ public class Build {
   
   private BuildCapability buildCapability;
   
+  private int buildVMId;
+  
   private ZonedDateTime endDate;
   
   private boolean isSuccess;
   
   private String error;
+  
+  private int userId;
   
   public int getBuildId() {
     return buildId;
@@ -40,6 +44,15 @@ public class Build {
   
   public Build setBuildCapability(BuildCapability buildCapability) {
     this.buildCapability = buildCapability;
+    return this;
+  }
+  
+  public int getBuildVMId() {
+    return buildVMId;
+  }
+  
+  public Build setBuildVMId(int buildVMId) {
+    this.buildVMId = buildVMId;
     return this;
   }
   
@@ -70,15 +83,26 @@ public class Build {
     return this;
   }
   
+  public int getUserId() {
+    return userId;
+  }
+  
+  public Build setUserId(int userId) {
+    this.userId = userId;
+    return this;
+  }
+  
   @Override
   public String toString() {
     return "Build{" +
         "buildId=" + buildId +
-        ", key='" + buildKey + '\'' +
+        ", buildKey='" + buildKey + '\'' +
         ", buildCapability=" + buildCapability +
+        ", buildVMId=" + buildVMId +
         ", endDate=" + endDate +
         ", isSuccess=" + isSuccess +
         ", error='" + error + '\'' +
+        ", userId=" + userId +
         '}';
   }
 }

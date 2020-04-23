@@ -118,6 +118,9 @@ public abstract class AbstractDriverSessionProvider {
     return driverLogsFile.toAbsolutePath().toString();
   }
   
+  // Note that similar to browser binary, we didn't give driver binary path here in java because the
+  // driver version info is in db and batch script was already fetching and preparing that. We just
+  // need to use that with the new application rather than grid.
   String getBrowserBinaryPath() {
     String template = null;
     if (buildCapability.getWdPlatformName().equals(Platform.WINDOWS.name())) {

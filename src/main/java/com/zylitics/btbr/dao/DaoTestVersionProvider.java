@@ -26,6 +26,7 @@ public class DaoTestVersionProvider extends AbstractDaoProvider implements TestV
   public Optional<List<TestVersion>> getTestVersion(int buildId) {
     String sql = "SELECT" +
         " bt.bt_test_version_id" +
+        " tv.name" +
         " , zp.code" +
         " FROM bt_build_tests AS bt INNER JOIN bt_test_version AS tv" +
         " ON (bt.bt_test_version_id = tv.bt_test_version_id)" +
@@ -39,6 +40,7 @@ public class DaoTestVersionProvider extends AbstractDaoProvider implements TestV
     List<TestVersion> versions = jdbc.query(sql, namedParams, (rs, rowNum) ->
         new TestVersion()
             .setTestVersionId(rs.getInt("bt_test_version_id"))
+            .setName(rs.getString("name"))
             .setZwlProgram(new ZwlProgram()
                 .setCode(rs.getString("code"))));
     

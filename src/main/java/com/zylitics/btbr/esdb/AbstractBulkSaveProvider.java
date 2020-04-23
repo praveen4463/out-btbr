@@ -40,7 +40,7 @@ abstract class AbstractBulkSaveProvider<T> implements BulkSaveProvider<T> {
       bulkProcessor.add(request);
     } catch (Exception ex) {
       closeNow();
-      String msg = "Exception while creating IndexRequest for : " + obj;
+      String msg = "Exception while creating IndexRequest for: " + obj;
       if (throwOnException()) {
         throw new RuntimeException(msg, ex);
       } else {

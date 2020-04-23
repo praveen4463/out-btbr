@@ -16,7 +16,7 @@ public class Configuration {
   
   public static final String SYS_DEF_TEMP_DIR = System.getProperty("java.io.tmpdir");
   
-  Optional<AbstractDriverSessionProvider> getSessionProviderByBrowser(
+  public Optional<AbstractDriverSessionProvider> getSessionProviderByBrowser(
       APICoreProperties.Webdriver wdProps, BuildCapability buildCapability, Path buildDir) {
     AbstractDriverSessionProvider provider = null;
     switch (buildCapability.getWdBrowserName()) {

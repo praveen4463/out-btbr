@@ -16,6 +16,10 @@ import org.springframework.web.context.annotation.RequestScope;
 
 import java.io.IOException;
 
+/*
+ * This is a stateful component.
+ * See RequestScope explanation from other esdb provider.
+ */
 @Component
 @RequestScope
 class EsdbShotMetadataProvider extends AbstractBulkSaveProvider<ShotMetadata>

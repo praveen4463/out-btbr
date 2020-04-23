@@ -13,11 +13,8 @@ import com.zylitics.btbr.util.IOUtil;
 import com.zylitics.btbr.webdriver.Configuration;
 import com.zylitics.btbr.webdriver.TimeoutType;
 import com.zylitics.btbr.webdriver.WebdriverFunctions;
+import com.zylitics.btbr.webdriver.constants.*;
 import com.zylitics.btbr.webdriver.constants.By;
-import com.zylitics.btbr.webdriver.constants.Colorz;
-import com.zylitics.btbr.webdriver.constants.Exceptions;
-import com.zylitics.btbr.webdriver.constants.Keyz;
-import com.zylitics.btbr.webdriver.constants.Timeouts;
 import com.zylitics.zwl.api.ZwlApi;
 import com.zylitics.zwl.api.ZwlInterpreterVisitor;
 import com.zylitics.zwl.datatype.*;
@@ -105,7 +102,7 @@ public class WebdriverTests {
       String file = t.getFile();
       printStream.println("Reading and executing from " + file);
       ZwlApi zwlApi =
-          new ZwlApi("resources/" + t.getFile(), Charsets.UTF_8, DEFAULT_TEST_LISTENERS);
+          new ZwlApi(Paths.get("resources/" + t.getFile()), Charsets.UTF_8, DEFAULT_TEST_LISTENERS);
       zwlApi.interpret(interpreterVisitor);
     }
   }
@@ -234,7 +231,8 @@ public class WebdriverTests {
   private void run(Browsers browser, String file) throws Exception {
     Assumptions.assumeFalse(shouldSkip(browser), "Skipped");
     setup(browser);
-    ZwlApi zwlApi = new ZwlApi("resources/" + file, Charsets.UTF_8, DEFAULT_TEST_LISTENERS);
+    ZwlApi zwlApi = new ZwlApi(Paths.get("resources/" + file), Charsets.UTF_8,
+        DEFAULT_TEST_LISTENERS);
     zwlApi.interpret(interpreterVisitor);
   }
   
@@ -355,7 +353,6 @@ public class WebdriverTests {
       
       // add timeout type
       zwlInterpreter.setReadOnlyVariable("timeouts", new MapZwlValue(Timeouts.asMap()));
-      
       // test specific only
       Map<String, ZwlValue> staticSite = ImmutableMap.of(
           "urlPrefix", new StringZwlValue("http://static.wditp.zylitics.io/html/")

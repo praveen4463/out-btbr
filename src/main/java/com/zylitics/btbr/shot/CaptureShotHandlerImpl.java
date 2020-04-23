@@ -9,12 +9,12 @@ import com.zylitics.btbr.model.ShotMetadata;
 import com.zylitics.btbr.runner.CaptureShotHandler;
 import com.zylitics.btbr.runner.CurrentTestVersion;
 import com.zylitics.btbr.runner.provider.ShotMetadataProvider;
+import com.zylitics.btbr.util.DateTimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -157,7 +157,8 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
       shotIncrement+= 1;
       // attach metadata with each submission so that current request details are added with
       // currently taken shot.
-      ShotMetadata metadata = getShotMetadata(Long.toString(shotIncrement), getTime());
+      ShotMetadata metadata = getShotMetadata(Long.toString(shotIncrement),
+          DateTimeUtil.getCurrentUTC());
       /*
       processor may be shutdown during attempt to submit a captured shot by current thread
       because of two reasons:
@@ -233,7 +234,7 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
   
   // accessed by just one thread
   private void saveEOSShot() {
-    ShotMetadata metadata = getShotMetadata(shotProps.getEosShot(), getTime());
+    ShotMetadata metadata = getShotMetadata(shotProps.getEosShot(), DateTimeUtil.getCurrentUTC());
     processShot(new ByteArrayInputStream(new byte[1]), metadata).run();
   }
   
@@ -249,7 +250,7 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
         String shotIdentifier = getShotIdentifier(metadata.getShotName());
         if (!(shotIdentifier.equals(shotProps.getErrorShot())
             || shotIdentifier.equals(shotProps.getEosShot()))) {
-          metadataOnError = getShotMetadata(shotProps.getErrorShot(), getTime());
+          metadataOnError = getShotMetadata(shotProps.getErrorShot(), DateTimeUtil.getCurrentUTC());
         }
         shotMetadataProvider.saveAsync(metadataOnError);
         errorProcessed = true;  // error handled, mark it processed.
@@ -289,10 +290,6 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
     // sessionId may have '-' too thus its safe to get last index of it which will be just behind
     // identifier.
     return shotName.substring(shotName.lastIndexOf("-") + 1, shotName.lastIndexOf("."));
-  }
-  
-  private ZonedDateTime getTime() {
-    return ZonedDateTime.now(ZoneId.of("UTC"));
   }
   
   class ShotCaptureThread implements Runnable {

@@ -25,12 +25,12 @@ public class DaoBuildVMProvider extends AbstractDaoProvider implements BuildVMPr
   @Override
   public int updateDeleteDate(BuildVM buildVM) {
     String sql = "UPDATE bt_build_vm SET delete_date = :delete_date" +
-        " WHERE bt_build_id = :bt_build_id";
+        " WHERE bt_build_vm_id = :bt_build_vm_id";
     
     Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(2));
     params.put("delete_date", new SqlParameterValue(Types.TIME_WITH_TIMEZONE,
         buildVM.getDeleteDate()));
-    params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, buildVM.getBuildId()));
+    params.put("bt_build_vm_id", new SqlParameterValue(Types.INTEGER, buildVM.getBuildVMId()));
   
     SqlParameterSource namedParams = new MapSqlParameterSource(params);
     return jdbc.update(sql, namedParams);

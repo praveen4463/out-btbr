@@ -1,6 +1,6 @@
 package com.zylitics.btbr.http;
 
-public class ResponseBuildRun extends BaseResponse {
+public class ResponseBuildRun extends AbstractResponse {
   
   private String sessionId;
   
@@ -8,7 +8,8 @@ public class ResponseBuildRun extends BaseResponse {
     return sessionId;
   }
   
-  public void setSessionId(String sessionId) {
+  public ResponseBuildRun setSessionId(String sessionId) {
     this.sessionId = sessionId;
+    return this;
   }
 }

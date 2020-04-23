@@ -28,6 +28,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
   public Optional<Build> getBuild(int buildId) {
     String sql = "SELECT" +
         " bu.build_key" +
+        ", bu.bt_build_vm_id" +
+        ", bu.zluser_id" +
         ", bc.shot_bucket_session_storage" +
         ", bc.shot_take_test_shot" +
         ", bc.program_output_flush_no" +
@@ -74,6 +76,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         new Build()
             .setBuildId(buildId)
             .setBuildKey(rs.getString("build_key"))
+            .setBuildVMId(rs.getInt("bt_build_vm_id"))
+            .setUserId(rs.getInt("zluser_id"))
             .setBuildCapability(new BuildCapability()
                 .setShotBucketSessionStorage(rs.getString("shot_bucket_session_storage"))
                 .setShotTakeTestShot(rs.getBoolean("shot_take_test_shot"))

@@ -36,6 +36,7 @@ api-core:
   webdriver:
     server-logs-bucket: zl-server-logs
     user-data-bucket: zl-user-data
+    user-uploads-storage-dir-tmpl : USER_ID/uploads
     # this bucket keeps things like user uploaded files for testing file input in builds
     # etc.
     supported-browsers:
@@ -46,8 +47,10 @@ api-core:
       - windows
     default-page-load-strategy: eager
     default-timeout-element-access: 60000
-    default-timeout-page-load: 300000
-    default-timeout-script: 30000
+    # Following timeout settings must remain same as webdriver defaults because we use them to reset
+    # timeouts of webdriver unless user asks otherwise.
+    default-timeout-page-load: 300000 # must be same as the default for webdriver
+    default-timeout-script: 30000 # must be same as the default for webdriver
     default-timeout-new-window: 30000
     ie-default-browser-attach-timeout: 5000
     ie-default-file-upload-dialog-timeout: 5000

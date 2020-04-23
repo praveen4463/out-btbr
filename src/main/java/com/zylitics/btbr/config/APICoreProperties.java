@@ -395,6 +395,9 @@ public class APICoreProperties {
     @NotBlank
     private String userDataBucket;
     
+    @NotBlank
+    private String userUploadsStorageDirTmpl;
+    
     @NotEmpty
     private Set<String> supportedBrowsers;
   
@@ -472,6 +475,16 @@ public class APICoreProperties {
     public void setUserDataBucket(String userDataBucket) {
       if (this.userDataBucket == null) {
         this.userDataBucket = userDataBucket;
+      }
+    }
+  
+    public String getUserUploadsStorageDirTmpl() {
+      return userUploadsStorageDirTmpl;
+    }
+  
+    public void setUserUploadsStorageDirTmpl(String userUploadsStorageDirTmpl) {
+      if (this.userUploadsStorageDirTmpl == null) {
+        this.userUploadsStorageDirTmpl = userUploadsStorageDirTmpl;
       }
     }
   

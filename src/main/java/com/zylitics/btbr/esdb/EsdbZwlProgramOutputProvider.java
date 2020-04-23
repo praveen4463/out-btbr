@@ -19,11 +19,16 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /*
+ * This is a stateful component.
  * A RequestScoped bean, this will be injected into the controller once but will act as a proxy.
  * Whenever a new request comes, a new instance of this bean will be created with a reference to the
  * incoming request. Every call on the injected proxy will be delegated to it's own target instance
  * by matching the current request.
  * https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-factory-scopes-other-injection
+ * !! Since a new VM is created for every build/request, it doesn't matter whether this is a
+ * singleton or RequestScope bean (Once it is injected into main controller, it will be used only
+ * once for the life of application instance). It is still marked RequestScope so that it is
+ * semantically valid to be injected into the controller together with the singleton beans.
  */
 @Component
 @RequestScope
