@@ -37,24 +37,6 @@ public class IOUtil {
   }
   
   /**
-   * Validates whether the given file isn't a directory before attempting to delete.
-   * @param file {@link Path} of the file to delete
-   * @throws RuntimeException Rather than an {@link IOException}, a RuntimeException is thrown so
-   * that caller doesn't have to handle it.
-   */
-  public static void deleteFileIfExists(Path file) throws RuntimeException {
-    if (Files.isDirectory(file)) {
-      throw new RuntimeException("The given file is in fact a directory, path: " +
-          file.toAbsolutePath());
-    }
-    try {
-      Files.deleteIfExists(file);
-    } catch (IOException io) {
-      throw new RuntimeException(io);
-    }
-  }
-  
-  /**
    * Deletes a directory after deleting it's children recursively. (subdirectories and files).
    * @param dir The root dir to delete
    * @throws IOException when any error occurs during the recursive operation.

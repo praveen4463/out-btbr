@@ -3,6 +3,7 @@ package com.zylitics.btbr.webdriver.functions.elements.interaction;
 import com.google.common.collect.Sets;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.webdriver.TimeoutType;
 import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.NothingZwlValue;
 import com.zylitics.zwl.datatype.StringZwlValue;
@@ -59,9 +60,9 @@ public class ClickNoSwitch extends AbstractWebdriverFunction {
   
     element.click();
   
-    WebDriverWait wait =
-        new WebDriverWait(driver, Duration.ofMillis(wdProps.getDefaultTimeoutNewWindow()));
     int desiredHandles = previousHandles.size() + 1;
+    WebDriverWait wait =
+        getWait(TimeoutType.NEW_WINDOW, "waiting for total windows to be " + desiredHandles);
     try {
       Set<String> currentHandles = wait.until(d -> {
         Set<String> h = driver.getWindowHandles();

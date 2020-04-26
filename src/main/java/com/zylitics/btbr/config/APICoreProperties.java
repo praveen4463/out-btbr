@@ -265,6 +265,9 @@ public class APICoreProperties {
     @Min(1)
     private Integer programOutputFlushNo;
     
+    @Min(1)
+    private Integer updateLineBuildStatusAfter;
+    
     @NotBlank
     private String wzgpAuthUser;
   
@@ -282,6 +285,16 @@ public class APICoreProperties {
     public void setProgramOutputFlushNo(Integer programOutputFlushNo) {
       if (this.programOutputFlushNo == null) {
         this.programOutputFlushNo = programOutputFlushNo;
+      }
+    }
+  
+    public Integer getUpdateLineBuildStatusAfter() {
+      return updateLineBuildStatusAfter;
+    }
+  
+    public void setUpdateLineBuildStatusAfter(Integer updateLineBuildStatusAfter) {
+      if (this.updateLineBuildStatusAfter == null) {
+        this.updateLineBuildStatusAfter = updateLineBuildStatusAfter;
       }
     }
   

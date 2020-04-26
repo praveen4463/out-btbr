@@ -1,5 +1,7 @@
 package com.zylitics.btbr.dao;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.zylitics.btbr.runner.provider.ImmutableMapProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,8 @@ public class DaoMapProvider extends AbstractDaoProvider implements ImmutableMapP
   
   @Override
   public Optional<Map<String, String>> getMapFromTable(String table) {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(table), "table is required");
+    
     String sql = "SELECT key, value FROM " + table;
     
     List<Map.Entry<String, String>> l = jdbc.query(sql, (rs, rowNum) ->

@@ -6,5 +6,5 @@ public enum TestStatus {
   ERROR,
   STOPPED,
   ABORTED,
-  COMPLETED
+  SUCCESS
 }

@@ -207,7 +207,7 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
     // findElement throws exception when no element is found
     Supplier<RemoteWebElement> s = () ->
         (RemoteWebElement) ctx.findElement(by);
-    return waitOrNot(s, wait);
+    return waitOrNot(s, wait, "trying to find element by: " + by);
   }
   
   protected List<RemoteWebElement> findElements(SearchContext ctx, By by, boolean wait) {
@@ -220,7 +220,7 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
       return elements.stream().map(e -> (RemoteWebElement) e).collect(Collectors.toList());
     };
     try {
-      return waitOrNot(s, wait);
+      return waitOrNot(s, wait, "trying to find elements by: " + by);
     } catch (TimeoutException timeoutWhileWaiting) {
       // if waiting and a timeout occurs, findElements should return empty list rather than
       // exception.
@@ -228,15 +228,28 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
     }
   }
   
-  private <T> T waitOrNot(Supplier<T> s, boolean wait) {
+  private <T> T waitOrNot(Supplier<T> s, boolean wait, String timeoutMsg) {
     if (wait) {
       // create new instance every time to prevent any threading issue in future.
-      WebDriverWait elementAccessWait =
-          new WebDriverWait(driver, Duration.ofMillis(new Configuration().getTimeouts(wdProps,
-                  buildCapability, TimeoutType.ELEMENT_ACCESS)));
-      return elementAccessWait.until(d -> s.get());
+      return getWait(TimeoutType.ELEMENT_ACCESS, timeoutMsg).until(d -> s.get());
     }
     return s.get();
+  }
+  
+  /**
+   * Note that even if a wait by default ignores some exception, it doesn't mean the code using
+   * it can't handle ignored exceptions and return a custom value. When you handle that ignored
+   * exception on your own, it doesn't propagate to 'until' block and doesn't let it decide
+   * whether to ignore or throw. Ignoring an exception just gives you cleaner code so that you
+   * don't have to catch that every time and return a false/null to re-evaluate.
+   */
+  protected WebDriverWait getWait(TimeoutType timeoutType, String timeoutMsg) {
+    // if user has provided custom timeouts for this function try use that first
+    int timeout = new Configuration().getTimeouts(wdProps, buildCapability, timeoutType);
+    WebDriverWait wait =
+        new WebDriverWait(driver, Duration.ofMillis(timeout));
+    wait.withMessage(timeoutMsg);
+    return wait;
   }
   
   protected ZwlValue convertIntoZwlElemId(RemoteWebElement remoteWebElement) {

@@ -1,5 +1,6 @@
 package com.zylitics.btbr.dao;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
@@ -26,6 +27,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
   
   @Override
   public Optional<Build> getBuild(int buildId) {
+    Preconditions.checkArgument(buildId > 0, "build is required");
+    
     String sql = "SELECT" +
         " bu.build_key" +
         ", bu.bt_build_vm_id" +
@@ -119,6 +122,9 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
   
   @Override
   public int updateBuild(Build build) {
+    Preconditions.checkNotNull(build, "build can't be null");
+    Preconditions.checkNotNull(build.getEndDate(), "endDate can't be null");
+    
     String sql = "UPDATE bt_build SET end_date = :end_date, is_success = :is_success" +
         ", error = :error WHERE bt_build_id = :bt_build_id";
   

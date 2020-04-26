@@ -1,7 +1,7 @@
 package com.zylitics.btbr.runner;
 
 import com.google.cloud.storage.Storage;
-import com.sun.tools.doclets.internal.toolkit.builders.AbstractBuilder;
+import com.zylitics.btbr.SecretsManager;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.http.*;
 import com.zylitics.btbr.http.ResponseStatus;
@@ -41,11 +41,13 @@ public class RunnerController {
   
   private static final Logger LOG = LoggerFactory.getLogger(RunnerController.class);
   private static final String BUILD_MAIN_THREAD_STARTS_WITH = "build_main_thread_";
+  static final String STOPPED_BUILD_MAIN_THREAD_STARTS_WITH = "stopped_build_main_thread_";
   
   // a map is used rather than directly assigning current build's main thread.
   private final Map<String, Thread> threadMap = new ConcurrentHashMap<>();
   
   private final APICoreProperties apiCoreProperties;
+  private final SecretsManager secretsManager;
   private final Storage storage;
   private final CaptureShotHandler.Factory captureShotHandlerFactory;
   private final BuildProvider buildProvider;
@@ -55,9 +57,11 @@ public class RunnerController {
   private final ShotMetadataProvider shotMetadataProvider;
   private final TestVersionProvider testVersionProvider;
   private final ZwlProgramOutputProvider zwlProgramOutputProvider;
+  private final VMDeleteHandler vmDeleteHandler;
   
   @Autowired
   public RunnerController(APICoreProperties apiCoreProperties,
+                          SecretsManager secretsManager,
                           Storage storage,
                           CaptureShotHandler.Factory captureShotHandlerFactory,
                           BuildProvider buildProvider,
@@ -68,6 +72,7 @@ public class RunnerController {
                           TestVersionProvider testVersionProvider,
                           ZwlProgramOutputProvider zwlProgramOutputProvider) {
     this.apiCoreProperties = apiCoreProperties;
+    this.secretsManager = secretsManager;
     this.storage = storage;
     this.captureShotHandlerFactory = captureShotHandlerFactory;
     this.buildProvider = buildProvider;
@@ -77,6 +82,8 @@ public class RunnerController {
     this.shotMetadataProvider = shotMetadataProvider;
     this.testVersionProvider = testVersionProvider;
     this.zwlProgramOutputProvider = zwlProgramOutputProvider;
+    vmDeleteHandler = new VMDeleteHandler(apiCoreProperties, secretsManager, storage,
+        buildVMProvider);
   }
   
   @PostMapping
@@ -84,13 +91,26 @@ public class RunnerController {
       @Validated @RequestBody RequestBuildRun requestBuildRun) throws Exception {
     LOG.info("received request: {}", requestBuildRun.toString());
     
-    // get build
-    Optional<Build> b = buildProvider.getBuild(requestBuildRun.getBuildId());
-    if (!b.isPresent()) {
-      return processErrResponse(new IllegalArgumentException("The given buildId " +
-          requestBuildRun.getBuildId() + " doesn't exists"), HttpStatus.BAD_REQUEST);
+    Build build = null;
+    try {
+      // get build
+      Optional<Build> b = buildProvider.getBuild(requestBuildRun.getBuildId());
+      if (!b.isPresent()) {
+        return processErrResponse(new IllegalArgumentException("The given buildId " +
+            requestBuildRun.getBuildId() + " doesn't exists"), HttpStatus.BAD_REQUEST);
+      }
+      build = b.get();
+      return run0(requestBuildRun, build);
+    } finally {
+      // delete VM if an uncaught exception occurs before the session is created, after that
+      // VM deletion is taken care by run handler.
+      vmDeleteHandler.delete(build != null ? build.getBuildVMId() : null,
+          requestBuildRun.getVmDeleteUrl());
     }
-    Build build = b.get();
+  }
+  
+  private ResponseEntity<AbstractResponse> run0(RequestBuildRun requestBuildRun, Build build)
+      throws Exception {
     // get build capability
     BuildCapability buildCapability = build.getBuildCapability();
     // get test version
@@ -100,11 +120,11 @@ public class RunnerController {
       return processErrResponse(new IllegalArgumentException("The given buildId " +
           requestBuildRun.getBuildId() + " has no associated tests"), HttpStatus.BAD_REQUEST);
     }
-    
+  
     // Create build's directory for keeping logs and test assets
     Path buildDir = Paths.get(Configuration.SYS_DEF_TEMP_DIR, "build-" + build.getBuildId());
     Files.createDirectory(buildDir);
-    
+  
     // start driver session
     Optional<AbstractDriverSessionProvider> sessionProvider =
         new Configuration().getSessionProviderByBrowser(apiCoreProperties.getWebdriver(),
@@ -117,13 +137,15 @@ public class RunnerController {
     // no test versions with the build. Driver session can start without it as well but we should
     // validate that (and other possible things) before doing so.
     RemoteWebDriver driver = sessionProvider.get().createSession();
-    
+  
     // start a new thread to run the build asynchronously because the current request will now
     // return.
     BuildRunHandler buildRunHandler = new BuildRunHandler(requestBuildRun,
         apiCoreProperties,
+        secretsManager,
         storage,
         captureShotHandlerFactory,
+        buildProvider,
         buildStatusProvider,
         buildVMProvider,
         immutableMapProvider,
@@ -138,7 +160,7 @@ public class RunnerController {
     buildThread.setUncaughtExceptionHandler((t, e) -> LOG.error(e.getMessage(), e));
     threadMap.put(mainThreadName, buildThread);
     buildThread.start();
-    
+  
     return ResponseEntity.status(HttpStatus.OK).body(new ResponseBuildRun()
         .setSessionId(driver.getSessionId().toString())
         .setStatus(ResponseStatus.RUNNING.name()).setHttpStatusCode(HttpStatus.OK.value()));
@@ -155,10 +177,13 @@ public class RunnerController {
       return processErrResponse(new IllegalArgumentException("Thread for the given buildId isn't " +
           " alive" + buildId), HttpStatus.BAD_REQUEST);
     }
-    // don't attempt to check whether build was completed, in which case an interrupt shouldn't be
-    // issued as it may cause post build completion tasks to interrupt. Lets check this after build
-    // completion and discard any interrupts after build is completed.
-    buildThread.interrupt();
+    // don't interrupt thread to stop the build as it may raise InterruptedException from anywhere
+    // that I don't want to handle separately. Let's change the name of the thread to something
+    // that can be checked during build run and build could stop. Once build is completed and post
+    // completion tasks are running, stop request won't do anything as we won't check it's name
+    // change then (we don't want build to be halted once webdriver tests are completed and we're
+    // on post completion tasks like saving shots/logs.)
+    buildThread.setName(STOPPED_BUILD_MAIN_THREAD_STARTS_WITH + buildId);
     return ResponseEntity.status(HttpStatus.OK).body(new ResponseCommon()
         .setStatus(ResponseStatus.SUCCESS.name()).setHttpStatusCode(HttpStatus.OK.value()));
   }

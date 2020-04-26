@@ -90,18 +90,8 @@ abstract class AbstractUntilExpectation extends AbstractWebdriverFunction {
     return m.size() == 2 && m.containsKey(TIMEOUT_KEY) && m.containsKey(POLL_KEY);
   }
   
-  /**
-   * Gets instance of {@link WebDriverWait} using the given timeout type.
-   * Note that even if a wait by default ignores some exception, it doesn't mean the code using
-   * it can't handle ignored exceptions and return a custom value. When you handle that ignored
-   * exception on your own, it doesn't propagate to 'until' block and doesn't let it decide
-   * whether to ignore or throw. Ignoring an exception just gives you cleaner code so that you
-   * don't have to catch that every time and return a false/null to re-evaluate.
-   * @param timeoutType The default timeout this function uses, when a custom timeout is provided
-   *                    that will take precedence over this.
-   * @return a new instance of {@link WebDriverWait}
-   */
-  WebDriverWait getWait(TimeoutType timeoutType) {
+  @Override
+  protected WebDriverWait getWait(TimeoutType timeoutType, String timeoutMsg) {
     // if user has provided custom timeouts for this function try use that first
     int timeout;
     if (fltTimeoutMillis > 0) {
@@ -110,7 +100,25 @@ abstract class AbstractUntilExpectation extends AbstractWebdriverFunction {
       timeout = new Configuration().getTimeouts(wdProps, buildCapability, timeoutType);
     }
     int poll = fltPollMillis > 0 ? fltPollMillis : DEFAULT_POLL_EVERY_MILLIS;
-    
-    return new WebDriverWait(driver, Duration.ofMillis(timeout), Duration.ofMillis(poll));
+  
+    WebDriverWait wait =
+        new WebDriverWait(driver, Duration.ofMillis(timeout), Duration.ofMillis(poll));
+    wait.withMessage(timeoutMsg);
+    return wait;
+  }
+  
+  /**
+   * Gets instance of {@link WebDriverWait} using the given timeout type.
+   * @param timeoutType The default timeout this function uses, when a custom timeout is provided
+   *                    that will take precedence over this.
+   * @return a new instance of {@link WebDriverWait}
+   */
+  WebDriverWait getWait(TimeoutType timeoutType) {
+    // when timeout, exception message will say something like
+    // "Expected condition failed: waiting for untilxxx (ie the name of until function that
+    // timed-out). This is done to avoid a message need to be passed from all until functions and
+    // providing the parameters etc because it's clear from until function's name what were we
+    // waiting for.
+    return getWait(timeoutType, "waiting for " + getName());
   }
 }

@@ -1,24 +1,16 @@
 package com.zylitics.btbr.model;
 
+import com.zylitics.btbr.runner.TestStatus;
+
 import java.time.ZonedDateTime;
 
 public class BuildStatus {
-  
-  public static final String RUNNING = "RUNNING";
-  
-  public static final String ERROR = "ERROR";
-  
-  public static final String STOPPED = "STOPPED";
-  
-  public static final String ABORTED = "ABORTED";
-  
-  public static final String COMPLETED = "COMPLETED";
   
   private int buildId;
   
   private int testVersionId;
   
-  private String status;
+  private TestStatus status;
   
   private int zwlExecutingLine;
   
@@ -46,11 +38,11 @@ public class BuildStatus {
     return this;
   }
   
-  public String getStatus() {
+  public TestStatus getStatus() {
     return status;
   }
   
-  public BuildStatus setStatus(String status) {
+  public BuildStatus setStatus(TestStatus status) {
     this.status = status;
     return this;
   }

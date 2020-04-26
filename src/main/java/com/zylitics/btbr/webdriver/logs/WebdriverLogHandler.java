@@ -32,7 +32,8 @@ import java.util.stream.Collectors;
  *   </li>
  *   <li>
  *     After every {@link APICoreProperties.Webdriver#getWaitBetweenLogsCapture()} milli seconds,
- *     and upon the end of the build, runner should invoke {@link WebdriverLogHandler#capture()}.
+ *     and upon the end of the build (but before driver is quit, runner should invoke
+ *     {@link WebdriverLogHandler#capture()}.
  *   </li>
  *   <li>
  *     Note that the log capture happens in the same thread that is running the build at runner and

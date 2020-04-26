@@ -11,12 +11,22 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class FirefoxDriverSessionProvider extends AbstractDriverSessionProvider {
+  
+  private final File driverLogFile;
   
   public FirefoxDriverSessionProvider(APICoreProperties.Webdriver wdProps
       , BuildCapability buildCapability, Path buildDir) {
     super(wdProps, buildCapability, buildDir);
+    this.driverLogFile = getDriverLogFile();
+  }
+  
+  FirefoxDriverSessionProvider(APICoreProperties.Webdriver wdProps
+      , BuildCapability buildCapability, File driverLogFile) {
+    super(wdProps, buildCapability, Paths.get(""));
+    this.driverLogFile = driverLogFile;
   }
   
   @Override
@@ -26,12 +36,15 @@ public class FirefoxDriverSessionProvider extends AbstractDriverSessionProvider 
   
     GeckoDriverService driverService = new GeckoDriverService.Builder()
         .usingAnyFreePort()
-        .withLogFile(new File(getDriverLogFilePath()))
+        .withLogFile(driverLogFile)
         .build();
   
     FirefoxOptions firefox = new FirefoxOptions();
     firefox.merge(commonCapabilities);
-    firefox.setBinary(getBrowserBinaryPath());
+    String browserBinary = getBrowserBinaryPath();
+    if (browserBinary != null) {
+      firefox.setBinary(browserBinary);
+    }
     FirefoxDriverLogLevel logLevel =
         FirefoxDriverLogLevel.fromString(buildCapability.getWdFirefoxLogLevel());
     if (logLevel != null) {

@@ -14,15 +14,25 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
 public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
   
+  private final File driverLogFile;
+  
   public ChromeDriverSessionProvider(APICoreProperties.Webdriver wdProps
       , BuildCapability buildCapability, Path buildDir) {
     super(wdProps, buildCapability, buildDir);
+    this.driverLogFile = getDriverLogFile();
+  }
+  
+  ChromeDriverSessionProvider(APICoreProperties.Webdriver wdProps
+      , BuildCapability buildCapability, File driverLogFile) {
+    super(wdProps, buildCapability, Paths.get(""));
+    this.driverLogFile = driverLogFile;
   }
   
   @Override
@@ -32,7 +42,7 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
     
     ChromeDriverService driverService = new ChromeDriverService.Builder()
         .usingAnyFreePort()
-        .withLogFile(new File(getDriverLogFilePath()))
+        .withLogFile(driverLogFile)
         .withAppendLog(true)
         .withVerbose(buildCapability.isWdChromeVerboseLogging())
         .withSilent(buildCapability.isWdChromeSilentOutput())
@@ -40,7 +50,10 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
   
     ChromeOptions chrome = new ChromeOptions();
     chrome.merge(commonCapabilities);
-    chrome.setBinary(getBrowserBinaryPath());
+    String browserBinary = getBrowserBinaryPath();
+    if (browserBinary != null) {
+      chrome.setBinary(browserBinary);
+    }
     // chrome.addArguments("start-maximized"); don't use this for now as other browsers don't have
     // this option, also sometimes chrome doesn't start maximized even with this argument, it's
     // safe to explicitly send maximize every time.

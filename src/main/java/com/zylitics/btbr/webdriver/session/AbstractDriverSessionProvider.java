@@ -15,6 +15,7 @@ import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -106,22 +107,25 @@ public abstract class AbstractDriverSessionProvider {
     return caps;
   }
   
-  String getDriverLogFilePath() {
+  File getDriverLogFile() {
     if (!Files.isDirectory(buildDir)) {
       throw new RuntimeException(buildDir.toAbsolutePath().toString() + " isn't a directory");
     }
     Path driverLogsDir = buildDir.resolve(wdProps.getDriverLogsDir());
-    IOUtil.createNonExistingDir(driverLogsDir);
+    IOUtil.createDir(driverLogsDir);
     Path driverLogsFile = driverLogsDir.resolve(wdProps.getDriverLogsFile());
     // just send absolute path in string and don't create file, drivers should create the file if
     // it doesn't exist.
-    return driverLogsFile.toAbsolutePath().toString();
+    return new File(driverLogsFile.toAbsolutePath().toString());
   }
   
   // Note that similar to browser binary, we didn't give driver binary path here in java because the
   // driver version info is in db and batch script was already fetching and preparing that. We just
   // need to use that with the new application rather than grid.
   String getBrowserBinaryPath() {
+    if (buildCapability.getWdPlatformName().equals(Platform.MAC.name())) {
+      return null;
+    }
     String template = null;
     if (buildCapability.getWdPlatformName().equals(Platform.WINDOWS.name())) {
       template = BROWSER_BINARY_PATH_TEMPLATE_WIN;

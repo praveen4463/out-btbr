@@ -8,13 +8,23 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 
 public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
   
+  private final File driverLogFile;
+  
   public IEDriverSessionProvider(APICoreProperties.Webdriver wdProps
       , BuildCapability buildCapability, Path buildDir) {
     super(wdProps, buildCapability, buildDir);
+    this.driverLogFile = getDriverLogFile();
+  }
+  
+  IEDriverSessionProvider(APICoreProperties.Webdriver wdProps
+      , BuildCapability buildCapability, Path buildDir, File driverLogFile) {
+    super(wdProps, buildCapability, Paths.get(""));
+    this.driverLogFile = driverLogFile;
   }
   
   @Override
@@ -25,7 +35,7 @@ public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
   
     InternetExplorerDriverService driverService = new InternetExplorerDriverService.Builder()
         .usingAnyFreePort()
-        .withLogFile(new File(getDriverLogFilePath()))
+        .withLogFile(driverLogFile)
         .build();
     
     InternetExplorerOptions ie = new InternetExplorerOptions();

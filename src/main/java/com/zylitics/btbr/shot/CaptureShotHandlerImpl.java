@@ -195,7 +195,6 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
     }
   }
   
-  // After this method completes blocking, server should delete soon.
   @Override
   public void blockUntilFinish() {
     // it's good to check if its shutdown before attempting, saves some processing.
@@ -222,10 +221,7 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
         saveEOSShot();
       }
     } catch (InterruptedException e) {
-      // The main webdriver initiated thread is interrupted, probably server is going down for
-      // some unknown reason, shouldn't happen
-      LOG.error("Unexpected interruption of webdriver thread while waiting for shots process to " +
-          "finish", e);
+      LOG.error("Interrupted while waiting for shots process to finish", e);
     } finally {
       // let db-store flush it's pending records after and EOS or ERROR is processed.
       shotMetadataProvider.processRemainingAndTearDown();

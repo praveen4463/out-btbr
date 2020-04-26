@@ -22,23 +22,26 @@ api-core:
     # https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing
     min-idle-conn-pool: 2
   runner:
-    program_output_flush_no: 10
+    program-output-flush-no: 10
+    # later we may give it as build caps too for custom values, this is done so that non-webdriver
+    # code (which executes in microseconds) wouldn't put lot of load on db.
+    update-line-build-status-after: 1000
     # wzgp_auth_xx are used to authenticate to the vm deletion api.
-    wzgp_auth_user: prod-test
-    wzgp_auth_secret_cloud_file: zl-wzgp-prod-test-auth.encrypt
+    wzgp-auth-user: prod-test
+    wzgp-auth-secret-cloud-file: zl-wzgp-prod-test-auth.encrypt
   shot:
     ext: png
     content-type: image/png
     max-shot-finish-sec: 7200
     error-shot: ERROR
     eos-shot: EOS
-    shot_metadata_flush_records: 100
+    shot-metadata-flush-records: 100
   webdriver:
     server-logs-bucket: zl-server-logs
     user-data-bucket: zl-user-data
-    user-uploads-storage-dir-tmpl : USER_ID/uploads
     # this bucket keeps things like user uploaded files for testing file input in builds
     # etc.
+    user-uploads-storage-dir-tmpl : USER_ID/uploads
     supported-browsers:
       - chrome
       - firefox
