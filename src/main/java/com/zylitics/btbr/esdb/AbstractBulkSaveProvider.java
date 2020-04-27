@@ -13,6 +13,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+// The reason I needed to put a setter for required dependency BulkProcessor rather than taking it
+// in constructor is: One of the subclass of it (EsdbZwlProgramOutputProvider) can't create
+// instance of BulkProcessor in constructor because it required BuildCapability to do so and
+// BuildCapability is created only after spring has injected dependencies. If we didn't want these
+// providers as spring components, BulkProcessor would've been in constructor. For now I don't have
+// a better way to do it.
 abstract class AbstractBulkSaveProvider<T> implements BulkSaveProvider<T> {
   
   private static final Logger LOG = LoggerFactory.getLogger(AbstractBulkSaveProvider.class);

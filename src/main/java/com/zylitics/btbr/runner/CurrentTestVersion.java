@@ -25,6 +25,7 @@ public class CurrentTestVersion {
     return controlAtLineInProgram;
   }
   
+  @SuppressWarnings("UnusedReturnValue")
   public CurrentTestVersion setControlAtLineInProgram(int controlAtLineInProgram) {
     this.controlAtLineInProgram = controlAtLineInProgram;
     return this;

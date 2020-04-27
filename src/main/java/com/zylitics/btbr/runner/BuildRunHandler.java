@@ -1,7 +1,7 @@
 package com.zylitics.btbr.runner;
 
-import com.google.cloud.storage.Option;
 import com.google.cloud.storage.Storage;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.zylitics.btbr.SecretsManager;
 import com.zylitics.btbr.config.APICoreProperties;
@@ -72,7 +72,7 @@ public class BuildRunHandler {
   
   private Instant lastBuildStatusLineUpdateAt;
   
-  public BuildRunHandler(RequestBuildRun requestBuildRun,
+  private BuildRunHandler(RequestBuildRun requestBuildRun,
                          APICoreProperties apiCoreProperties,
                          SecretsManager secretsManager,
                          Storage storage,
@@ -111,8 +111,7 @@ public class BuildRunHandler {
         buildCapability.getShotBucketSessionStorage(),
         currentTestVersion);
     webdriverLogHandler = new WebdriverLogHandler(driver, wdProps, buildCapability, buildDir);
-    vmDeleteHandler = new VMDeleteHandler(apiCoreProperties, secretsManager, storage,
-        buildVMProvider);
+    vmDeleteHandler = new VMDeleteHandler(apiCoreProperties, secretsManager, buildVMProvider);
     
     storedPageLoadTimeout = buildCapability.getWdTimeoutsPageLoad();
     storedScriptTimeout = buildCapability.getWdTimeoutsScript();
@@ -152,7 +151,7 @@ public class BuildRunHandler {
   // all tasks should run independent of the result of any of previous task
   private void onBuildFinish(boolean stopOccurred) {
     // stop shots
-    captureShotHandler.stopShot(); // takes not time
+    captureShotHandler.stopShot(); // takes no time
     
     // flush program output
     zwlProgramOutputProvider.processRemainingAndTearDown(); // blocks until all output is pushed
@@ -297,6 +296,41 @@ public class BuildRunHandler {
     // once build is completed, even with errors, handle() will take care of it.
   }
   
+  private void sanitizeBetweenTests() {
+    if (buildCapability.isBuildAetKeepSingleWindow()) {
+      // delete any open windows and leave just one with about:blank, delete all cookies before
+      // reading new test
+      List<String> winHandles = new ArrayList<>(driver.getWindowHandles());
+      for (int i = 0; i < winHandles.size(); i++) {
+        driver.switchTo().window(winHandles.get(i));
+        if (i < winHandles.size() - 1) {
+          driver.close();
+        }
+      }
+      // maximizing and resetting url takes affect only when keep single window is true.
+      if (buildCapability.isWdBrwStartMaximize()) {
+        driver.manage().window().maximize();
+      }
+      if (buildCapability.isBuildAetUpdateUrlBlank()) {
+        driver.get("about:blank"); // "about local scheme" can be given to 'get' per webdriver spec
+      }
+    }
+    if (buildCapability.isBuildAetDeleteAllCookies()) {
+      driver.manage().deleteAllCookies(); // delete all cookies
+    }
+    if (buildCapability.isBuildAetResetTimeouts()) {
+      // rest driver timeouts to their default
+      driver.manage().timeouts().pageLoadTimeout(wdProps.getDefaultTimeoutPageLoad(),
+          TimeUnit.MILLISECONDS);
+      driver.manage().timeouts().setScriptTimeout(wdProps.getDefaultTimeoutScript(),
+          TimeUnit.MILLISECONDS);
+      // reset build capability timeouts to the stored timeouts
+      buildCapability.setWdTimeoutsElementAccess(storedElementAccessTimeout);
+      buildCapability.setWdTimeoutsPageLoad(storedPageLoadTimeout);
+      buildCapability.setWdTimeoutsScript(storedScriptTimeout);
+    }
+  }
+  
   // order of actions matter, they are in priority
   private void onZwlProgramLineChanged(int currentLine) {
     // check if we can't move forward
@@ -408,6 +442,19 @@ public class BuildRunHandler {
     testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.ERROR);
   }
   
+  private void validateTestVersionRunning(TestVersion testVersion) {
+    TestStatus currentStatus = testVersionsStatus.get(testVersion.getTestVersionId());
+    Preconditions.checkNotNull(currentStatus, "testVersionId " + testVersion.getTestVersionId() +
+        " doesn't have a state right now");
+    
+    // validate the version we're marking as success was actually RUNNING
+    if (currentStatus != TestStatus.RUNNING) {
+      throw new RuntimeException(String.format("Can't change state of testVersionId: %s because" +
+              "  it's not in RUNNING status. testVersionsStatus: %s",
+          testVersion.getTestVersionId(), testVersionsStatus));
+    }
+  }
+  
   // end date, start date, error are null for tests that couldn't run. status could be either
   // ABORTED or STOPPED
   private void saveTestVersionsNotRun(TestStatus status) {
@@ -467,7 +514,9 @@ public class BuildRunHandler {
     List<WebDriverException> exStack = new ArrayList<>();
     exStack.add(wdEx);
     while (wdEx.getCause() instanceof WebDriverException) {
-      exStack.add((WebDriverException) wdEx.getCause());
+      WebDriverException w = (WebDriverException) wdEx.getCause();
+      exStack.add(w);
+      wdEx = w;
     }
     int exStackSize = exStack.size();
     // from WebdriverException class, we need to strip the extra details added with the last
@@ -511,41 +560,6 @@ public class BuildRunHandler {
     return formatExClassAndMsg(t, t.getMessage());
   }
   
-  private void sanitizeBetweenTests() {
-    if (buildCapability.isBuildAetKeepSingleWindow()) {
-      // delete any open windows and leave just one with about:blank, delete all cookies before
-      // reading new test
-      List<String> winHandles = new ArrayList<>(driver.getWindowHandles());
-      for (int i = 0; i < winHandles.size(); i++) {
-        driver.switchTo().window(winHandles.get(i));
-        if (i < winHandles.size() - 1) {
-          driver.close();
-        }
-      }
-      // maximizing and resetting url takes affect only when keep single window is true.
-      if (buildCapability.isWdBrwStartMaximize()) {
-        driver.manage().window().maximize();
-      }
-      if (buildCapability.isBuildAetUpdateUrlBlank()) {
-        driver.get("about:blank"); // "about local scheme" can be given to 'get' per webdriver spec
-      }
-    }
-    if (buildCapability.isBuildAetDeleteAllCookies()) {
-      driver.manage().deleteAllCookies(); // delete all cookies
-    }
-    if (buildCapability.isBuildAetResetTimeouts()) {
-      // rest driver timeouts to their default
-      driver.manage().timeouts().pageLoadTimeout(wdProps.getDefaultTimeoutPageLoad(),
-          TimeUnit.MILLISECONDS);
-      driver.manage().timeouts().setScriptTimeout(wdProps.getDefaultTimeoutScript(),
-          TimeUnit.MILLISECONDS);
-      // reset build capability timeouts to the stored timeouts
-      buildCapability.setWdTimeoutsElementAccess(storedElementAccessTimeout);
-      buildCapability.setWdTimeoutsPageLoad(storedPageLoadTimeout);
-      buildCapability.setWdTimeoutsScript(storedScriptTimeout);
-    }
-  }
-  
   private void sendOutput(String message) {
     sendOutput(message, false);
   }
@@ -568,18 +582,38 @@ public class BuildRunHandler {
     }
   }
   
-  private void validateTestVersionRunning(TestVersion testVersion) {
-    // validate the version we're marking as success was actually RUNNING
-    if (testVersionsStatus.get(testVersion.getTestVersionId()) != TestStatus.RUNNING) {
-      throw new RuntimeException(String.format("Can't change state of testVersionId: %s because" +
-              "  it's not in RUNNING status. testVersionsStatus: %s",
-          testVersion.getTestVersionId(), testVersionsStatus));
+  static class Factory {
+    
+    BuildRunHandler create(RequestBuildRun requestBuildRun,
+                           APICoreProperties apiCoreProperties,
+                           SecretsManager secretsManager,
+                           Storage storage,
+                           CaptureShotHandler.Factory captureShotHandlerFactory,
+                           BuildProvider buildProvider,
+                           BuildStatusProvider buildStatusProvider,
+                           BuildVMProvider buildVMProvider,
+                           ImmutableMapProvider immutableMapProvider,
+                           ShotMetadataProvider shotMetadataProvider,
+                           ZwlProgramOutputProvider zwlProgramOutputProvider,
+                           RemoteWebDriver driver,
+                           Build build,
+                           List<TestVersion> testVersions,
+                           Path buildDir) {
+      return new BuildRunHandler(requestBuildRun,
+          apiCoreProperties,
+          secretsManager,
+          storage,
+          captureShotHandlerFactory,
+          buildProvider,
+          buildStatusProvider,
+          buildVMProvider,
+          immutableMapProvider,
+          shotMetadataProvider,
+          zwlProgramOutputProvider,
+          driver,
+          build,
+          testVersions,
+          buildDir);
     }
-  }
-  
-  private TestVersion getTestVersionById(int testVersionId) {
-    //noinspection OptionalGetWithoutIsPresent
-    return testVersions.stream().filter(t -> t.getTestVersionId() == testVersionId).findFirst()
-        .get();
   }
 }

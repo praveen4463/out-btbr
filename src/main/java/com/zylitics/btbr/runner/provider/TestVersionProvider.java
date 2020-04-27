@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface TestVersionProvider {
   
-  Optional<List<TestVersion>> getTestVersion(int buildId);
+  Optional<List<TestVersion>> getTestVersions(int buildId);
 }

@@ -25,4 +25,12 @@ public class BuildVM {
     this.deleteDate = deleteDate;
     return this;
   }
+  
+  @Override
+  public String toString() {
+    return "BuildVM{" +
+        "buildVMId=" + buildVMId +
+        ", deleteDate=" + deleteDate +
+        '}';
+  }
 }

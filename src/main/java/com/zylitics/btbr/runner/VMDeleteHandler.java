@@ -1,6 +1,7 @@
 package com.zylitics.btbr.runner;
 
 import com.google.cloud.storage.Storage;
+import com.google.common.base.Strings;
 import com.google.common.io.CharStreams;
 import com.zylitics.btbr.SecretsManager;
 import com.zylitics.btbr.config.APICoreProperties;
@@ -32,17 +33,26 @@ class VMDeleteHandler {
   
   private final APICoreProperties apiCoreProperties;
   private final SecretsManager secretsManager;
-  private final Storage storage;
   private final BuildVMProvider buildVMProvider;
+  private final HttpClient.Factory httpClientFactory;
   
   VMDeleteHandler(APICoreProperties apiCoreProperties,
                   SecretsManager secretsManager,
-                  Storage storage,
                   BuildVMProvider buildVMProvider) {
+    this(apiCoreProperties,
+        secretsManager,
+        buildVMProvider,
+        HttpClient.Factory.createDefault());
+  }
+  
+  VMDeleteHandler(APICoreProperties apiCoreProperties,
+                  SecretsManager secretsManager,
+                  BuildVMProvider buildVMProvider,
+                  HttpClient.Factory httpClientFactory) {
     this.apiCoreProperties = apiCoreProperties;
     this.secretsManager = secretsManager;
-    this.storage = storage;
     this.buildVMProvider = buildVMProvider;
+    this.httpClientFactory = httpClientFactory;
   }
   
   /**
@@ -54,6 +64,10 @@ class VMDeleteHandler {
   // still delete VM.
   // log any exception and don't throw.
   void delete(@Nullable Integer buildVMId, String vmDeleteUrl) {
+    if (Strings.isNullOrEmpty(vmDeleteUrl)) {
+      LOG.warn("No vm delete url is given, this VM will not be deleted from here");
+      return;
+    }
     try {
       if (buildVMId != null) {
         // update the deletion date
@@ -69,7 +83,7 @@ class VMDeleteHandler {
       String authHeader = Base64.getEncoder().encodeToString((apiCoreProperties
           .getRunner().getWzgpAuthUser() + ":" + secret).getBytes());
       
-      HttpClient client = HttpClient.Factory.createDefault().createClient(new URL(vmDeleteUrl));
+      HttpClient client = httpClientFactory.createClient(new URL(vmDeleteUrl));
       HttpRequest request = new HttpRequest(HttpMethod.DELETE, "");
       request.setHeader(AUTHORIZATION, authHeader);
       HttpResponse response = client.execute(request);

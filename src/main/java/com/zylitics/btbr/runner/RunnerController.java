@@ -21,7 +21,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -58,6 +57,9 @@ public class RunnerController {
   private final TestVersionProvider testVersionProvider;
   private final ZwlProgramOutputProvider zwlProgramOutputProvider;
   private final VMDeleteHandler vmDeleteHandler;
+  private final IOWrapper ioWrapper;
+  private final Configuration configuration;
+  private final BuildRunHandler.Factory buildRunHandlerFactory;
   
   @Autowired
   public RunnerController(APICoreProperties apiCoreProperties,
@@ -71,6 +73,38 @@ public class RunnerController {
                           ShotMetadataProvider shotMetadataProvider,
                           TestVersionProvider testVersionProvider,
                           ZwlProgramOutputProvider zwlProgramOutputProvider) {
+    this(apiCoreProperties,
+        secretsManager,
+        storage,
+        captureShotHandlerFactory,
+        buildProvider,
+        buildStatusProvider,
+        buildVMProvider,
+        immutableMapProvider,
+        shotMetadataProvider,
+        testVersionProvider,
+        zwlProgramOutputProvider,
+        new VMDeleteHandler(apiCoreProperties, secretsManager, buildVMProvider),
+        new IOWrapper(),
+        new Configuration(),
+        new BuildRunHandler.Factory());
+  }
+  
+  RunnerController(APICoreProperties apiCoreProperties,
+                   SecretsManager secretsManager,
+                   Storage storage,
+                   CaptureShotHandler.Factory captureShotHandlerFactory,
+                   BuildProvider buildProvider,
+                   BuildStatusProvider buildStatusProvider,
+                   BuildVMProvider buildVMProvider,
+                   ImmutableMapProvider immutableMapProvider,
+                   ShotMetadataProvider shotMetadataProvider,
+                   TestVersionProvider testVersionProvider,
+                   ZwlProgramOutputProvider zwlProgramOutputProvider,
+                   VMDeleteHandler vmDeleteHandler,
+                   IOWrapper ioWrapper,
+                   Configuration configuration,
+                   BuildRunHandler.Factory buildRunHandlerFactory) {
     this.apiCoreProperties = apiCoreProperties;
     this.secretsManager = secretsManager;
     this.storage = storage;
@@ -82,9 +116,12 @@ public class RunnerController {
     this.shotMetadataProvider = shotMetadataProvider;
     this.testVersionProvider = testVersionProvider;
     this.zwlProgramOutputProvider = zwlProgramOutputProvider;
-    vmDeleteHandler = new VMDeleteHandler(apiCoreProperties, secretsManager, storage,
-        buildVMProvider);
+    this.vmDeleteHandler = vmDeleteHandler;
+    this.ioWrapper = ioWrapper;
+    this.configuration = configuration;
+    this.buildRunHandlerFactory = buildRunHandlerFactory;
   }
+  
   
   @PostMapping
   public ResponseEntity<AbstractResponse> run(
@@ -115,7 +152,7 @@ public class RunnerController {
     BuildCapability buildCapability = build.getBuildCapability();
     // get test version
     Optional<List<TestVersion>> testVersions =
-        testVersionProvider.getTestVersion(build.getBuildId());
+        testVersionProvider.getTestVersions(build.getBuildId());
     if (!testVersions.isPresent()) {
       return processErrResponse(new IllegalArgumentException("The given buildId " +
           requestBuildRun.getBuildId() + " has no associated tests"), HttpStatus.BAD_REQUEST);
@@ -123,11 +160,11 @@ public class RunnerController {
   
     // Create build's directory for keeping logs and test assets
     Path buildDir = Paths.get(Configuration.SYS_DEF_TEMP_DIR, "build-" + build.getBuildId());
-    Files.createDirectory(buildDir);
+    ioWrapper.createDirectory(buildDir);
   
     // start driver session
     Optional<AbstractDriverSessionProvider> sessionProvider =
-        new Configuration().getSessionProviderByBrowser(apiCoreProperties.getWebdriver(),
+        configuration.getSessionProviderByBrowser(apiCoreProperties.getWebdriver(),
             buildCapability, buildDir);
     if (!sessionProvider.isPresent()) {
       return processErrResponse(new IllegalArgumentException("No session provider found for the" +
@@ -140,7 +177,7 @@ public class RunnerController {
   
     // start a new thread to run the build asynchronously because the current request will now
     // return.
-    BuildRunHandler buildRunHandler = new BuildRunHandler(requestBuildRun,
+    BuildRunHandler buildRunHandler = buildRunHandlerFactory.create(requestBuildRun,
         apiCoreProperties,
         secretsManager,
         storage,
@@ -155,6 +192,8 @@ public class RunnerController {
         build,
         testVersions.get(),
         buildDir);
+    // Note: in unit test, I can catch the current thread on buildRunHandler.handle method, store
+    // it, send a stop, and check it's name change to verify.
     String mainThreadName = BUILD_MAIN_THREAD_STARTS_WITH + build.getBuildId();
     Thread buildThread = new Thread(buildRunHandler::handle, mainThreadName);
     buildThread.setUncaughtExceptionHandler((t, e) -> LOG.error(e.getMessage(), e));
@@ -170,11 +209,11 @@ public class RunnerController {
   public ResponseEntity<AbstractResponse> stop(@RequestParam int buildId) {
     Thread buildThread = threadMap.get(BUILD_MAIN_THREAD_STARTS_WITH + buildId);
     if (buildThread == null) {
-      return processErrResponse(new IllegalArgumentException("There is no such thread running on " +
+      return processErrResponse(new IllegalArgumentException("There is no such thread running on" +
           " server that matches build " + buildId), HttpStatus.BAD_REQUEST);
     }
     if (!buildThread.isAlive()) {
-      return processErrResponse(new IllegalArgumentException("Thread for the given buildId isn't " +
+      return processErrResponse(new IllegalArgumentException("Thread for the given buildId isn't" +
           " alive" + buildId), HttpStatus.BAD_REQUEST);
     }
     // don't interrupt thread to stop the build as it may raise InterruptedException from anywhere

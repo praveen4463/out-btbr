@@ -56,6 +56,8 @@ class InterpreterVisitorProvider {
     this.zwlGlobals = zwlGlobals;
   }
   
+  // unit test can call this method, provide an instance of ZwlInterpreter and check that all
+  // necessary methods are with appropriate arguments.
   ZwlInterpreterVisitor get() {
     BuildCapability buildCapability = build.getBuildCapability();
     WebdriverFunctions wdFunctions = new WebdriverFunctions(wdProps,

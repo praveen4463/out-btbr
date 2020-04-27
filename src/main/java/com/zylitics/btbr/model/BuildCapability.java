@@ -2,8 +2,6 @@ package com.zylitics.btbr.model;
 
 public class BuildCapability {
 
-  private int buildCapabilityId;
-  
   private String shotBucketSessionStorage;
   
   private boolean shotTakeTestShot;
@@ -11,10 +9,6 @@ public class BuildCapability {
   private int programOutputFlushNo;
   
   private long programOutputFlushMillis;
-  
-  private String serverScreenSize;
-  
-  private String serverTimeZoneWithDst;
   
   private String wdBrowserName;
   
@@ -72,15 +66,6 @@ public class BuildCapability {
   
   private boolean buildAetDeleteAllCookies;
   
-  public int getBuildCapabilityId() {
-    return buildCapabilityId;
-  }
-  
-  public BuildCapability setBuildCapabilityId(int buildCapabilityId) {
-    this.buildCapabilityId = buildCapabilityId;
-    return this;
-  }
-  
   public String getShotBucketSessionStorage() {
     return shotBucketSessionStorage;
   }
@@ -90,6 +75,8 @@ public class BuildCapability {
     return this;
   }
   
+  // not in use currently but keeping
+  @SuppressWarnings("unused")
   public boolean isShotTakeTestShot() {
     return shotTakeTestShot;
   }
@@ -114,24 +101,6 @@ public class BuildCapability {
   
   public BuildCapability setProgramOutputFlushMillis(long programOutputFlushMillis) {
     this.programOutputFlushMillis = programOutputFlushMillis;
-    return this;
-  }
-  
-  public String getServerScreenSize() {
-    return serverScreenSize;
-  }
-  
-  public BuildCapability setServerScreenSize(String serverScreenSize) {
-    this.serverScreenSize = serverScreenSize;
-    return this;
-  }
-  
-  public String getServerTimeZoneWithDst() {
-    return serverTimeZoneWithDst;
-  }
-  
-  public BuildCapability setServerTimeZoneWithDst(String serverTimeZoneWithDst) {
-    this.serverTimeZoneWithDst = serverTimeZoneWithDst;
     return this;
   }
   
@@ -180,6 +149,7 @@ public class BuildCapability {
     return this;
   }
   
+  @SuppressWarnings("unused")
   public boolean isWdSetWindowRect() {
     return wdSetWindowRect;
   }
@@ -392,13 +362,10 @@ public class BuildCapability {
   @Override
   public String toString() {
     return "BuildCapability{" +
-        "buildCapabilityId=" + buildCapabilityId +
-        ", shotBucketSessionStorage='" + shotBucketSessionStorage + '\'' +
+        "shotBucketSessionStorage='" + shotBucketSessionStorage + '\'' +
         ", shotTakeTestShot=" + shotTakeTestShot +
         ", programOutputFlushNo=" + programOutputFlushNo +
         ", programOutputFlushMillis=" + programOutputFlushMillis +
-        ", serverScreenSize='" + serverScreenSize + '\'' +
-        ", serverTimeZoneWithDst='" + serverTimeZoneWithDst + '\'' +
         ", wdBrowserName='" + wdBrowserName + '\'' +
         ", wdBrowserVersion='" + wdBrowserVersion + '\'' +
         ", wdPlatformName='" + wdPlatformName + '\'' +
@@ -412,8 +379,7 @@ public class BuildCapability {
         ", wdUnhandledPromptBehavior='" + wdUnhandledPromptBehavior + '\'' +
         ", wdIeElementScrollBehavior='" + wdIeElementScrollBehavior + '\'' +
         ", wdIeEnablePersistentHovering=" + wdIeEnablePersistentHovering +
-        ", wdIeIntroduceFlakinessByIgnoringSecurityDomains=" +
-        wdIeIntroduceFlakinessByIgnoringSecurityDomains +
+        ", wdIeIntroduceFlakinessByIgnoringSecurityDomains=" + wdIeIntroduceFlakinessByIgnoringSecurityDomains +
         ", wdIeRequireWindowFocus=" + wdIeRequireWindowFocus +
         ", wdIeDisableNativeEvents=" + wdIeDisableNativeEvents +
         ", wdIeLogLevel='" + wdIeLogLevel + '\'' +

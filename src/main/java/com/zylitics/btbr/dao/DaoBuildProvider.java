@@ -5,6 +5,7 @@ import com.google.common.base.Strings;
 import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.runner.provider.BuildProvider;
+import com.zylitics.btbr.util.CollectionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -37,8 +38,6 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bc.shot_take_test_shot" +
         ", bc.program_output_flush_no" +
         ", bc.program_output_flush_millis" +
-        ", bc.server_screen_size" +
-        ", bc.server_timezone_with_dst" +
         ", bc.wd_browser_name" +
         ", bc.wd_browser_version" +
         ", bc.wd_platform_name" +
@@ -47,7 +46,6 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bc.wd_set_window_rect" +
         ", bc.wd_timeouts_script" +
         ", bc.wd_timeouts_page_load" +
-        ", bc.wd_timeouts_implicit" +
         ", bc.wd_timeouts_element_access" +
         ", bc.wd_strict_file_interactability" +
         ", bc.wd_unhandled_prompt_behavior" +
@@ -84,10 +82,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
             .setBuildCapability(new BuildCapability()
                 .setShotBucketSessionStorage(rs.getString("shot_bucket_session_storage"))
                 .setShotTakeTestShot(rs.getBoolean("shot_take_test_shot"))
-                .setServerScreenSize(rs.getString("server_screen_size"))
                 .setProgramOutputFlushNo(rs.getInt("program_output_flush_no"))
                 .setProgramOutputFlushMillis(rs.getLong("program_output_flush_millis"))
-                .setServerTimeZoneWithDst(rs.getString("server_timezone_with_dst"))
                 .setWdBrowserName(rs.getString("wd_browser_name"))
                 .setWdBrowserVersion(rs.getString("wd_browser_version"))
                 .setWdPlatformName(rs.getString("wd_platform_name"))
@@ -110,7 +106,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
                 .setWdChromeSilentOutput(rs.getBoolean("wd_chrome_silent_output"))
                 .setWdChromeEnableNetwork(rs.getBoolean("wd_chrome_enable_network"))
                 .setWdChromeEnablePage(rs.getBoolean("wd_chrome_enable_page"))
-                .setWdIeLogLevel(rs.getString("wd_firefox_log_level"))
+                .setWdFirefoxLogLevel(rs.getString("wd_firefox_log_level"))
                 .setWdBrwStartMaximize(rs.getBoolean("wd_brw_start_maximize"))
                 .setBuildAbortOnFailure(rs.getBoolean("build_abort_on_failure"))
                 .setBuildAetKeepSingleWindow(rs.getBoolean("build_aet_keep_single_window"))
@@ -128,7 +124,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
     String sql = "UPDATE bt_build SET end_date = :end_date, is_success = :is_success" +
         ", error = :error WHERE bt_build_id = :bt_build_id";
   
-    Map<String, SqlParameterValue> params = new HashMap<>(6);
+    Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(4));
     
     params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, build.getBuildId()));
     

@@ -39,6 +39,7 @@ public class TestVersion {
   public String toString() {
     return "TestVersion{" +
         "testVersionId=" + testVersionId +
+        ", name='" + name + '\'' +
         ", zwlProgram=" + zwlProgram +
         '}';
   }

@@ -11,10 +11,10 @@ import org.springframework.stereotype.Repository;
 import java.util.*;
 
 @Repository
-public class DaoMapProvider extends AbstractDaoProvider implements ImmutableMapProvider {
+public class DaoImmutableMapProvider extends AbstractDaoProvider implements ImmutableMapProvider {
   
   @Autowired
-  DaoMapProvider(NamedParameterJdbcTemplate jdbc) {
+  DaoImmutableMapProvider(NamedParameterJdbcTemplate jdbc) {
     super(jdbc);
   }
   

@@ -59,6 +59,7 @@ class CloudKMSSecretsManager implements SecretsManager {
   public void reAcquireClientAfterClose() throws IOException {
     if (isClosed) {
       client = KeyManagementServiceClient.create();
+      isClosed = false;
     }
   }
   
