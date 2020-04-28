@@ -1,0 +1,5 @@
+# elements screen capture test
+staticSitePrefix = staticSite.urlPrefix
+openUrl(staticSitePrefix + "select_list_c.html")
+switchFrame("iframe[name='result']")
+captureElementScreenshot("select[name='single']", "small-select.png")

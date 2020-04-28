@@ -48,78 +48,88 @@ public class RunnerController {
   private final APICoreProperties apiCoreProperties;
   private final SecretsManager secretsManager;
   private final Storage storage;
-  private final CaptureShotHandler.Factory captureShotHandlerFactory;
+  
+  // db providers
   private final BuildProvider buildProvider;
   private final BuildStatusProvider buildStatusProvider;
   private final BuildVMProvider buildVMProvider;
   private final ImmutableMapProvider immutableMapProvider;
-  private final ShotMetadataProvider shotMetadataProvider;
   private final TestVersionProvider testVersionProvider;
+  
+  // esdb providers
+  private final ShotMetadataProvider shotMetadataProvider;
   private final ZwlProgramOutputProvider zwlProgramOutputProvider;
+  
+  // factories
+  private final CaptureShotHandler.Factory captureShotHandlerFactory;
+  private final BuildRunHandler.Factory buildRunHandlerFactory;
+  
+  // handlers
   private final VMDeleteHandler vmDeleteHandler;
+  
   private final IOWrapper ioWrapper;
   private final Configuration configuration;
-  private final BuildRunHandler.Factory buildRunHandlerFactory;
   
   @Autowired
   public RunnerController(APICoreProperties apiCoreProperties,
                           SecretsManager secretsManager,
                           Storage storage,
-                          CaptureShotHandler.Factory captureShotHandlerFactory,
                           BuildProvider buildProvider,
                           BuildStatusProvider buildStatusProvider,
                           BuildVMProvider buildVMProvider,
                           ImmutableMapProvider immutableMapProvider,
-                          ShotMetadataProvider shotMetadataProvider,
                           TestVersionProvider testVersionProvider,
-                          ZwlProgramOutputProvider zwlProgramOutputProvider) {
+                          ShotMetadataProvider shotMetadataProvider,
+                          ZwlProgramOutputProvider zwlProgramOutputProvider,
+                          CaptureShotHandler.Factory captureShotHandlerFactory) {
     this(apiCoreProperties,
         secretsManager,
         storage,
-        captureShotHandlerFactory,
         buildProvider,
         buildStatusProvider,
         buildVMProvider,
         immutableMapProvider,
-        shotMetadataProvider,
         testVersionProvider,
+        shotMetadataProvider,
         zwlProgramOutputProvider,
+        captureShotHandlerFactory,
+        new BuildRunHandler.Factory(),
         new VMDeleteHandler(apiCoreProperties, secretsManager, buildVMProvider),
         new IOWrapper(),
-        new Configuration(),
-        new BuildRunHandler.Factory());
+        new Configuration()
+        );
   }
   
   RunnerController(APICoreProperties apiCoreProperties,
                    SecretsManager secretsManager,
                    Storage storage,
-                   CaptureShotHandler.Factory captureShotHandlerFactory,
                    BuildProvider buildProvider,
                    BuildStatusProvider buildStatusProvider,
                    BuildVMProvider buildVMProvider,
                    ImmutableMapProvider immutableMapProvider,
-                   ShotMetadataProvider shotMetadataProvider,
                    TestVersionProvider testVersionProvider,
+                   ShotMetadataProvider shotMetadataProvider,
                    ZwlProgramOutputProvider zwlProgramOutputProvider,
+                   CaptureShotHandler.Factory captureShotHandlerFactory,
+                   BuildRunHandler.Factory buildRunHandlerFactory,
                    VMDeleteHandler vmDeleteHandler,
                    IOWrapper ioWrapper,
-                   Configuration configuration,
-                   BuildRunHandler.Factory buildRunHandlerFactory) {
+                   Configuration configuration) {
     this.apiCoreProperties = apiCoreProperties;
     this.secretsManager = secretsManager;
     this.storage = storage;
-    this.captureShotHandlerFactory = captureShotHandlerFactory;
     this.buildProvider = buildProvider;
     this.buildStatusProvider = buildStatusProvider;
     this.buildVMProvider = buildVMProvider;
     this.immutableMapProvider = immutableMapProvider;
-    this.shotMetadataProvider = shotMetadataProvider;
     this.testVersionProvider = testVersionProvider;
+    this.shotMetadataProvider = shotMetadataProvider;
     this.zwlProgramOutputProvider = zwlProgramOutputProvider;
+    this.captureShotHandlerFactory = captureShotHandlerFactory;
+    this.buildRunHandlerFactory = buildRunHandlerFactory;
     this.vmDeleteHandler = vmDeleteHandler;
     this.ioWrapper = ioWrapper;
     this.configuration = configuration;
-    this.buildRunHandlerFactory = buildRunHandlerFactory;
   }
   
   
@@ -181,16 +191,16 @@ public class RunnerController {
         apiCoreProperties,
         secretsManager,
         storage,
-        captureShotHandlerFactory,
         buildProvider,
         buildStatusProvider,
         buildVMProvider,
         immutableMapProvider,
         shotMetadataProvider,
         zwlProgramOutputProvider,
-        driver,
         build,
         testVersions.get(),
+        captureShotHandlerFactory,
+        driver,
         buildDir);
     // Note: in unit test, I can catch the current thread on buildRunHandler.handle method, store
     // it, send a stop, and check it's name change to verify.

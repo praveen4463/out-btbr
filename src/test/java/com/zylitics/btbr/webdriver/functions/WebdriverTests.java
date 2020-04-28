@@ -1,5 +1,7 @@
 package com.zylitics.btbr.webdriver.functions;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.google.common.base.Charsets;
@@ -41,6 +43,7 @@ import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.PrintStream;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -56,8 +59,11 @@ import java.util.*;
  */
 public class WebdriverTests {
   
-  public static List<ANTLRErrorListener> DEFAULT_TEST_LISTENERS =
+  private static final List<ANTLRErrorListener> DEFAULT_TEST_LISTENERS =
       ImmutableList.of(ConsoleErrorListener.INSTANCE, new DiagnosticErrorListener());
+  
+  private static final String ELEMENT_SHOT_DIR = "element-shot";
+  private static final String ELEMENT_SHOT_NAME = "small-select";
   
   final APICoreProperties.Webdriver wdProps = getDefaultWDProps();
   final Storage storage = getStorage();
@@ -78,9 +84,9 @@ public class WebdriverTests {
   @Tag("all")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void allTests(Browsers browsers) throws Exception {
-    Assumptions.assumeFalse(shouldSkip(browsers), "Skipped");
-    setup(browsers);
+  void allTests(Browsers browser) throws Exception {
+    Assumptions.assumeFalse(shouldSkip(browser), "Skipped");
+    setup(browser);
     for (ZwlTests t : ZwlTests.values()) {
       //-------------------------------Sanitize start-----------------------------------------------
       // delete any open windows and leave just one with about:blank, delete all cookies before
@@ -104,56 +110,61 @@ public class WebdriverTests {
       ZwlApi zwlApi =
           new ZwlApi(Paths.get("resources/" + t.getFile()), Charsets.UTF_8, DEFAULT_TEST_LISTENERS);
       zwlApi.interpret(interpreterVisitor);
+      
+      if (t == ZwlTests.ELEMENT_CAPTURE_TEST) {
+        // element capture requires I/O access to check created file.
+        assertElementCapture();
+      }
     }
   }
   
   @Tag("basic")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void basicWdTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.BASIC_WD_TEST.getFile());
+  void basicWdTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.BASIC_WD_TEST.getFile());
   }
   
   @Tag("actions")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void actionsTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.ACTIONS_TEST.getFile());
+  void actionsTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.ACTIONS_TEST.getFile());
   }
   
   @Tag("color")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void colorTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.COLOR_TEST.getFile());
+  void colorTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.COLOR_TEST.getFile());
   }
   
   @Tag("context")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void contextTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.CONTEXT_TEST.getFile());
+  void contextTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.CONTEXT_TEST.getFile());
   }
   
   @Tag("cookie")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void cookieTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.COOKIE_TEST.getFile());
+  void cookieTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.COOKIE_TEST.getFile());
   }
   
   @Tag("document")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void documentTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.DOCUMENT_TEST.getFile());
+  void documentTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.DOCUMENT_TEST.getFile());
   }
   
   @Tag("einteraction")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void eInteractionTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.E_INTERACTION_TEST.getFile());
+  void eInteractionTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.E_INTERACTION_TEST.getFile());
   }
   
   @Tag("setfiles")
@@ -161,71 +172,95 @@ public class WebdriverTests {
   @Tag("io")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void setFilesTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.SET_FILES_TEST.getFile());
+  void setFilesTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.SET_FILES_TEST.getFile());
   }
   
   @Tag("einteractionkeys")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void eInteractionKeysTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.E_INTERACTION_KEYS_TEST.getFile());
+  void eInteractionKeysTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.E_INTERACTION_KEYS_TEST.getFile());
   }
   
   @Tag("elementretrieval")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void elementRetrievalTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.ELEMENT_RETRIEVAL_TEST.getFile());
+  void elementRetrievalTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.ELEMENT_RETRIEVAL_TEST.getFile());
   }
   
   @Tag("elementstate")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void elementStateTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.ELEMENT_STATE_TEST.getFile());
+  void elementStateTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.ELEMENT_STATE_TEST.getFile());
   }
   
   @Tag("navigation")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void navigationTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.NAVIGATION_TEST.getFile());
+  void navigationTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.NAVIGATION_TEST.getFile());
   }
   
   @Tag("prompts")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void promptsTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.PROMPTS_TEST.getFile());
+  void promptsTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.PROMPTS_TEST.getFile());
   }
   
   @Tag("select")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void selectTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.SELECT_TEST.getFile());
+  void selectTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.SELECT_TEST.getFile());
   }
   
   @Tag("storage")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void storageTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.STORAGE_TEST.getFile());
+  void storageTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.STORAGE_TEST.getFile());
   }
   
   @Tag("timeout")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void timeoutTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.TIMEOUT_TEST.getFile());
+  void timeoutTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.TIMEOUT_TEST.getFile());
   }
   
   @Tag("until")
   @ParameterizedTest
   @EnumSource(value = Browsers.class)
-  void untilTest(Browsers browsers) throws Exception {
-    run(browsers, ZwlTests.UNTIL_TEST.getFile());
+  void untilTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.UNTIL_TEST.getFile());
+  }
+  
+  @Tag("elemcapture")
+  @ParameterizedTest
+  @EnumSource(value = Browsers.class)
+  void elementScreenCaptureTest(Browsers browser) throws Exception {
+    run(browser, ZwlTests.ELEMENT_CAPTURE_TEST.getFile());
+    assertElementCapture();
+  }
+  
+  private void assertElementCapture() throws Exception {
+    Path elemShotDir = fakeBuildDir.resolve(wdProps.getElementShotDir());
+    if (!Files.isDirectory(elemShotDir)) {
+      return;
+    }
+    try (DirectoryStream<Path> pathStream = Files.newDirectoryStream(elemShotDir, "*.png")) {
+      Iterator<Path> pathIterator = pathStream.iterator();
+      assertTrue(pathIterator.hasNext());
+      Path elemShotPath = pathIterator.next();
+      String name = elemShotPath.getFileName().toString();
+      assertTrue(name.startsWith(ELEMENT_SHOT_NAME));
+      assertTrue(Files.size(elemShotPath) >= 1000); // should be atleast 1 KB
+      assertFalse(pathIterator.hasNext());
+    }
   }
   
   private void run(Browsers browser, String file) throws Exception {
@@ -263,39 +298,10 @@ public class WebdriverTests {
       ff.merge(caps);
       driver = new FirefoxDriver(GeckoDriverService.createDefaultService(), ff);
     } else if (browser.equals(Browsers.IE)) {
-      // IE driver has lot of custom capabilities available as ie options, their description could
-      // be found from the changelog
-      // https://raw.githubusercontent.com/SeleniumHQ/selenium/master/cpp/iedriverserver/CHANGELOG
-      // Also read the known issues and details of some workarounds from
-      // https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver
-      // Three files are important, InternetExplorerOptions, InternetExplorerDriver and
-      // InternetExplorerDriverService
       InternetExplorerOptions ie = new InternetExplorerOptions();
       ie.merge(caps);
       ie.withAttachTimeout(Duration.ofMillis(wdProps.getIeDefaultBrowserAttachTimeout()));
-      // enablePersistentHovering, not using for these tests but it may be useful in tests that need
-      // to hover over elements to bring them into visibility.
-      // elementScrollTo, keeping the default Top.
-      // ie.destructivelyEnsureCleanSession(); // holds up browser start and shows dialog that
-      // 'browser history being cleaned". We can do this on shutdown, so let's not use it.
-      // useCreateProcessApiToLaunchIe, useShellWindowsApiToAttachToIe not using for now until
-      // we get some problem in launch.
-
-      /*
-      Let's not enable this by default and give it to use to decide, give mostly all IE caps to them to decide as
-      there are of uncertainties and different use case may require different set of capabilities. requireWindowFocus
-      still have problems with element.sendKeys and doesn't send all keys which is very important requirement for
-      every test. Jim said in a post he has fixed it so it now doesn't truncate keys but this doesn't seems to be true.
-      When not using it there are some problems in mouse related tests, no all mouse related tests work well like drag
-      and drop but most others do and like other drivers the mouse pointer doesn't shows while moving, on the other hand
-      when using it, it shows a mouse moving and have better control (although much slower). Let's leave it on user to
-      decide what to do since we can't fix it, users that may want better mouse control perhaps use actions.sendKeys
-      instead while using this capability.
-      */
-      //ie.requireWindowFocus(); // this will be important for using native events, note that
-      // the browser window should always be in focus while the test is running.
       ie.waitForUploadDialogUpTo(Duration.ofMillis(wdProps.getIeDefaultFileUploadDialogTimeout()));
-      // ignoreZoomSettings, don't ignore zoom settings
       driver = new InternetExplorerDriver(InternetExplorerDriverService.createDefaultService(), ie);
     } else {
       throw new RuntimeException("can't run local build on " + browser.getName());
@@ -390,6 +396,7 @@ public class WebdriverTests {
     wd.setDefaultTimeoutNewWindow(10_000);
     wd.setIeDefaultBrowserAttachTimeout(5000);
     wd.setIeDefaultFileUploadDialogTimeout(5000);
+    wd.setElementShotDir(ELEMENT_SHOT_DIR);
     return wd;
   }
   

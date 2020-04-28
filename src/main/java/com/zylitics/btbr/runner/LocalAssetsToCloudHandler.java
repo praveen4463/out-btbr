@@ -1,4 +1,4 @@
-package com.zylitics.btbr.runner.task;
+package com.zylitics.btbr.runner;
 
 import com.google.cloud.WriteChannel;
 import com.google.cloud.storage.BlobInfo;
@@ -14,9 +14,9 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.*;
 
-public class LocalAssetsToCloud {
+public class LocalAssetsToCloudHandler {
   
-  private static final Logger LOG = LoggerFactory.getLogger(LocalAssetsToCloud.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LocalAssetsToCloudHandler.class);
   
   private static final String LOG_FILE_CONTENT_TYPE = "text/plain";
   
@@ -30,9 +30,9 @@ public class LocalAssetsToCloud {
   
   private final Path buildDir;
   
-  public LocalAssetsToCloud(APICoreProperties.Webdriver wdProps,
-                            Storage storage,
-                            Path buildDir) {
+  public LocalAssetsToCloudHandler(APICoreProperties.Webdriver wdProps,
+                                   Storage storage,
+                                   Path buildDir) {
     Preconditions.checkNotNull(wdProps, "wdProps can't be null");
     Preconditions.checkNotNull(storage, "storage can't be null");
     Preconditions.checkNotNull(buildDir, "buildDir can't be null");

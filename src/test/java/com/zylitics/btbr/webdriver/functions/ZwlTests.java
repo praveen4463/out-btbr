@@ -18,7 +18,8 @@ public enum ZwlTests {
   SET_FILES_TEST ("SetFilesTest.zwl"),
   STORAGE_TEST ("StorageTest.zwl"),
   TIMEOUT_TEST ("TimeoutTest.zwl"),
-  UNTIL_TEST ("UntilTest.zwl");
+  UNTIL_TEST ("UntilTest.zwl"),
+  ELEMENT_CAPTURE_TEST ("ElementCaptureTest.zwl");
   
   private final String file;
   

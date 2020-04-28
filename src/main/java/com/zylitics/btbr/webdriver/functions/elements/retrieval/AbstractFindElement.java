@@ -2,7 +2,6 @@ package com.zylitics.btbr.webdriver.functions.elements.retrieval;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
-import com.zylitics.btbr.webdriver.TimeoutType;
 import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.ZwlValue;
 import com.zylitics.zwl.exception.InvalidTypeException;

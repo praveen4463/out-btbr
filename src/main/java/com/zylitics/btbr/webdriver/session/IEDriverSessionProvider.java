@@ -22,7 +22,7 @@ public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
   }
   
   IEDriverSessionProvider(APICoreProperties.Webdriver wdProps
-      , BuildCapability buildCapability, Path buildDir, File driverLogFile) {
+      , BuildCapability buildCapability, File driverLogFile) {
     super(wdProps, buildCapability, Paths.get(""));
     this.driverLogFile = driverLogFile;
   }
@@ -37,7 +37,14 @@ public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
         .usingAnyFreePort()
         .withLogFile(driverLogFile)
         .build();
-    
+  
+    // IE driver has lot of custom capabilities available as ie options, their description could
+    // be found from the changelog
+    // https://raw.githubusercontent.com/SeleniumHQ/selenium/master/cpp/iedriverserver/CHANGELOG
+    // Also read the known issues and details of some workarounds from
+    // https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver
+    // Three files are important, InternetExplorerOptions, InternetExplorerDriver and
+    // InternetExplorerDriverService
     InternetExplorerOptions ie = new InternetExplorerOptions();
     ie.merge(commonCapabilities);
     InternetExplorerDriverLogLevel logLevel = null;
@@ -53,6 +60,7 @@ public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
       ie.addCommandSwitches(String.format("--log-level=%s", logLevel.name())); // use name()
       // method rather than toString(), cause IE driver requires exact name as enum identifier.
     }
+    
     ie.withAttachTimeout(Duration.ofMillis(wdProps.getIeDefaultBrowserAttachTimeout()));
     ie.waitForUploadDialogUpTo(Duration.ofMillis(wdProps.getIeDefaultFileUploadDialogTimeout()));
     ElementScrollBehavior scrollBehavior =
@@ -61,17 +69,35 @@ public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
       ie.elementScrollTo(scrollBehavior);
     }
     if (buildCapability.isWdIeEnablePersistentHovering()) {
+      // Useful in tests that need to hover over elements to bring them into visibility.
       ie.enablePersistentHovering();
     }
     if (buildCapability.isWdIeIntroduceFlakinessByIgnoringSecurityDomains()) {
       ie.introduceFlakinessByIgnoringSecurityDomains();
     }
+    /*
+      Let's not enable this by default and give it to use to decide, give mostly all IE caps to them
+      to decide as there are of uncertainties and different use case may require different set of
+      capabilities. requireWindowFocus still have problems with element.sendKeys and doesn't send
+      all keys which is very important requirement for every test. Jim said in a post he has fixed
+      it so it now doesn't truncate keys but this doesn't seems to be true. When not using it there
+      are some problems in mouse related tests, no all mouse related tests work well like drag and
+      drop but most others do and like other drivers the mouse pointer doesn't shows while moving,
+      on the other hand when using it, it shows a mouse moving and have better control (although
+      much slower). Let's leave it on user to decide what to do since we can't fix it, users that
+      may want better mouse control perhaps use actions.sendKeys instead while using this
+      capability. Note that the browser window should always be in focus while the test is running.
+      */
     if (buildCapability.isWdIeRequireWindowFocus()) {
       ie.requireWindowFocus();
     }
     if (buildCapability.isWdIeDisableNativeEvents()) {
       ie.disableNativeEvents();
     }
+    // ie.destructivelyEnsureCleanSession(); // holds up browser start and shows dialog that
+    // 'browser history being cleaned". We can do this on shutdown, so let's not use it.
+    // useCreateProcessApiToLaunchIe, useShellWindowsApiToAttachToIe not using for now until
+    // we get some problem in launch.
     
     return new InternetExplorerDriver(driverService, ie);
   }
