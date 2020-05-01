@@ -1,7 +1,6 @@
 package com.zylitics.btbr.webdriver.constants;
 
 import com.google.common.collect.ImmutableMap;
-import com.zylitics.btbr.webdriver.functions.elements.retrieval.ByType;
 import com.zylitics.zwl.datatype.StringZwlValue;
 import com.zylitics.zwl.datatype.ZwlValue;
 

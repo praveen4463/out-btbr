@@ -1,6 +1,5 @@
 package com.zylitics.btbr.webdriver.constants;
 
-import org.openqa.selenium.devtools.browser.Browser;
 import org.openqa.selenium.remote.BrowserType;
 
 public enum Browsers {

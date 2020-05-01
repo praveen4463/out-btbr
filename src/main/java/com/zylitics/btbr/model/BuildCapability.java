@@ -42,6 +42,8 @@ public class BuildCapability {
   
   private boolean wdIeDisableNativeEvents;
   
+  private boolean wdIeDestructivelyEnsureCleanSession;
+  
   private String wdIeLogLevel;
   
   private boolean wdChromeVerboseLogging;
@@ -248,6 +250,16 @@ public class BuildCapability {
   
   public BuildCapability setWdIeDisableNativeEvents(boolean wdIeDisableNativeEvents) {
     this.wdIeDisableNativeEvents = wdIeDisableNativeEvents;
+    return this;
+  }
+  
+  public boolean isWdIeDestructivelyEnsureCleanSession() {
+    return wdIeDestructivelyEnsureCleanSession;
+  }
+  
+  public BuildCapability setWdIeDestructivelyEnsureCleanSession(
+      boolean wdIeDestructivelyEnsureCleanSession) {
+    this.wdIeDestructivelyEnsureCleanSession = wdIeDestructivelyEnsureCleanSession;
     return this;
   }
   

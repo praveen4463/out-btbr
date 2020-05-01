@@ -90,6 +90,22 @@ public class WebdriverFunctions {
     this.buildDir = buildDir;
   }
   
+  public WebdriverFunctions(BuildCapability buildCapability,
+                            PrintStream printStream) {
+    Preconditions.checkNotNull(buildCapability, "buildCapability can't be null");
+    Preconditions.checkNotNull(printStream, "printStream can't be null");
+    if (!buildCapability.isDryRunning()) {
+      throw new RuntimeException("This constructor can't be used when dry running is unintended");
+    }
+    this.wdProps = null;
+    this.buildCapability = buildCapability;
+    this.driver = null;
+    this.printStream = printStream;
+    this.storage = null;
+    this.pathToUploadedFiles = null;
+    this.buildDir = null;
+  }
+  
   public Set<Function> get() {
     ImmutableSet.Builder<Function> builder = ImmutableSet.builder();
     builder.add(

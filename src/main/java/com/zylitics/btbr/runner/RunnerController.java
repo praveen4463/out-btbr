@@ -28,11 +28,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-/*
- * We create a new app instance for every build run request this it is ok to keep global variables
- * if they are required.
- * I'm trying not to make this controller look like it is build to handle a single request and die
- * in hope that we may need to use single instance for multiple request atleast locally.
+/**
+ * Supports running multiple builds one after another. This could happen when builds are run in
+ * debug mode and same VM is used for running multiple builds.
  */
 @RestController
 @RequestMapping("${app-short-version}/builds")
@@ -137,6 +135,11 @@ public class RunnerController {
   public ResponseEntity<AbstractResponse> run(
       @Validated @RequestBody RequestBuildRun requestBuildRun) throws Exception {
     LOG.info("received request: {}", requestBuildRun.toString());
+    // validate no build is currently running
+    if (threadMap.values().stream().anyMatch(Thread::isAlive)) {
+      return processErrResponse(new IllegalArgumentException("Can't run a new build here because" +
+          " something is already running"), HttpStatus.BAD_REQUEST);
+    }
     
     Build build = null;
     try {

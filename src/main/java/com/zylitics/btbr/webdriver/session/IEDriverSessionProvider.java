@@ -94,6 +94,10 @@ public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
     if (buildCapability.isWdIeDisableNativeEvents()) {
       ie.disableNativeEvents();
     }
+    if (buildCapability.isWdIeDestructivelyEnsureCleanSession()) {
+      // users may want to enable this when build is running in debug mode.
+      ie.destructivelyEnsureCleanSession();
+    }
     // ie.destructivelyEnsureCleanSession(); // holds up browser start and shows dialog that
     // 'browser history being cleaned". We can do this on shutdown, so let's not use it.
     // useCreateProcessApiToLaunchIe, useShellWindowsApiToAttachToIe not using for now until

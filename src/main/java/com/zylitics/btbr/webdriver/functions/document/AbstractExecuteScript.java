@@ -45,6 +45,10 @@ public abstract class AbstractExecuteScript extends AbstractWebdriverFunction {
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
   
+    if (buildCapability.isDryRunning()) {
+      return evaluateDefValue(defaultValue);
+    }
+  
     int argsCount = args.size();
     if (argsCount < 1) {
       throw unexpectedEndOfFunctionOverload(argsCount);
@@ -122,5 +126,15 @@ public abstract class AbstractExecuteScript extends AbstractWebdriverFunction {
     }
     
     throw new IllegalArgumentException("Couldn't recognize the type of " + val); // shouldn't happen
+  }
+  
+  @Override
+  protected ZwlValue getFuncDefReturnValue() {
+    return new NothingZwlValue();
+  }
+  
+  @Override
+  protected String getFuncReturnType() {
+    return Types.OBJECT;
   }
 }

@@ -3,6 +3,7 @@ package com.zylitics.btbr.webdriver.functions.navigation;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
+import com.zylitics.zwl.datatype.Types;
 import com.zylitics.zwl.datatype.ZwlValue;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
@@ -38,6 +39,10 @@ public class OpenUrl extends AbstractWebdriverFunction {
   public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
+  
+    if (buildCapability.isDryRunning()) {
+      return evaluateDefValue(defaultValue);
+    }
     
     if (args.size() == 0) {
       throw unexpectedEndOfFunctionOverload(args.size());
@@ -46,5 +51,15 @@ public class OpenUrl extends AbstractWebdriverFunction {
       driver.get(tryCastString(0, args.get(0)));
       return _void;
     });
+  }
+  
+  @Override
+  protected ZwlValue getFuncDefReturnValue() {
+    return _void;
+  }
+  
+  @Override
+  protected String getFuncReturnType() {
+    return Types.VOID;
   }
 }

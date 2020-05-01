@@ -2,6 +2,8 @@ package com.zylitics.btbr.webdriver.functions.elements.retrieval;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.webdriver.constants.ByType;
+import com.zylitics.btbr.webdriver.constants.FuncDefReturnValue;
 import com.zylitics.btbr.webdriver.functions.AbstractWebdriverFunction;
 import com.zylitics.zwl.datatype.ZwlValue;
 import com.zylitics.zwl.exception.InvalidTypeException;
@@ -34,6 +36,10 @@ abstract class AbstractFindElement extends AbstractWebdriverFunction {
   public ZwlValue invoke(List<ZwlValue> args, Supplier<ZwlValue> defaultValue,
                          Supplier<String> lineNColumn) {
     super.invoke(args, defaultValue, lineNColumn);
+    
+    if (buildCapability.isDryRunning()) {
+      return evaluateDefValue(defaultValue);
+    }
     
     int argsCount = args.size();
     if (argsCount == 0) {

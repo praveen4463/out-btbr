@@ -6,8 +6,9 @@ import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.util.CollectionUtil;
 import com.zylitics.btbr.webdriver.Configuration;
 import com.zylitics.btbr.webdriver.TimeoutType;
-import com.zylitics.btbr.webdriver.functions.elements.retrieval.ByType;
+import com.zylitics.btbr.webdriver.constants.ByType;
 import com.zylitics.zwl.datatype.*;
+import com.zylitics.zwl.exception.InvalidTypeException;
 import com.zylitics.zwl.exception.ZwlLangException;
 import com.zylitics.zwl.function.AbstractFunction;
 import org.openqa.selenium.*;
@@ -61,9 +62,16 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
     this.buildCapability = buildCapability;
     this.driver = driver;
     this.printStream = printStream;
-    options = driver.manage();
-    window = options.window();
-    targetLocator = driver.switchTo();
+    // little ugly due to the support for dry run later during development where driver is null
+    if (driver != null) {
+      options = driver.manage();
+      window = options.window();
+      targetLocator = driver.switchTo();
+    } else {
+      options = null;
+      window = null;
+      targetLocator = null;
+    }
   }
   
   @Override
@@ -345,5 +353,38 @@ public abstract class AbstractWebdriverFunction extends AbstractFunction {
         break;
     }
     return by;
+  }
+  
+  //protected abstract ZwlValue getFuncDefReturnValue();
+  
+  //protected abstract String getFuncReturnType();
+  
+  protected ZwlValue getFuncDefReturnValue() {return new NothingZwlValue();}
+  
+  protected String getFuncReturnType() {return Types.NOTHING;}
+  
+  protected ZwlValue evaluateDefValue(Supplier<ZwlValue> userSuppliedDefValue) {
+    String funcReturnType = getFuncReturnType();
+    // If this function's return type is 'void', return void without checking anything else.
+    if (funcReturnType.equals(Types.VOID)) {
+      return _void;
+    }
+    ZwlValue funcDefReturnValue = getFuncDefReturnValue();
+    ZwlValue userSupplied = userSuppliedDefValue.get();
+    // if user didn't supply a value, return function's default
+    if (userSupplied.getNothingValue().isPresent()) {
+      return funcDefReturnValue;
+    }
+    // if user supplied a value, check what is the return type of function. If it's OBJECT,
+    // return whatever user has supplied else check the type of user's value and match it with the
+    // return type of function.
+    if (funcReturnType.equals(Types.OBJECT)
+        || userSupplied.getType().equals(funcReturnType)) {
+      return userSupplied;
+    }
+    // throw if the type doesn't match.
+    throw new InvalidTypeException(String.format("The type of supplied value is '%s' whereas" +
+        " the function '%s' returns value of type '%s'. %s", userSupplied.getType(), getName(),
+        funcReturnType, lineNColumn.get()));
   }
 }

@@ -1,4 +1,4 @@
-package com.zylitics.btbr.webdriver.functions.elements.retrieval;
+package com.zylitics.btbr.webdriver.constants;
 
 public enum ByType {
   

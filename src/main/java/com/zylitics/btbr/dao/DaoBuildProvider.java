@@ -54,6 +54,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bc.wd_ie_introduce_flakiness_by_ignoring_security_domains" +
         ", bc.wd_ie_require_window_focus" +
         ", bc.wd_ie_disable_native_events" +
+        ", bc.wd_ie_destructively_ensure_clean_session" +
         ", bc.wd_ie_log_level" +
         ", bc.wd_chrome_verbose_logging" +
         ", bc.wd_chrome_silent_output" +
@@ -101,6 +102,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
                     "wd_ie_introduce_flakiness_by_ignoring_security_domains"))
                 .setWdIeRequireWindowFocus(rs.getBoolean("wd_ie_require_window_focus"))
                 .setWdIeDisableNativeEvents(rs.getBoolean("wd_ie_disable_native_events"))
+                .setWdIeDestructivelyEnsureCleanSession(
+                    rs.getBoolean("wd_ie_destructively_ensure_clean_session"))
                 .setWdIeLogLevel(rs.getString("wd_ie_log_level"))
                 .setWdChromeVerboseLogging(rs.getBoolean("wd_chrome_verbose_logging"))
                 .setWdChromeSilentOutput(rs.getBoolean("wd_chrome_silent_output"))

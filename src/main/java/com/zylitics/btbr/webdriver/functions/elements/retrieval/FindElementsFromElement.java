@@ -2,6 +2,7 @@ package com.zylitics.btbr.webdriver.functions.elements.retrieval;
 
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.webdriver.constants.ByType;
 import com.zylitics.zwl.datatype.ZwlValue;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
