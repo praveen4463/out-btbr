@@ -13,7 +13,7 @@ import com.zylitics.btbr.util.DateTimeUtil;
 import com.zylitics.btbr.webdriver.logs.WebdriverLogHandler;
 import com.zylitics.zwl.antlr4.StoringErrorListener;
 import com.zylitics.zwl.api.ZwlApi;
-import com.zylitics.zwl.api.ZwlInterpreterVisitor;
+import com.zylitics.zwl.api.ZwlWdTestProperties;
 import com.zylitics.zwl.exception.ZwlLangException;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.slf4j.Logger;
@@ -201,23 +201,23 @@ public class BuildRunHandler {
     }
   }
   
+  
+  
   private void run() {
     // initialize things
     zwlProgramOutputProvider.setBuildCapability(buildCapability);
     
-    // get Zwl interpreter visitor
+    // get ZwlWdTestProperties
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    ZwlInterpreterVisitor zwlInterpreterVisitor = new InterpreterVisitorProvider(
+    ZwlWdTestProperties zwlWdTestProperties = new ZwlWdTestPropertiesImpl(
         wdProps,
         storage,
-        this::onZwlProgramLineChanged,
         build,
         driver,
         printStream,
         immutableMapProvider.getMapFromTable("zwl_preferences").get(),
         buildDir,
-        immutableMapProvider.getMapFromTable("zwl_globals").get())
-        .get();
+        immutableMapProvider.getMapFromTable("zwl_globals").get());
     
     // let's start the build
     boolean firstTest = true;
@@ -241,7 +241,8 @@ public class BuildRunHandler {
       try {
         // handle exceptions only while reading the code, other exceptions will be relayed to
         // handle()
-        zwlApi.interpret(zwlInterpreterVisitor);
+        zwlApi.interpret(zwlWdTestProperties,
+            z -> z.setLineChangeListener(this::onZwlProgramLineChanged));
       } catch (Throwable t) {
         onTestVersionFailed(testVersion, t);
         // try to run other versions only when the exception is a ZwlLangException, cause it's very

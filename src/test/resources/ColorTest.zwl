@@ -1,7 +1,0 @@
-# Color functions
-
-openUrl("https://developer.mozilla.org/en-US/docs/Web/API/Document/drag_event")
-switchFrame("#frame_Examples")
-dropZoneColor = getElementCssValue(".dropzone:nth-of-type(1)", "background-color")
-assertTrue(colorMatches(colors.blueviolet, dropZoneColor))
-assertTrue(colorMatches("#8a2be2", dropZoneColor))
