@@ -1,12 +1,11 @@
 package com.zylitics.btbr.runner.provider;
 
+import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.model.ZwlProgramOutput;
+import org.elasticsearch.client.RestHighLevelClient;
 
 public interface ZwlProgramOutputProvider extends BulkSaveProvider<ZwlProgramOutput> {
-  
-  /** This should be invoked, before using any method of this interface. */
-  void setBuildCapability(BuildCapability buildCapability);
   
   @Override
   default boolean throwIfTurnedDown() {
@@ -16,5 +15,12 @@ public interface ZwlProgramOutputProvider extends BulkSaveProvider<ZwlProgramOut
   @Override
   default boolean throwOnException() {
     return false;
+  }
+  
+  interface Factory {
+    
+    ZwlProgramOutputProvider create(APICoreProperties apiCoreProperties,
+                                    RestHighLevelClient client,
+                                    BuildCapability buildCapability);
   }
 }

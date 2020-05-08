@@ -49,9 +49,11 @@ public class LocalAssetsToCloudHandler {
     storeElemShots();
   
     // get driver logs
+    LOG.debug("Looking for driver logs to store");
     Path driverLogsFile =
         buildDir.resolve(wdProps.getDriverLogsDir()).resolve(wdProps.getDriverLogsFile());
     if (Files.exists(driverLogsFile) && !Files.isDirectory(driverLogsFile)) {
+      LOG.debug("Storing driver logs at {}", driverLogsFile);
       BlobInfo blobInfo = BlobInfo.newBuilder(wdProps.getServerLogsBucket(),
           getBlobName(wdProps.getDriverLogsDir(), wdProps.getDriverLogsFile()))
           .setContentType(LOG_FILE_CONTENT_TYPE).build();
@@ -59,9 +61,11 @@ public class LocalAssetsToCloudHandler {
     }
     
     // get client logs
+    LOG.debug("Looking for client logs to store");
     Path clientLogsFile =
         buildDir.resolve(wdProps.getInternalLogsDir()).resolve(wdProps.getClientLogsFile());
     if (Files.exists(clientLogsFile) && !Files.isDirectory(clientLogsFile)) {
+      LOG.debug("Storing client logs at {}", clientLogsFile);
       BlobInfo blobInfo = BlobInfo.newBuilder(wdProps.getServerLogsBucket(),
           getBlobName(wdProps.getInternalLogsDir(), wdProps.getClientLogsFile()))
           .setContentType(LOG_FILE_CONTENT_TYPE).build();
@@ -69,9 +73,11 @@ public class LocalAssetsToCloudHandler {
     }
   
     // get profiler logs
+    LOG.debug("Looking for profiler logs to store");
     Path profilerLogsFile =
         buildDir.resolve(wdProps.getInternalLogsDir()).resolve(wdProps.getProfilerLogsFile());
     if (Files.exists(profilerLogsFile) && !Files.isDirectory(profilerLogsFile)) {
+      LOG.debug("Storing profiler logs at {}", profilerLogsFile);
       BlobInfo blobInfo = BlobInfo.newBuilder(wdProps.getServerLogsBucket(),
           getBlobName(wdProps.getInternalLogsDir(), wdProps.getProfilerLogsFile()))
           .setContentType(LOG_FILE_CONTENT_TYPE).build();
@@ -79,9 +85,11 @@ public class LocalAssetsToCloudHandler {
     }
   
     // get performance logs
+    LOG.debug("Looking for performance logs to store");
     Path perfLogsFile =
         buildDir.resolve(wdProps.getBrowserPerfLogsDir()).resolve(wdProps.getBrowserPerfLogsFile());
     if (Files.exists(perfLogsFile) && !Files.isDirectory(perfLogsFile)) {
+      LOG.debug("Storing performance logs at {}", perfLogsFile);
       BlobInfo blobInfo = BlobInfo.newBuilder(wdProps.getServerLogsBucket(),
           getBlobName(wdProps.getBrowserPerfLogsDir(), wdProps.getBrowserPerfLogsFile()))
           .setContentType(LOG_FILE_CONTENT_TYPE).build();
@@ -91,6 +99,7 @@ public class LocalAssetsToCloudHandler {
   
   private void storeElemShots() {
     // get element shots
+    LOG.debug("Looking for element shots to store");
     Path elemShotDir = buildDir.resolve(wdProps.getElementShotDir());
     if (!Files.isDirectory(elemShotDir)) {
       return;
@@ -98,6 +107,7 @@ public class LocalAssetsToCloudHandler {
     try (DirectoryStream<Path> pathStream = Files.newDirectoryStream(elemShotDir, "*.png")) {
       for (Path path : pathStream) {
         String name = path.getFileName().toString();
+        LOG.debug("Storing element shot {}", name);
         BlobInfo blobInfo = BlobInfo.newBuilder(wdProps.getServerLogsBucket()
             , getBlobName(wdProps.getElementShotDir(), name))
             .setContentEncoding("image/png").build();

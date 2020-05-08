@@ -1,6 +1,6 @@
 package com.zylitics.btbr.model;
 
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 
 public class Build {
 
@@ -12,7 +12,7 @@ public class Build {
   
   private int buildVMId;
   
-  private ZonedDateTime endDate;
+  private OffsetDateTime endDate;
   
   private boolean isSuccess;
   
@@ -56,11 +56,11 @@ public class Build {
     return this;
   }
   
-  public ZonedDateTime getEndDate() {
+  public OffsetDateTime getEndDate() {
     return endDate;
   }
   
-  public Build setEndDate(ZonedDateTime endDate) {
+  public Build setEndDate(OffsetDateTime endDate) {
     this.endDate = endDate;
     return this;
   }

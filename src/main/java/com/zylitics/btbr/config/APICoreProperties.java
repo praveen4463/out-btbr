@@ -81,7 +81,7 @@ public class APICoreProperties {
     private String userSecretCloudFile;
   
     @NotBlank
-    private String connNameCloudFile;
+    private String privateHostCloudFile;
     
     @Min(1)
     private Short minIdleConnPool;
@@ -116,13 +116,13 @@ public class APICoreProperties {
       }
     }
   
-    public String getConnNameCloudFile() {
-      return connNameCloudFile;
+    public String getPrivateHostCloudFile() {
+      return privateHostCloudFile;
     }
   
-    public void setConnNameCloudFile(String connNameCloudFile) {
-      if (this.connNameCloudFile == null) {
-        this.connNameCloudFile = connNameCloudFile;
+    public void setPrivateHostCloudFile(String privateHostCloudFile) {
+      if (this.privateHostCloudFile == null) {
+        this.privateHostCloudFile = privateHostCloudFile;
       }
     }
   

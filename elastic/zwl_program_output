@@ -1,8 +1,8 @@
 # index definition for index zwl_program_output
-# ended column specified that the output for the build+version combination is ended.
+# ended column specify that the output for the build+version combination is ended.
 # later we may need to add output_level field so that user can opt the verbosity of the output
 # logs.
-curl -X PUT "localhost:9200/zwl_program_output?pretty" -H 'Content-Type: application/json' -d'
+    curl -X PUT "localhost:9200/zwl_program_output?pretty" -H 'Content-Type: application/json' -d'
 {
   "mappings": {
     "properties": {
@@ -16,9 +16,8 @@ curl -X PUT "localhost:9200/zwl_program_output?pretty" -H 'Content-Type: applica
         "type": "text"
       },
       "ended": {
-        "type": "boolean",
-        "index": false
-      }
+        "type": "boolean"
+      },
       "create_date": {
         "type": "date"
       }
@@ -40,6 +39,7 @@ curl -X POST "localhost:9200/zwl_program_output/_doc?pretty" -H 'Content-Type: a
   "bt_build_id": 32,
   "bt_test_version_id": 123,
   "output": "currently executing line 323",
+  "ended": false,
   "create_date": "2019-11-23 07:54:01.456 UTC"
 }
 '

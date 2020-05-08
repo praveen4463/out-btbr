@@ -9,14 +9,13 @@
   <name>zl-btbr</name>
   <url>http://maven.apache.org</url>
   <properties>
-    <selenium.java.version>4.0.0-alpha-4</selenium.java.version>
+    <selenium.version>4.0.0-alpha-4</selenium.version>
     <zwl.version>0.1.3-SNAPSHOT</zwl.version>
     <stackdriver.logback.version>0.117.0-alpha</stackdriver.logback.version>
     <google.cloud.storage.version>1.107.0</google.cloud.storage.version>
     <google.cloud.kms.version>1.38.0</google.cloud.kms.version>
-    <pgjdbc.version>42.2.9</pgjdbc.version>
-    <postgres.socket.factory.version>1.0.15</postgres.socket.factory.version>
-    <elasticsearch.client.version>7.4.2</elasticsearch.client.version>
+    <postgresql.version>42.2.12</postgresql.version>
+    <elasticsearch.version>7.6.2</elasticsearch.version>
     <mockito.version>3.1.0</mockito.version>
     <skipTest>false</skipTest>
   </properties>
@@ -46,37 +45,37 @@
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-java</artifactId>
-      <version>${selenium.java.version}</version>
+      <version>${selenium.version}</version>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-api</artifactId>
-      <version>${selenium.java.version}</version>
+      <version>${selenium.version}</version>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-chrome-driver</artifactId>
-      <version>${selenium.java.version}</version>
+      <version>${selenium.version}</version>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-firefox-driver</artifactId>
-      <version>${selenium.java.version}</version>
+      <version>${selenium.version}</version>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-ie-driver</artifactId>
-      <version>${selenium.java.version}</version>
+      <version>${selenium.version}</version>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-remote-driver</artifactId>
-      <version>${selenium.java.version}</version>
+      <version>${selenium.version}</version>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-support</artifactId>
-      <version>${selenium.java.version}</version>
+      <version>${selenium.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
@@ -96,17 +95,12 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>${pgjdbc.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.cloud.sql</groupId>
-      <artifactId>postgres-socket-factory</artifactId>
-      <version>${postgres.socket.factory.version}</version>
+      <version>${postgresql.version}</version>
     </dependency>
     <dependency>
       <groupId>org.elasticsearch.client</groupId>
       <artifactId>elasticsearch-rest-high-level-client</artifactId>
-      <version>${elasticsearch.client.version}</version>
+      <version>${elasticsearch.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -116,27 +110,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webflux</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-params</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-junit-jupiter</artifactId>
-      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

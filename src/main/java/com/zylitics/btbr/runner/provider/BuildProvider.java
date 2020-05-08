@@ -8,6 +8,6 @@ public interface BuildProvider {
   
   Optional<Build> getBuild(int buildId);
   
-  /** Updates all update-requiring fields in build table. Returns the number of rows affected. */
-  int updateBuild(Build build);
+  /** Updates the build upon completion */
+  int updateOnComplete(BuildUpdateOnComplete buildUpdateOnComplete);
 }

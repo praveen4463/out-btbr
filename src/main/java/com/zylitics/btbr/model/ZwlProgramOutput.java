@@ -1,6 +1,6 @@
 package com.zylitics.btbr.model;
 
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 
 public class ZwlProgramOutput {
   
@@ -12,7 +12,7 @@ public class ZwlProgramOutput {
   
   private boolean ended;
   
-  private ZonedDateTime createDate;
+  private OffsetDateTime createDate;
   
   public int getBuildId() {
     return buildId;
@@ -50,11 +50,11 @@ public class ZwlProgramOutput {
     return this;
   }
   
-  public ZonedDateTime getCreateDate() {
+  public OffsetDateTime getCreateDate() {
     return createDate;
   }
   
-  public ZwlProgramOutput setCreateDate(ZonedDateTime createDate) {
+  public ZwlProgramOutput setCreateDate(OffsetDateTime createDate) {
     this.createDate = createDate;
     return this;
   }

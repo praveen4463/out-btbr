@@ -63,3 +63,12 @@ curl -XGET "localhost:9200/bt_shot_metadata/_search?pretty" -H 'Content-Type: ap
   "size": 1000
 }
 '
+
+curl -XGET "localhost:9200/bt_shot_metadata/_search?pretty" -H 'Content-Type: application/json' -d '
+{
+  "query": {
+    "match": {"bt_build_id":8}
+  },
+  "size": 1000
+}
+'

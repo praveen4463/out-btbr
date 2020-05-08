@@ -5,6 +5,7 @@ import com.google.common.base.Strings;
 import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.runner.provider.BuildProvider;
+import com.zylitics.btbr.runner.provider.BuildUpdateOnComplete;
 import com.zylitics.btbr.util.CollectionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.SqlParameterValue;
@@ -120,27 +121,27 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
   }
   
   @Override
-  public int updateBuild(Build build) {
-    Preconditions.checkNotNull(build, "build can't be null");
-    Preconditions.checkNotNull(build.getEndDate(), "endDate can't be null");
+  public int updateOnComplete(BuildUpdateOnComplete buildUpdateOnComplete) {
+    Preconditions.checkNotNull(buildUpdateOnComplete, "buildUpdateOnComplete can't be null");
     
     String sql = "UPDATE bt_build SET end_date = :end_date, is_success = :is_success" +
         ", error = :error WHERE bt_build_id = :bt_build_id";
   
     Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(4));
-    
-    params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, build.getBuildId()));
-    
+  
+    params.put("bt_build_id", new SqlParameterValue(Types.INTEGER,
+        buildUpdateOnComplete.getBuildId()));
+  
     params.put("end_date", new SqlParameterValue(Types.TIMESTAMP_WITH_TIMEZONE
-        , build.getEndDate()));
-    
-    params.put("is_success", new SqlParameterValue(Types.BOOLEAN, build.isSuccess()));
-    
-    params.put("error", new SqlParameterValue(
-        Strings.isNullOrEmpty(build.getError()) ? Types.NULL : Types.VARCHAR, build.getError()));
-        
+        , buildUpdateOnComplete.getEndDate()));
+  
+    params.put("is_success", new SqlParameterValue(Types.BOOLEAN,
+        buildUpdateOnComplete.isSuccess()));
+  
+    params.put("error", new SqlParameterValue(Types.OTHER, buildUpdateOnComplete.getError()));
+  
     SqlParameterSource namedParams = new MapSqlParameterSource(params);
-    
+  
     return jdbc.update(sql, namedParams);
   }
 }

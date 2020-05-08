@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -267,7 +267,7 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
     };
   }
   
-  private ShotMetadata getShotMetadata(String shotIdentifier, ZonedDateTime dateTime) {
+  private ShotMetadata getShotMetadata(String shotIdentifier, OffsetDateTime dateTime) {
     return new ShotMetadata()
         .setShotName(getShotName(shotIdentifier))
         .setBuildId(build.getBuildId())

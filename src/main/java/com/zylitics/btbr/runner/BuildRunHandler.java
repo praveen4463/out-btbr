@@ -2,7 +2,6 @@ package com.zylitics.btbr.runner;
 
 import com.google.cloud.storage.Storage;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.zylitics.btbr.SecretsManager;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.http.RequestBuildRun;
@@ -176,10 +175,15 @@ public class BuildRunHandler {
   }
   
   void handle() {
+    Thread.currentThread().setUncaughtExceptionHandler((t, e) -> LOG.error(e.getMessage(), e));
     boolean stopOccurred = false;
+    LOG.debug("Build should start shortly");
     try {
       run();
     } catch(Throwable t) {
+      LOG.debug("An exception was thrown while running the build {}.{}",
+          t.getClass().getSimpleName(), t.getMessage());
+      LOG.error(t.getMessage(), t);
       if (t instanceof StopRequestException) {
         stopOccurred = true;
         // a stop has arrived while the build was running
@@ -187,42 +191,31 @@ public class BuildRunHandler {
       } else {
         updateBuildStatusOnError();
       }
-      //ZwlLangException or WebdriverException should be relayed as is to user
-      // handle exceptions, relay to user appropriate message by pushing message against the current
-      // versionId, if no versionId is in current, means we got error before running test thus just
-      // push 'didn't start due to error' message
-      
-      // interpreted exception will be written against the version that is currently running.
-      
-      // build will get just 'stop requested' or 'exception occurred' etc messages.
-      LOG.error(t.getMessage(), t);
     } finally {
+      LOG.debug("Finishing the build");
       onBuildFinish(stopOccurred);
     }
   }
   
-  
-  
   private void run() {
-    // initialize things
-    zwlProgramOutputProvider.setBuildCapability(buildCapability);
-    
+    LOG.debug("Initializing ZwlWdTestProperties");
     // get ZwlWdTestProperties
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     ZwlWdTestProperties zwlWdTestProperties = new ZwlWdTestPropertiesImpl(
         wdProps,
         storage,
         build,
         driver,
         printStream,
-        immutableMapProvider.getMapFromTable("zwl_preferences").get(),
+        immutableMapProvider.getMapFromTable("zwl_preferences").orElse(null),
         buildDir,
-        immutableMapProvider.getMapFromTable("zwl_globals").get());
+        immutableMapProvider.getMapFromTable("zwl_globals").orElse(null));
     
     // let's start the build
     boolean firstTest = true;
     for (TestVersion testVersion : testVersions) {
+      LOG.debug("Starting testVersion {}", getTestVersionIdentifier(testVersion));
       if (!firstTest) {
+        LOG.debug("Going to sanitize before running next test");
         // sanitize only after the first version is completed
         sanitizeBetweenTests();
       }
@@ -231,12 +224,15 @@ public class BuildRunHandler {
       // new version with blank screen.
       onTestVersionStart(testVersion);
       if (firstTest) {
+        LOG.debug("Going to perform one time actions during testVersion(s) run");
         // run only for the first time, keep it after 'onTestVersionStart' as this starts shot
         // process that need test version detail.
         onBuildStart();
         firstTest = false;
       }
       String code = testVersion.getZwlProgram().getCode();
+      LOG.debug("Going to run the code {} for testVersion {}", code,
+          getTestVersionIdentifier(testVersion));
       ZwlApi zwlApi = new ZwlApi(code, Collections.singletonList(storingErrorListener));
       try {
         // handle exceptions only while reading the code, other exceptions will be relayed to
@@ -244,17 +240,23 @@ public class BuildRunHandler {
         zwlApi.interpret(zwlWdTestProperties,
             z -> z.setLineChangeListener(this::onZwlProgramLineChanged));
       } catch (Throwable t) {
+        LOG.debug("An exception occurred while running testVersion {}: {}.{}",
+            getTestVersionIdentifier(testVersion), t.getClass().getSimpleName(), t.getMessage());
         onTestVersionFailed(testVersion, t);
         // try to run other versions only when the exception is a ZwlLangException, cause it's very
         // unlikely any other test will pass when there is a problem in our application that caused
         // an unknown exception.
         if (t instanceof ZwlLangException && !buildCapability.isBuildAbortOnFailure()) {
+          LOG.debug("Will continue running from next testVersion after an error in {}",
+              getTestVersionIdentifier(testVersion));
           // when we continue, log the exception.
           LOG.error(t.getMessage(), t);
           continue;
         }
+        LOG.debug("Will not continue to next testVersion, throwing exception");
         throw t; // handle() will catch it
       }
+      LOG.debug("testVersion {} was successful", getTestVersionIdentifier(testVersion));
       onTestVersionSuccess(testVersion);
     }
     // once build is completed, even with errors, handle() will take care of it.
@@ -262,9 +264,12 @@ public class BuildRunHandler {
   
   // order of actions matter, they are in priority
   private void onZwlProgramLineChanged(int currentLine) {
+    LOG.debug("onZwlProgramLineChanged invoked for line {}", currentLine);
     // check if we can't move forward
     if (Thread.currentThread().getName().equals(
         RunnerController.STOPPED_BUILD_MAIN_THREAD_STARTS_WITH + build.getBuildId())) {
+      LOG.debug("A stop request has arrived while running {}",
+          currentTestVersion.getTestVersionId());
       // a stop request arrived, handle() will catch the thrown exception.
       throw new StopRequestException("A STOP was requested");
     }
@@ -275,10 +280,10 @@ public class BuildRunHandler {
     // push build status line update after a delay
     if (ChronoUnit.MILLIS.between(lastBuildStatusLineUpdateAt, clock.instant()) >=
         apiCoreProperties.getRunner().getUpdateLineBuildStatusAfter()) {
-      int result = buildStatusProvider.updateLine(new BuildStatus()
-          .setBuildId(build.getBuildId())
-          .setTestVersionId(currentTestVersion.getTestVersionId())
-          .setZwlExecutingLine(currentLine));
+      LOG.debug("Pushing a line update for testVersion {}, line {}",
+          currentTestVersion.getTestVersionId(), currentLine);
+      int result = buildStatusProvider.updateLine(new BuildStatusUpdateLine(build.getBuildId(),
+          currentTestVersion.getTestVersionId(), currentLine));
       validateSingleRowDbCommit(result);
       // reset to current instant
       lastBuildStatusLineUpdateAt = clock.instant();
@@ -291,6 +296,7 @@ public class BuildRunHandler {
     // so capture them again
     if (ChronoUnit.MILLIS.between(lastLogCheckAt, clock.instant()) >=
         wdProps.getWaitBetweenLogsCapture()) {
+      LOG.debug("Capturing logs in onZwlProgramLineChanged");
       webdriverLogHandler.capture();
       // reset to current instant
       lastLogCheckAt = clock.instant();
@@ -299,9 +305,12 @@ public class BuildRunHandler {
   
   private void sanitizeBetweenTests() {
     if (buildCapability.isBuildAetKeepSingleWindow()) {
+      LOG.debug("Cleaning up opened windows, maximizing browser..");
       // delete any open windows and leave just one with about:blank, delete all cookies before
       // reading new test
       List<String> winHandles = new ArrayList<>(driver.getWindowHandles());
+      LOG.debug("Found total windows {}, will close extra windows and keep single",
+          winHandles.size());
       for (int i = 0; i < winHandles.size(); i++) {
         driver.switchTo().window(winHandles.get(i));
         if (i < winHandles.size() - 1) {
@@ -310,16 +319,20 @@ public class BuildRunHandler {
       }
       // maximizing and resetting url takes affect only when keep single window is true.
       if (buildCapability.isWdBrwStartMaximize()) {
+        LOG.debug("Maximizing the window");
         driver.manage().window().maximize();
       }
       if (buildCapability.isBuildAetUpdateUrlBlank()) {
+        LOG.debug("Setting up blank url to window");
         driver.get("about:blank"); // "about local scheme" can be given to 'get' per webdriver spec
       }
     }
     if (buildCapability.isBuildAetDeleteAllCookies()) {
+      LOG.debug("Deleting all cookies");
       driver.manage().deleteAllCookies(); // delete all cookies
     }
     if (buildCapability.isBuildAetResetTimeouts()) {
+      LOG.debug("Resetting timeouts");
       // rest driver timeouts to their default
       driver.manage().timeouts().pageLoadTimeout(wdProps.getDefaultTimeoutPageLoad(),
           TimeUnit.MILLISECONDS);
@@ -332,35 +345,42 @@ public class BuildRunHandler {
     }
   }
   
+  // Order is precise, db interactions are not top so that if it fails, we don't mark the version
+  // Running
   private void onTestVersionStart(TestVersion testVersion) {
+    LOG.debug("onTestVersionStart invoked for testVersion {}",
+        getTestVersionIdentifier(testVersion));
+    
+    validateSingleRowDbCommit(buildStatusProvider.saveOnStart(
+        new BuildStatusSaveOnStart(build.getBuildId(), testVersion.getTestVersionId(),
+            TestStatus.RUNNING, DateTimeUtil.getCurrentUTC())));
+  
     // set the line to 0 when a new version starts, we do this after test is sanitize and just
     // one window is there with blank url, thus it's safe to change the version. It's ok if a few
     // shots go with line 0 as the test has not really yet started, once it has started line would
     // already have changed.
     currentTestVersion.setTestVersionId(testVersion.getTestVersionId())
         .setControlAtLineInProgram(0);
-    
-    // put a record in build status
-    BuildStatus buildStatus = new BuildStatus()
-        .setBuildId(build.getBuildId())
-        .setTestVersionId(testVersion.getTestVersionId())
-        .setStatus(TestStatus.RUNNING)
-        .setStartDate(DateTimeUtil.getCurrentUTC());
-    validateSingleRowDbCommit(buildStatusProvider.save(buildStatus));
-    
-    printStream.println("Executing test version " + testVersion.getName());
-    
+  
     testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.RUNNING);
+    
+    printStream.println("Executing test version " + getTestVersionIdentifier(testVersion));
+    
+    LOG.debug("onTestVersionStart completed for testVersion {}",
+        getTestVersionIdentifier(testVersion));
   }
   
   // do things that require only one time execution/invocation on build start
   private void onBuildStart() {
+    LOG.debug("onBuildStart invoked");
     // maximize the driver window if user didn't say otherwise
     if (buildCapability.isWdBrwStartMaximize()) {
+      LOG.debug("Maximizing browser window");
       driver.manage().window().maximize();
     }
     
     // begin capturing shot
+    LOG.debug("Starting shots capture");
     captureShotHandler.startShot();
     
     // assign current instant to log capture instant, so that log capture waits for sometime
@@ -373,25 +393,32 @@ public class BuildRunHandler {
   }
   
   private void onTestVersionFailed(TestVersion testVersion, Throwable t) {
+    LOG.debug("onTestVersionFailed invoked for testVersion {}, exception {}",
+        getTestVersionIdentifier(testVersion),
+        t.getMessage());
     // we do this to make sure the version we're marking error was first marked running and
     // actually had an entry in BuildStatus
     validateTestVersionRunning(testVersion);
     
     String exMessage = exceptionTranslationProvider.get(t);
+    LOG.debug("Translated error message is {}", exMessage);
     // update build status
     updateBuildStatus(testVersion.getTestVersionId(), TestStatus.ERROR, exMessage);
     
     // once a version's execution is done, push a message, don't use printStream as we need to send
     // another argument.
-    String outputMsg =
-        "Exception occurred during execution of test version " + testVersion.getName();
+    String outputMsg = "Exception occurred during execution of test version " +
+        getTestVersionIdentifier(testVersion);
     sendOutput(outputMsg + ":\n" + exMessage, true);
     
     // Now mark this test version as error
     testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.ERROR);
+    LOG.debug("current testVersionStatus is {}", testVersionsStatus);
   }
   
   private void onTestVersionSuccess(TestVersion testVersion) {
+    LOG.debug("onTestVersionSuccess invoked for testVersion {}",
+        getTestVersionIdentifier(testVersion));
     // we do this to make sure the version we're marking success was first marked running and
     // actually had an entry in BuildStatus
     validateTestVersionRunning(testVersion);
@@ -401,13 +428,16 @@ public class BuildRunHandler {
     
     // once a version's execution is done, push a message, don't use printStream as we need to send
     // another argument.
-    sendOutput("Completed execution for test version " + testVersion.getName(), true);
+    sendOutput("Completed execution for test version " + getTestVersionIdentifier(testVersion),
+        true);
     
     // Now mark this test version as completed
     testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.SUCCESS);
   }
   
   private void validateTestVersionRunning(TestVersion testVersion) {
+    LOG.debug("Validating testVersion {} is actually in {} state",
+        getTestVersionIdentifier(testVersion), TestStatus.RUNNING);
     TestStatus currentStatus = testVersionsStatus.get(testVersion.getTestVersionId());
     Preconditions.checkNotNull(currentStatus, "testVersionId " + testVersion.getTestVersionId() +
         " doesn't have a state right now");
@@ -428,36 +458,45 @@ public class BuildRunHandler {
   // in real time. Quitting the driver can happen late as it doesn't matter even if the browser
   // window is left open, we're not running anything after reaching this step anyway.
   private void onBuildFinish(boolean stopOccurred) {
+    LOG.debug("onBuildFinish was invoked");
     // stop shots
+    LOG.debug("Shots are going to stop");
     captureShotHandler.stopShot(); // takes no time
     
     // update build, very quick
     updateBuildOnFinish(stopOccurred);
     
     // flush program output, blocks.
+    LOG.debug("pushing program output and waiting");
     zwlProgramOutputProvider.processRemainingAndTearDown();
     // blocks until all output is pushed, should take lesser time than waiting for shots to process
     // because we push output in small bulk while shots in larger.
     
     // flush shots, may block long time.
+    LOG.debug("pushing shots and waiting");
     captureShotHandler.blockUntilFinish();
     
     // capture logs final time before quit
+    LOG.debug("capturing logs one last time");
     webdriverLogHandler.capture();
     
     // quit the driver.
+    LOG.debug("Quitting the driver");
     driver.quit();
     
     // store logs
+    LOG.debug("storing capture logs to cloud");
     localAssetsToCloudHandler.store();
     
     // delete VM
+    LOG.debug("deleting the VM");
     vmDeleteHandler.delete(build.getBuildVMId(), requestBuildRun.getVmDeleteUrl());
   }
   
   private void updateBuildOnFinish(boolean stopOccurred) {
+    LOG.debug("updateBuildOnFinish was invoked");
     boolean isSuccess = false;
-    String exMsg = "";
+    String exMsg = null;
     boolean allSuccess = testVersionsStatus.values().stream()
         .allMatch(e -> e == TestStatus.SUCCESS);
     if (allSuccess && testVersionsStatus.keySet().containsAll(testVersions.stream()
@@ -472,21 +511,18 @@ public class BuildRunHandler {
         exMsg = "An exception occurred, check test version(s) of this build for details";
       }
     }
-    
-    Build buildUpdate = new Build()
-        .setBuildId(build.getBuildId())
-        .setSuccess(isSuccess)
-        .setError(exMsg)
-        .setEndDate(DateTimeUtil.getCurrentUTC());
+    LOG.debug("was the build succeeded? {}, if no, the derived error is {}", isSuccess, exMsg);
     // don't throw an exception from here
     try {
-      validateSingleRowDbCommit(buildProvider.updateBuild(buildUpdate));
+      validateSingleRowDbCommit(buildProvider.updateOnComplete(new BuildUpdateOnComplete(
+          build.getBuildId(), DateTimeUtil.getCurrentUTC(), isSuccess, exMsg)));
     } catch (Throwable t) {
       LOG.error(t.getMessage(), t);
     }
   }
   
   private void updateBuildStatusOnStop() {
+    LOG.debug("updateBuildStatusOnStop was invoked");
     Optional<Integer> running = getRunningVersion();
     if (!running.isPresent()) {
       // when a stop comes, the current thread's name change is checked during onLineChange handler,
@@ -501,11 +537,17 @@ public class BuildRunHandler {
   }
   
   private void updateBuildStatusOnError() {
+    LOG.debug("updateBuildStatusOnError was invoked");
     Optional<Integer> running = getRunningVersion();
     running.ifPresent(t -> {
       // I don't expect a Running version while an exception occurs because when it happens,
       // onTestVersionFailed runs that does all updates and update the status ERROR, thus log this
       // to keep a watch if this happens.
+      // Although onTestVersionStart and onBuildStart run after marking the current version as
+      // Running and before actually submitting code to interpreter but there is nothing that can
+      // fail (atleast at the time of writing this), onTestVersionStart's db calls are placed before
+      // marking version as Running, thus it's very unlikely this may happen and not being
+      // handled.
       LOG.error("A running test is found on exception whereas it should've already processed");
     });
     saveTestVersionsNotRun(TestStatus.ABORTED);
@@ -526,27 +568,21 @@ public class BuildRunHandler {
   // end date, start date, error are null for tests that couldn't run. status could be either
   // ABORTED or STOPPED
   private void saveTestVersionsNotRun(TestStatus status) {
+    LOG.debug("Going to save testVersions couldn't run and assigning status {}", status);
     testVersions.forEach(t -> {
       if (!testVersionsStatus.containsKey(t.getTestVersionId())) {
-        BuildStatus buildStatus = new BuildStatus()
-            .setBuildId(build.getBuildId())
-            .setTestVersionId(t.getTestVersionId())
-            .setStatus(status);
-        validateSingleRowDbCommit(buildStatusProvider.save(buildStatus));
+        LOG.debug("testVersionId {} couldn't be run, saving", t.getTestVersionId());
+        validateSingleRowDbCommit(buildStatusProvider.saveWontStart(
+            new BuildStatusSaveWontStart(build.getBuildId(), t.getTestVersionId(), status)));
       }
     });
   }
   
   private void updateBuildStatus(int testVersionId, TestStatus status, @Nullable String error) {
-    BuildStatus buildStatus = new BuildStatus()
-        .setBuildId(build.getBuildId())
-        .setTestVersionId(testVersionId)
-        .setStatus(status)
-        .setEndDate(DateTimeUtil.getCurrentUTC());
-    if (!Strings.isNullOrEmpty(error)) {
-      buildStatus.setError(error);
-    }
-    validateSingleRowDbCommit(buildStatusProvider.update(buildStatus));
+    LOG.debug("Updating buildStatus for testVersionId {} to status {}, error {}", testVersionId,
+        status, error);
+    validateSingleRowDbCommit(buildStatusProvider.updateOnEnd(new BuildStatusUpdateOnEnd(
+        build.getBuildId(), testVersionId, status, DateTimeUtil.getCurrentUTC(), error)));
   }
   
   private void sendOutput(String message) {
@@ -556,6 +592,8 @@ public class BuildRunHandler {
   // Runner should push a message with versionEndedMessage=true when it has fully executed a test
   // version, something like "Completed execution for test version <name>"
   private void sendOutput(String message, boolean versionEndedMessage) {
+    LOG.debug("Sending output message {}, last message for version? {}", message,
+        versionEndedMessage);
     ZwlProgramOutput zwlProgramOutput = new ZwlProgramOutput()
         .setBuildId(build.getBuildId())
         .setTestVersionId(currentTestVersion.getTestVersionId())
@@ -569,6 +607,12 @@ public class BuildRunHandler {
     if (result != 1) {
       throw new RuntimeException("Expected one row to be affected but it was " + result);
     }
+  }
+  
+  // Test version names are not unique across versions, thus identifier for a test version will have
+  // it's id and name separated by a colon such as 1:v-1.
+  private String getTestVersionIdentifier(TestVersion testVersion) {
+    return String.format("%s:%s", testVersion.getTestVersionId(), testVersion.getName());
   }
   
   static class Factory {

@@ -7,7 +7,11 @@ import com.google.common.base.Strings;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zylitics.btbr.config.APICoreProperties;
+import com.zylitics.btbr.esdb.EsdbShotMetadataProvider;
+import com.zylitics.btbr.esdb.EsdbZwlProgramOutputProvider;
 import com.zylitics.btbr.runner.CaptureShotHandler;
+import com.zylitics.btbr.runner.provider.ShotMetadataProvider;
+import com.zylitics.btbr.runner.provider.ZwlProgramOutputProvider;
 import com.zylitics.btbr.shot.CaptureShotHandlerImpl;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -23,7 +27,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -48,9 +51,14 @@ public class Launcher {
   @Bean
   @Profile({"production", "e2e"})
   Storage storage() {
+    System.out.println("entered storage");
     return StorageOptions.getDefaultInstance().getService();
   }
   
+  // High level client is not closed explicitly and left opened until the life of application
+  // because many requests may come one after another and creating/closing is not efficient. It is
+  // hoped that it will delete idle connections from pool after a certain time.
+  // TODO: see if there is something to set that idle timeout for connections in pool.
   @Bean
   @Profile({"production", "e2e"})
   RestHighLevelClient restHighLevelClient(APICoreProperties apiCoreProperties,
@@ -76,25 +84,20 @@ public class Launcher {
             httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)));
   }
   
-  // https://github.com/GoogleCloudPlatform/java-docs-samples/blob/master/cloud-sql/postgres/servlet/src/main/java/com/example/cloudsql/ConnectionPoolContextListener.java
   // https://github.com/brettwooldridge/HikariCP
   // https://github.com/pgjdbc/pgjdbc#connection-properties
-  // Using com.google.cloud.sql.postgres.SocketFactory to connect pgdb on unix socket rather than
-  // TCP.
-  // Boot won't autoconfigure DataSource if a bean is already declared, so we're good on that front.
+  // Boot won't autoconfigure DataSource if a bean is already declared.
   @Bean
-  @Profile({"production", "e2e"})
-  DataSource hikariDataSource(APICoreProperties apiCoreProperties, SecretsManager secretsManager) {
+  @Profile("production")
+  DataSource hikariDataSource(APICoreProperties apiCoreProperties,SecretsManager secretsManager) {
     APICoreProperties.DataSource ds = apiCoreProperties.getDataSource();
-    String connectionName = secretsManager.getSecretAsPlainText(ds.getConnNameCloudFile());
+    String privateHost = secretsManager.getSecretAsPlainText(ds.getPrivateHostCloudFile());
     String userPwd = secretsManager.getSecretAsPlainText(ds.getUserSecretCloudFile());
   
     HikariConfig config = new HikariConfig();
-    config.setJdbcUrl(String.format("jdbc:postgresql:///%s", ds.getDbName()));
+    config.setJdbcUrl(String.format("jdbc:postgresql://%s/%s", privateHost, ds.getDbName()));
     config.setUsername(ds.getUserName());
     config.setPassword(userPwd);
-    config.addDataSourceProperty("socketFactory", "com.google.cloud.sql.postgres.SocketFactory");
-    config.addDataSourceProperty("cloudSqlInstance", connectionName);
     config.setMinimumIdle(ds.getMinIdleConnPool());
     // TODO (optional): This note is to remember that we can customize pgjdbc driver by sending
     //  various options via query string or addDataSourceProperty. see here:
@@ -102,13 +105,18 @@ public class Launcher {
     return new HikariDataSource(config);
   }
   
-  // https://docs.spring.io/spring/docs/current/spring-framework-reference/data-access.html#jdbc-NamedParameterJdbcTemplate
-  // when instantiated, it created a JDBCTemplate and wraps it to use it for processing queries, we
-  // can get the wrapped JDBCTemplate using getJdbcOperations()
   @Bean
-  @Profile({"production", "e2e"})
-  NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
-    return new NamedParameterJdbcTemplate(dataSource);
+  @Profile("e2e")
+  // a different bean method name is required even if profiles are different else context won't
+  // load this bean.
+  DataSource hikariLocalDataSource(APICoreProperties apiCoreProperties) {
+    System.out.println("entered datasource");
+    APICoreProperties.DataSource ds = apiCoreProperties.getDataSource();
+    HikariConfig config = new HikariConfig();
+    config.setJdbcUrl(String.format("jdbc:postgresql://localhost/%s", ds.getDbName()));
+    config.setUsername(ds.getUserName());
+    config.setMinimumIdle(ds.getMinIdleConnPool());
+    return new HikariDataSource(config);
   }
   
   // https://docs.spring.io/spring/docs/current/spring-framework-reference/data-access.html#tx-prog-template-settings
@@ -127,23 +135,15 @@ public class Launcher {
     return new CaptureShotHandlerImpl.Factory();
   }
   
-  /** published when all beans are loaded */
-  @SuppressWarnings("unused")
-  @EventListener(ContextRefreshedEvent.class)
-  void onContextRefreshedEvent(SecretsManager secretsManager) throws IOException {
-    // we should close SecretsManager once all beans that required it are loaded.
-    secretsManager.close();
-    // TODO: remove this once confirmed that it's working
-    System.err.println("onContextRefreshedEvent published");
+  @Bean
+  @Profile({"production", "e2e"})
+  ShotMetadataProvider.Factory shotMetadataProviderFactory() {
+    return new EsdbShotMetadataProvider.Factory();
   }
   
-  /** published when ApplicationContext is stopped */
-  @SuppressWarnings("unused")
-  @EventListener(ContextClosedEvent.class)
-  void onContextClosedEvent(RestHighLevelClient restHighLevelClient) throws IOException {
-    // RestHighLevelClient lives until the application runs.
-    restHighLevelClient.close();
-    // TODO: remove this once confirmed that it's working
-    System.err.println("onContextClosedEvent published");
+  @Bean
+  @Profile({"production", "e2e"})
+  ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory() {
+    return new EsdbZwlProgramOutputProvider.Factory();
   }
 }

@@ -1,8 +1,8 @@
 package com.zylitics.btbr.dao;
 
 import com.google.common.base.Preconditions;
-import com.zylitics.btbr.model.BuildVM;
 import com.zylitics.btbr.runner.provider.BuildVMProvider;
+import com.zylitics.btbr.runner.provider.BuildVMUpdateDeleteDate;
 import com.zylitics.btbr.util.CollectionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.SqlParameterValue;
@@ -24,18 +24,17 @@ public class DaoBuildVMProvider extends AbstractDaoProvider implements BuildVMPr
   }
   
   @Override
-  public int updateDeleteDate(BuildVM buildVM) {
-    Preconditions.checkNotNull(buildVM, "buildVM can't be null");
-    Preconditions.checkArgument(buildVM.getBuildVMId() > 0, "buildVMId is required");
-    Preconditions.checkNotNull(buildVM.getDeleteDate(), "deleteDate can't be null");
+  public int updateDeleteDate(BuildVMUpdateDeleteDate buildVMUpdateDeleteDate) {
+    Preconditions.checkNotNull(buildVMUpdateDeleteDate, "buildVMUpdateDeleteDate can't be null");
     
     String sql = "UPDATE bt_build_vm SET delete_date = :delete_date" +
         " WHERE bt_build_vm_id = :bt_build_vm_id";
     
     Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(2));
-    params.put("delete_date", new SqlParameterValue(Types.TIME_WITH_TIMEZONE,
-        buildVM.getDeleteDate()));
-    params.put("bt_build_vm_id", new SqlParameterValue(Types.INTEGER, buildVM.getBuildVMId()));
+    params.put("delete_date", new SqlParameterValue(Types.TIMESTAMP_WITH_TIMEZONE,
+        buildVMUpdateDeleteDate.getDeleteDate()));
+    params.put("bt_build_vm_id", new SqlParameterValue(Types.INTEGER,
+        buildVMUpdateDeleteDate.getBuildVMId()));
   
     SqlParameterSource namedParams = new MapSqlParameterSource(params);
     return jdbc.update(sql, namedParams);

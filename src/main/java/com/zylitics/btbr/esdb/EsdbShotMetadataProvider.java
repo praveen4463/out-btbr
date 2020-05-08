@@ -10,43 +10,35 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.RequestScope;
 
 import java.io.IOException;
 
 /*
- * This is a stateful component.
- * See RequestScope explanation from other esdb provider.
+This class is suitable to be a declared a @Component and could loaded by spring, but since it's
+stateful, a Request scope is required before wiring it. This is not done because this class will
+be used by the runner that executes by a separate thread that the one takes and executes api request
+, spring disallows request/session scope beans from being accessed by any other thread than the one
+which took the request. There could be workarounds, but I didn't want to go into them, will just
+wire it via Factory. Reference: https://stackoverflow.com/a/21355974/1624454
  */
-@Component
-@RequestScope
-class EsdbShotMetadataProvider extends AbstractBulkSaveProvider<ShotMetadata>
+public class EsdbShotMetadataProvider extends AbstractBulkSaveProvider<ShotMetadata>
     implements ShotMetadataProvider {
   
-  private final APICoreProperties apiCoreProperties;
-  
-  @Autowired
-  EsdbShotMetadataProvider(APICoreProperties apiCoreProperties, RestHighLevelClient client) {
-    this.apiCoreProperties = apiCoreProperties;
-  
-    BulkProcessor bulkProcessor = BulkProcessor.builder(
-        (request, bulkListener) ->
-            client.bulkAsync(request, RequestOptions.DEFAULT, bulkListener),
-        new Listener())
-        .setBulkActions(apiCoreProperties.getShot().getShotMetadataFlushRecords())
-        .setConcurrentRequests(1) // keep it 1 so that bulk can execute on separate thread
-        .setBackoffPolicy(
-            BackoffPolicy.exponentialBackoff(TimeValue.timeValueSeconds(1)
-                , apiCoreProperties.getEsdb().getMaxRetries()))
-        .build();
-    setBulkProcessor(bulkProcessor);
+  private EsdbShotMetadataProvider(APICoreProperties apiCoreProperties,
+                                   RestHighLevelClient client) {
+    super((listener ->
+        BulkProcessor.builder((request, bulkListener) ->
+            client.bulkAsync(request, RequestOptions.DEFAULT, bulkListener), listener)
+            .setBulkActions(apiCoreProperties.getShot().getShotMetadataFlushRecords())
+            .setConcurrentRequests(1) // keep it 1 so that bulk can execute on separate thread
+            .setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueSeconds(1),
+                apiCoreProperties.getEsdb().getMaxRetries()))
+            .build()),
+        apiCoreProperties);
   }
   
   EsdbShotMetadataProvider(APICoreProperties apiCoreProperties, BulkProcessor bulkProcessor) {
-    this.apiCoreProperties = apiCoreProperties;
-    setBulkProcessor(bulkProcessor);
+    super((l) -> bulkProcessor, apiCoreProperties);
   }
   
   // !!! make sure that field names and their field types are same as what is in index
@@ -63,7 +55,7 @@ class EsdbShotMetadataProvider extends AbstractBulkSaveProvider<ShotMetadata>
           .field(ShotMetadataIndexFields.BUILD_KEY, smd.getBuildKey())
           .field(ShotMetadataIndexFields.SESSION_KEY, smd.getSessionKey())
           .field(ShotMetadataIndexFields.AT_LINE_ZWL, smd.getAtLineZwl())
-          .timeField(ShotMetadataIndexFields.CREATE_DATE, smd.getCreateDate());
+          .field(ShotMetadataIndexFields.CREATE_DATE, smd.getCreateDate());
     }
     builder.endObject();
     return builder;
@@ -72,5 +64,14 @@ class EsdbShotMetadataProvider extends AbstractBulkSaveProvider<ShotMetadata>
   @Override
   String getIndex() {
     return apiCoreProperties.getEsdb().getShotMetadataIndex();
+  }
+  
+  public static class Factory implements ShotMetadataProvider.Factory {
+  
+    @Override
+    public ShotMetadataProvider create(APICoreProperties apiCoreProperties,
+                                       RestHighLevelClient client) {
+      return new EsdbShotMetadataProvider(apiCoreProperties, client);
+    }
   }
 }

@@ -2,8 +2,7 @@ package com.zylitics.btbr.dao;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.zylitics.btbr.model.BuildStatus;
-import com.zylitics.btbr.runner.provider.BuildStatusProvider;
+import com.zylitics.btbr.runner.provider.*;
 import com.zylitics.btbr.util.CollectionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.SqlParameterValue;
@@ -25,27 +24,26 @@ public class DaoBuildStatusProvider extends AbstractDaoProvider implements Build
   }
   
   @Override
-  public int save(BuildStatus buildStatus) {
-    Preconditions.checkNotNull(buildStatus, "buildStatus can't be null");
-    Preconditions.checkArgument(buildStatus.getBuildId() > 0, "buildId is required");
-    Preconditions.checkArgument(buildStatus.getTestVersionId() > 0, "testVersionId is required");
-    Preconditions.checkNotNull(buildStatus.getStartDate(), "startDate can't be null");
-    Preconditions.checkNotNull(buildStatus.getStatus(), "status can't be null");
+  public int saveOnStart(BuildStatusSaveOnStart buildStatusSaveOnStart) {
+    Preconditions.checkNotNull(buildStatusSaveOnStart, "buildStatusSaveOnStart can't be null");
     
     String sql = "INSERT INTO bt_build_status (bt_build_id, bt_test_version_id" +
         ", status, start_date)" +
         " VALUES (:bt_build_id, :bt_test_version_id, :status, :start_date)";
-    
+  
     Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(4));
-    params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, buildStatus.getBuildId()));
     
-    params.put("bt_test_version_id", new SqlParameterValue(Types.INTEGER,
-        buildStatus.getTestVersionId()));
+    params.put("bt_build_id", new SqlParameterValue(Types.INTEGER,
+        buildStatusSaveOnStart.getBuildId()));
   
-    params.put("status", new SqlParameterValue(Types.VARCHAR, buildStatus.getStatus().name()));
-    
+    params.put("bt_test_version_id", new SqlParameterValue(Types.INTEGER,
+        buildStatusSaveOnStart.getTestVersionId()));
+  
+    params.put("status", new SqlParameterValue(Types.OTHER,
+        buildStatusSaveOnStart.getStatus()));
+  
     params.put("start_date", new SqlParameterValue(Types.TIMESTAMP_WITH_TIMEZONE
-        , buildStatus.getStartDate()));
+        , buildStatusSaveOnStart.getStartDate()));
   
     SqlParameterSource namedParams = new MapSqlParameterSource(params);
   
@@ -53,33 +51,22 @@ public class DaoBuildStatusProvider extends AbstractDaoProvider implements Build
   }
   
   @Override
-  public int update(BuildStatus buildStatus) {
-    Preconditions.checkNotNull(buildStatus, "buildStatus can't be null");
-    Preconditions.checkArgument(buildStatus.getBuildId() > 0, "buildId is required");
-    Preconditions.checkArgument(buildStatus.getTestVersionId() > 0, "testVersionId is required");
-    Preconditions.checkNotNull(buildStatus.getEndDate(), "endDate can't be null");
-    Preconditions.checkNotNull(buildStatus.getStatus(), "status can't be null");
+  public int saveWontStart(BuildStatusSaveWontStart buildStatusSaveWontStart) {
+    Preconditions.checkNotNull(buildStatusSaveWontStart, "buildStatusSaveWontStart can't be null");
     
-    
-    String sql = "UPDATE bt_build_status SET status = :status" +
-        ", zwl_executing_line = :zwl_executing_line" +
-        ", end_date = :end_date, error = :error" +
-        " WHERE bt_build_id = :bt_build_id and bt_test_version_id = :bt_test_version_id";
+    String sql = "INSERT INTO bt_build_status (bt_build_id, bt_test_version_id, status)" +
+        " VALUES (:bt_build_id, :bt_test_version_id, :status)";
   
-    Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(5));
-    
-    params.put("status", new SqlParameterValue(Types.VARCHAR, buildStatus.getStatus().name()));
+    Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(3));
   
-    params.put("end_date", new SqlParameterValue(Types.TIMESTAMP_WITH_TIMEZONE
-        , buildStatus.getEndDate()));
-  
-    params.put("error", new SqlParameterValue(Strings.isNullOrEmpty(buildStatus.getError())
-        ? Types.NULL : Types.VARCHAR, buildStatus.getError()));
-    
-    params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, buildStatus.getBuildId()));
+    params.put("bt_build_id", new SqlParameterValue(Types.INTEGER,
+        buildStatusSaveWontStart.getBuildId()));
   
     params.put("bt_test_version_id", new SqlParameterValue(Types.INTEGER,
-        buildStatus.getTestVersionId()));
+        buildStatusSaveWontStart.getTestVersionId()));
+  
+    params.put("status", new SqlParameterValue(Types.OTHER,
+        buildStatusSaveWontStart.getStatus()));
   
     SqlParameterSource namedParams = new MapSqlParameterSource(params);
   
@@ -87,25 +74,51 @@ public class DaoBuildStatusProvider extends AbstractDaoProvider implements Build
   }
   
   @Override
-  public int updateLine(BuildStatus buildStatus) {
-    Preconditions.checkNotNull(buildStatus, "buildStatus can't be null");
-    Preconditions.checkArgument(buildStatus.getBuildId() > 0, "buildId is required");
-    Preconditions.checkArgument(buildStatus.getTestVersionId() > 0, "testVersionId is required");
-    Preconditions.checkArgument(buildStatus.getZwlExecutingLine() > 0,
-        "zwlExecutingLine is required");
+  public int updateLine(BuildStatusUpdateLine buildStatusUpdateLine) {
+    Preconditions.checkNotNull(buildStatusUpdateLine, "buildStatusUpdateLine can't be null");
     
     String sql = "UPDATE bt_build_status SET zwl_executing_line = :zwl_executing_line" +
         " WHERE bt_build_id = :bt_build_id and bt_test_version_id = :bt_test_version_id";
   
     Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(3));
   
-    params.put("zwl_executing_line",
-        new SqlParameterValue(Types.INTEGER, buildStatus.getZwlExecutingLine()));
+    params.put("zwl_executing_line", new SqlParameterValue(Types.INTEGER,
+        buildStatusUpdateLine.getZwlExecutingLine()));
   
-    params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, buildStatus.getBuildId()));
+    params.put("bt_build_id", new SqlParameterValue(Types.INTEGER,
+        buildStatusUpdateLine.getBuildId()));
   
     params.put("bt_test_version_id", new SqlParameterValue(Types.INTEGER,
-        buildStatus.getTestVersionId()));
+        buildStatusUpdateLine.getTestVersionId()));
+  
+    SqlParameterSource namedParams = new MapSqlParameterSource(params);
+  
+    return jdbc.update(sql, namedParams);
+  }
+  
+  @Override
+  public int updateOnEnd(BuildStatusUpdateOnEnd buildStatusUpdateOnEnd) {
+    Preconditions.checkNotNull(buildStatusUpdateOnEnd, "buildStatusUpdateOnEnd can't be null");
+    
+    String sql = "UPDATE bt_build_status SET status = :status" +
+        ", end_date = :end_date, error = :error" +
+        " WHERE bt_build_id = :bt_build_id and bt_test_version_id = :bt_test_version_id";
+  
+    Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(5));
+
+    params.put("status", new SqlParameterValue(Types.OTHER,
+        buildStatusUpdateOnEnd.getStatus()));
+  
+    params.put("end_date", new SqlParameterValue(Types.TIMESTAMP_WITH_TIMEZONE
+        , buildStatusUpdateOnEnd.getEndDate()));
+  
+    params.put("error", new SqlParameterValue(Types.OTHER, buildStatusUpdateOnEnd.getError()));
+  
+    params.put("bt_build_id", new SqlParameterValue(Types.INTEGER,
+        buildStatusUpdateOnEnd.getBuildId()));
+  
+    params.put("bt_test_version_id", new SqlParameterValue(Types.INTEGER,
+        buildStatusUpdateOnEnd.getTestVersionId()));
   
     SqlParameterSource namedParams = new MapSqlParameterSource(params);
   

@@ -26,6 +26,7 @@ public class DaoTestVersionProvider extends AbstractDaoProvider implements TestV
   @Override
   public Optional<List<TestVersion>> getTestVersions(int buildId) {
     Preconditions.checkArgument(buildId > 0, "buildId is required");
+    
     String sql = "SELECT" +
         " bt.bt_test_version_id" +
         " , tv.name" +

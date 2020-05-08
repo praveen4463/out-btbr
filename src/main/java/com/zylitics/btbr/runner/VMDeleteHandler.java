@@ -1,12 +1,11 @@
 package com.zylitics.btbr.runner;
 
-import com.google.cloud.storage.Storage;
 import com.google.common.base.Strings;
 import com.google.common.io.CharStreams;
 import com.zylitics.btbr.SecretsManager;
 import com.zylitics.btbr.config.APICoreProperties;
-import com.zylitics.btbr.model.BuildVM;
 import com.zylitics.btbr.runner.provider.BuildVMProvider;
+import com.zylitics.btbr.runner.provider.BuildVMUpdateDeleteDate;
 import com.zylitics.btbr.util.DateTimeUtil;
 import org.openqa.selenium.json.Json;
 import org.openqa.selenium.remote.http.HttpClient;
@@ -70,12 +69,17 @@ class VMDeleteHandler {
     }
     try {
       if (buildVMId != null) {
-        // update the deletion date
-        buildVMProvider.updateDeleteDate(new BuildVM()
-            .setBuildVMId(buildVMId)
-            .setDeleteDate(DateTimeUtil.getCurrentUTC()));
+        LOG.debug("updating vm deleteDate for buildVMId {}", buildVMId);
+        // update the deletion date, it's update before vm is actually deleted because we require
+        // the deletion date to bill customer, if vm couldn't be deleted after date after, it's our
+        // bug, customer has freed the vm until now.
+        buildVMProvider.updateDeleteDate(new BuildVMUpdateDeleteDate(buildVMId,
+            DateTimeUtil.getCurrentUTC()));
+      } else {
+        LOG.error("buildVMId is null while attempting to delete vm, can't set delete date");
       }
       
+      LOG.debug("going to delete the VM using the given URL");
       // now delete VM, throw exception if response is not 200 OK
       secretsManager.reAcquireClientAfterClose(); // the client got closed in Launcher itself.
       String secret = secretsManager.getSecretAsPlainText(apiCoreProperties.getRunner()

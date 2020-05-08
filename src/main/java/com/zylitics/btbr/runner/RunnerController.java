@@ -11,16 +11,21 @@ import com.zylitics.btbr.model.TestVersion;
 import com.zylitics.btbr.runner.provider.*;
 import com.zylitics.btbr.webdriver.Configuration;
 import com.zylitics.btbr.webdriver.session.AbstractDriverSessionProvider;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -46,6 +51,7 @@ public class RunnerController {
   private final APICoreProperties apiCoreProperties;
   private final SecretsManager secretsManager;
   private final Storage storage;
+  private final RestHighLevelClient restHighLevelClient;
   
   // db providers
   private final BuildProvider buildProvider;
@@ -54,12 +60,10 @@ public class RunnerController {
   private final ImmutableMapProvider immutableMapProvider;
   private final TestVersionProvider testVersionProvider;
   
-  // esdb providers
-  private final ShotMetadataProvider shotMetadataProvider;
-  private final ZwlProgramOutputProvider zwlProgramOutputProvider;
-  
   // factories
   private final CaptureShotHandler.Factory captureShotHandlerFactory;
+  private final ShotMetadataProvider.Factory shotMetadataProviderFactory;
+  private final ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory;
   private final BuildRunHandler.Factory buildRunHandlerFactory;
   
   // handlers
@@ -72,25 +76,27 @@ public class RunnerController {
   public RunnerController(APICoreProperties apiCoreProperties,
                           SecretsManager secretsManager,
                           Storage storage,
+                          RestHighLevelClient restHighLevelClient,
                           BuildProvider buildProvider,
                           BuildStatusProvider buildStatusProvider,
                           BuildVMProvider buildVMProvider,
                           ImmutableMapProvider immutableMapProvider,
                           TestVersionProvider testVersionProvider,
-                          ShotMetadataProvider shotMetadataProvider,
-                          ZwlProgramOutputProvider zwlProgramOutputProvider,
-                          CaptureShotHandler.Factory captureShotHandlerFactory) {
+                          CaptureShotHandler.Factory captureShotHandlerFactory,
+                          ShotMetadataProvider.Factory shotMetadataProviderFactory,
+                          ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory) {
     this(apiCoreProperties,
         secretsManager,
         storage,
+        restHighLevelClient,
         buildProvider,
         buildStatusProvider,
         buildVMProvider,
         immutableMapProvider,
         testVersionProvider,
-        shotMetadataProvider,
-        zwlProgramOutputProvider,
         captureShotHandlerFactory,
+        shotMetadataProviderFactory,
+        zwlProgramOutputProviderFactory,
         new BuildRunHandler.Factory(),
         new VMDeleteHandler(apiCoreProperties, secretsManager, buildVMProvider),
         new IOWrapper(),
@@ -101,14 +107,15 @@ public class RunnerController {
   RunnerController(APICoreProperties apiCoreProperties,
                    SecretsManager secretsManager,
                    Storage storage,
+                   RestHighLevelClient restHighLevelClient,
                    BuildProvider buildProvider,
                    BuildStatusProvider buildStatusProvider,
                    BuildVMProvider buildVMProvider,
                    ImmutableMapProvider immutableMapProvider,
                    TestVersionProvider testVersionProvider,
-                   ShotMetadataProvider shotMetadataProvider,
-                   ZwlProgramOutputProvider zwlProgramOutputProvider,
                    CaptureShotHandler.Factory captureShotHandlerFactory,
+                   ShotMetadataProvider.Factory shotMetadataProviderFactory,
+                   ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory,
                    BuildRunHandler.Factory buildRunHandlerFactory,
                    VMDeleteHandler vmDeleteHandler,
                    IOWrapper ioWrapper,
@@ -116,25 +123,25 @@ public class RunnerController {
     this.apiCoreProperties = apiCoreProperties;
     this.secretsManager = secretsManager;
     this.storage = storage;
+    this.restHighLevelClient = restHighLevelClient;
     this.buildProvider = buildProvider;
     this.buildStatusProvider = buildStatusProvider;
     this.buildVMProvider = buildVMProvider;
     this.immutableMapProvider = immutableMapProvider;
     this.testVersionProvider = testVersionProvider;
-    this.shotMetadataProvider = shotMetadataProvider;
-    this.zwlProgramOutputProvider = zwlProgramOutputProvider;
     this.captureShotHandlerFactory = captureShotHandlerFactory;
+    this.shotMetadataProviderFactory = shotMetadataProviderFactory;
+    this.zwlProgramOutputProviderFactory = zwlProgramOutputProviderFactory;
     this.buildRunHandlerFactory = buildRunHandlerFactory;
     this.vmDeleteHandler = vmDeleteHandler;
     this.ioWrapper = ioWrapper;
     this.configuration = configuration;
   }
   
-  
   @PostMapping
   public ResponseEntity<AbstractResponse> run(
       @Validated @RequestBody RequestBuildRun requestBuildRun) throws Exception {
-    LOG.info("received request: {}", requestBuildRun.toString());
+    LOG.info("received request to run: {}", requestBuildRun.toString());
     // validate no build is currently running
     if (threadMap.values().stream().anyMatch(Thread::isAlive)) {
       return processErrResponse(new IllegalArgumentException("Can't run a new build here because" +
@@ -151,11 +158,12 @@ public class RunnerController {
       }
       build = b.get();
       return run0(requestBuildRun, build);
-    } finally {
+    } catch (Throwable t) {
       // delete VM if an uncaught exception occurs before the session is created, after that
       // VM deletion is taken care by run handler.
       vmDeleteHandler.delete(build != null ? build.getBuildVMId() : null,
           requestBuildRun.getVmDeleteUrl());
+      throw t;
     }
   }
   
@@ -163,6 +171,7 @@ public class RunnerController {
       throws Exception {
     // get build capability
     BuildCapability buildCapability = build.getBuildCapability();
+    LOG.debug("buildCapability is {}", buildCapability);
     // get test version
     Optional<List<TestVersion>> testVersions =
         testVersionProvider.getTestVersions(build.getBuildId());
@@ -170,6 +179,7 @@ public class RunnerController {
       return processErrResponse(new IllegalArgumentException("The given buildId " +
           requestBuildRun.getBuildId() + " has no associated tests"), HttpStatus.BAD_REQUEST);
     }
+    LOG.debug("Total testVersions found {}", testVersions.get());
   
     // Create build's directory for keeping logs and test assets
     Path buildDir = Paths.get(Configuration.SYS_DEF_TEMP_DIR, "build-" + build.getBuildId());
@@ -183,10 +193,13 @@ public class RunnerController {
       return processErrResponse(new IllegalArgumentException("No session provider found for the" +
           " given browser " + buildCapability.getWdBrowserName()), HttpStatus.BAD_REQUEST);
     }
+    
     // The idea is to validate everything that if invalid can fail the test immediately, such as
     // no test versions with the build. Driver session can start without it as well but we should
     // validate that (and other possible things) before doing so.
     RemoteWebDriver driver = sessionProvider.get().createSession();
+  
+    LOG.debug("A new session {} is created", driver.getSessionId().toString());
   
     // start a new thread to run the build asynchronously because the current request will now
     // return.
@@ -198,8 +211,9 @@ public class RunnerController {
         buildStatusProvider,
         buildVMProvider,
         immutableMapProvider,
-        shotMetadataProvider,
-        zwlProgramOutputProvider,
+        shotMetadataProviderFactory.create(apiCoreProperties, restHighLevelClient),
+        zwlProgramOutputProviderFactory.create(apiCoreProperties, restHighLevelClient,
+            buildCapability),
         build,
         testVersions.get(),
         captureShotHandlerFactory,
@@ -209,10 +223,10 @@ public class RunnerController {
     // it, send a stop, and check it's name change to verify.
     String mainThreadName = BUILD_MAIN_THREAD_STARTS_WITH + build.getBuildId();
     Thread buildThread = new Thread(buildRunHandler::handle, mainThreadName);
-    buildThread.setUncaughtExceptionHandler((t, e) -> LOG.error(e.getMessage(), e));
     threadMap.put(mainThreadName, buildThread);
     buildThread.start();
-  
+    LOG.debug("A new thread {} is assigned to run the build further, response will now return",
+        mainThreadName);
     return ResponseEntity.status(HttpStatus.OK).body(new ResponseBuildRun()
         .setSessionId(driver.getSessionId().toString())
         .setStatus(ResponseStatus.RUNNING.name()).setHttpStatusCode(HttpStatus.OK.value()));
@@ -220,6 +234,7 @@ public class RunnerController {
   
   @GetMapping
   public ResponseEntity<AbstractResponse> stop(@RequestParam int buildId) {
+    LOG.info("Getting a stop for build {}", buildId);
     Thread buildThread = threadMap.get(BUILD_MAIN_THREAD_STARTS_WITH + buildId);
     if (buildThread == null) {
       return processErrResponse(new IllegalArgumentException("There is no such thread running on" +
@@ -236,6 +251,9 @@ public class RunnerController {
     // change then (we don't want build to be halted once webdriver tests are completed and we're
     // on post completion tasks like saving shots/logs.)
     buildThread.setName(STOPPED_BUILD_MAIN_THREAD_STARTS_WITH + buildId);
+    
+    LOG.debug("The name of running thread was updated upon, response will now return");
+    
     return ResponseEntity.status(HttpStatus.OK).body(new ResponseCommon()
         .setStatus(ResponseStatus.SUCCESS.name()).setHttpStatusCode(HttpStatus.OK.value()));
   }
@@ -246,6 +264,8 @@ public class RunnerController {
   @SuppressWarnings("unused")
   @ExceptionHandler
   public ResponseEntity<AbstractResponse> handleExceptions(MethodArgumentNotValidException ex) {
+    LOG.debug("An ArgumentNotValid handler was called");
+    
     return processErrResponse(ex, HttpStatus.BAD_REQUEST);
   }
   
@@ -259,6 +279,8 @@ public class RunnerController {
   @SuppressWarnings("unused")
   @ExceptionHandler
   public ResponseEntity<AbstractResponse> handleExceptions(Exception ex) {
+    LOG.debug("An Exception handler was called");
+    
     return processErrResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR);
   }
   
@@ -277,5 +299,18 @@ public class RunnerController {
     return ResponseEntity
         .status(status)
         .body(errRes);
+  }
+  
+  // published when all beans are loaded
+  @EventListener(ContextRefreshedEvent.class)
+  void onContextRefreshedEvent() throws IOException {
+    LOG.debug("ContextRefreshEvent was triggered");
+    
+    // Close SecretsManager once all beans that required it are loaded, as we don't need to until
+    // this VM is deleted from here, where a new manager is created.
+    if (secretsManager != null) {
+      LOG.debug("secretsManager will now close");
+      secretsManager.close();
+    }
   }
 }

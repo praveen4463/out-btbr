@@ -123,11 +123,11 @@ public abstract class AbstractDriverSessionProvider {
   // driver version info is in db and batch script was already fetching and preparing that. We just
   // need to use that with the new application rather than grid.
   String getBrowserBinaryPath() {
-    if (buildCapability.getWdPlatformName().equals(Platform.MAC.name())) {
+    if (Platform.fromString(buildCapability.getWdPlatformName()).is(Platform.MAC)) {
       return null;
     }
     String template = null;
-    if (buildCapability.getWdPlatformName().equals(Platform.WINDOWS.name())) {
+    if (Platform.fromString(buildCapability.getWdPlatformName()).is(Platform.WINDOWS)) {
       template = BROWSER_BINARY_PATH_TEMPLATE_WIN;
     }
     

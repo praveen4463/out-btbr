@@ -1,5 +1,6 @@
 package com.zylitics.btbr.esdb;
 
+import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.runner.provider.BulkSaveProvider;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkProcessor;
@@ -12,25 +13,25 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-// The reason I needed to put a setter for required dependency BulkProcessor rather than taking it
-// in constructor is: One of the subclass of it (EsdbZwlProgramOutputProvider) can't create
-// instance of BulkProcessor in constructor because it required BuildCapability to do so and
-// BuildCapability is created only after spring has injected dependencies. If we didn't want these
-// providers as spring components, BulkProcessor would've been in constructor. For now I don't have
-// a better way to do it.
 abstract class AbstractBulkSaveProvider<T> implements BulkSaveProvider<T> {
   
   private static final Logger LOG = LoggerFactory.getLogger(AbstractBulkSaveProvider.class);
   
   private static final int ESDB_BULK_AWAIT_CLOSE_SEC = 120;
   
-  private BulkProcessor bulkProcessor;
+  private final BulkProcessor bulkProcessor;
+  
+  final APICoreProperties apiCoreProperties;
   
   private volatile boolean isTurnedDown = false;
   
-  void setBulkProcessor(BulkProcessor bulkProcessor) {
-    this.bulkProcessor = bulkProcessor;
+  AbstractBulkSaveProvider(Function<Listener, BulkProcessor> bulkProcessorSupplier,
+                           APICoreProperties apiCoreProperties) {
+    this.bulkProcessor = bulkProcessorSupplier.apply(new Listener());
+    this.apiCoreProperties = apiCoreProperties;
   }
   
   @Override

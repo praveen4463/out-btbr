@@ -2,7 +2,7 @@ package com.zylitics.btbr.model;
 
 import com.zylitics.btbr.runner.TestStatus;
 
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 
 public class BuildStatus {
   
@@ -14,9 +14,9 @@ public class BuildStatus {
   
   private int zwlExecutingLine;
   
-  private ZonedDateTime startDate;
+  private OffsetDateTime startDate;
   
-  private ZonedDateTime endDate;
+  private OffsetDateTime endDate;
   
   private String error;
   
@@ -56,20 +56,20 @@ public class BuildStatus {
     return this;
   }
   
-  public ZonedDateTime getStartDate() {
+  public OffsetDateTime getStartDate() {
     return startDate;
   }
   
-  public BuildStatus setStartDate(ZonedDateTime startDate) {
+  public BuildStatus setStartDate(OffsetDateTime startDate) {
     this.startDate = startDate;
     return this;
   }
   
-  public ZonedDateTime getEndDate() {
+  public OffsetDateTime getEndDate() {
     return endDate;
   }
   
-  public BuildStatus setEndDate(ZonedDateTime endDate) {
+  public BuildStatus setEndDate(OffsetDateTime endDate) {
     this.endDate = endDate;
     return this;
   }

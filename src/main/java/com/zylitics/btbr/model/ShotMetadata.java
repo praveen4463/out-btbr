@@ -1,6 +1,6 @@
 package com.zylitics.btbr.model;
 
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 
 public class ShotMetadata {
   
@@ -16,7 +16,7 @@ public class ShotMetadata {
   
   private int atLineZwl;
   
-  private ZonedDateTime createDate;
+  private OffsetDateTime createDate;
   
   public String getShotName() {
     return shotName;
@@ -72,11 +72,11 @@ public class ShotMetadata {
     return this;
   }
   
-  public ZonedDateTime getCreateDate() {
+  public OffsetDateTime getCreateDate() {
     return createDate;
   }
   
-  public ShotMetadata setCreateDate(ZonedDateTime createDate) {
+  public ShotMetadata setCreateDate(OffsetDateTime createDate) {
     this.createDate = createDate;
     return this;
   }
