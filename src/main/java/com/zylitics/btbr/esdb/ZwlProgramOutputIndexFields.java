@@ -1,6 +1,6 @@
 package com.zylitics.btbr.esdb;
 
-interface ZwlProgramOutputIndexFields {
+public interface ZwlProgramOutputIndexFields {
   
   String BUILD_ID = "bt_build_id";
   

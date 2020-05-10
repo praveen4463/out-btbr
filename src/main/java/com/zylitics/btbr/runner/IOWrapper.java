@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Wrapper for better unit test I/O
+ * Wrapper for better test I/O
  */
 public class IOWrapper {
   

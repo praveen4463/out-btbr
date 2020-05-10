@@ -73,8 +73,11 @@ class VMDeleteHandler {
         // update the deletion date, it's update before vm is actually deleted because we require
         // the deletion date to bill customer, if vm couldn't be deleted after date after, it's our
         // bug, customer has freed the vm until now.
-        buildVMProvider.updateDeleteDate(new BuildVMUpdateDeleteDate(buildVMId,
+        int result = buildVMProvider.updateDeleteDate(new BuildVMUpdateDeleteDate(buildVMId,
             DateTimeUtil.getCurrentUTC()));
+        if (result != 1) {
+          LOG.error("VM deleteDate couldn't be updated for buildVMId {}", buildVMId);
+        }
       } else {
         LOG.error("buildVMId is null while attempting to delete vm, can't set delete date");
       }

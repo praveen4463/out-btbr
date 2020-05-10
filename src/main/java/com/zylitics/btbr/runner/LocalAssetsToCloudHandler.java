@@ -121,13 +121,14 @@ public class LocalAssetsToCloudHandler {
   // The directory structure in cloud store should be like:
   // Build_Dir/Asset_Dir/Actual_File
   private String getBlobName(String parentDirName, String fileName) {
-    return buildDir + "/" + parentDirName + "/" + fileName;
+    return buildDir.getFileName() + "/" + parentDirName + "/" + fileName;
   }
   
   private void storeBySize(BlobInfo blobInfo, Path file) {
     try {
       if (Files.size(file) > 1000_000) { storeLarge(blobInfo, file); }
       else { storeSmall(blobInfo, file); }
+      LOG.debug("Stored blob " + blobInfo + " from " + file);
     } catch (IOException io) {
       LOG.error("couldn't get size of file at " + file.toAbsolutePath().toString());
     }

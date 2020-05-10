@@ -58,6 +58,8 @@ public abstract class AbstractDriverSessionProvider {
     if (Boolean.getBoolean(wdProps.getVerboseClientLogsProp())) {
       clientLogLevel = Level.ALL;
     }
+    // TODO: for some reason client logs aren't being captured, currently I don't want to
+    //  investigate as they aren't of much use, just putting a note for future.
     logs.enable(LogType.CLIENT, clientLogLevel);
   
     if (Boolean.getBoolean(wdProps.getEnableProfilerLogsProp())) {

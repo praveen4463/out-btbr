@@ -1,7 +1,5 @@
 package com.zylitics.btbr.model;
 
-import java.time.OffsetDateTime;
-
 public class Build {
 
   private int buildId;
@@ -12,11 +10,7 @@ public class Build {
   
   private int buildVMId;
   
-  private OffsetDateTime endDate;
-  
-  private boolean isSuccess;
-  
-  private String error;
+  private Boolean isSuccess;
   
   private int userId;
   
@@ -56,30 +50,12 @@ public class Build {
     return this;
   }
   
-  public OffsetDateTime getEndDate() {
-    return endDate;
-  }
-  
-  public Build setEndDate(OffsetDateTime endDate) {
-    this.endDate = endDate;
-    return this;
-  }
-  
-  public boolean isSuccess() {
+  public Boolean isSuccess() {
     return isSuccess;
   }
   
-  public Build setSuccess(boolean success) {
+  public Build setSuccess(Boolean success) {
     isSuccess = success;
-    return this;
-  }
-  
-  public String getError() {
-    return error;
-  }
-  
-  public Build setError(String error) {
-    this.error = error;
     return this;
   }
   
@@ -99,9 +75,7 @@ public class Build {
         ", buildKey='" + buildKey + '\'' +
         ", buildCapability=" + buildCapability +
         ", buildVMId=" + buildVMId +
-        ", endDate=" + endDate +
         ", isSuccess=" + isSuccess +
-        ", error='" + error + '\'' +
         ", userId=" + userId +
         '}';
   }

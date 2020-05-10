@@ -457,11 +457,19 @@ public class BuildRunHandler {
   // while test is running and should be committed asap. Capturing logs can wait as it's not needed
   // in real time. Quitting the driver can happen late as it doesn't matter even if the browser
   // window is left open, we're not running anything after reaching this step anyway.
+  /*
+  TODO: Sometimes when last test version finishes, it's very last commands might not have resulted
+   in browser render yet, for example code tries to change something on page, webdriver detects the
+   change but hasn't rendered the change yet. Post last version, shots are stopped immediately, thus
+   the final render may have left from capturing. I feel we need to wait for sometime before
+   stopping the shots so that any unrendered change has rendered and captured for user's eyes.
+   Right now, I can only think of a raw wait for some random time because we can't know what needs
+   to be rendered to wait for. For now, let's not add any wait, but if you notice this happening
+   to user's production tests, add it just before stopping the shots, perhaps 2-5 seconds is enough.
+   I could've also stopped the shots after
+   */
   private void onBuildFinish(boolean stopOccurred) {
     LOG.debug("onBuildFinish was invoked");
-    // stop shots
-    LOG.debug("Shots are going to stop");
-    captureShotHandler.stopShot(); // takes no time
     
     // update build, very quick
     updateBuildOnFinish(stopOccurred);
@@ -470,7 +478,26 @@ public class BuildRunHandler {
     LOG.debug("pushing program output and waiting");
     zwlProgramOutputProvider.processRemainingAndTearDown();
     // blocks until all output is pushed, should take lesser time than waiting for shots to process
-    // because we push output in small bulk while shots in larger.
+    // because we push output in small bulk while shots in larger. Also shots needs to go into
+    // cloud but this is just text.
+  
+    /*
+    Reason why shots are stopped after pushing output and not in beginning:
+    Sometimes when last test version finishes, it's very last commands might not have resulted
+    in browser render yet, for example code tries to change something on page, webdriver detects the
+    change but hasn't rendered the change yet. Post last version, if shots are stopped immediately,
+    the final render may have left from capturing. I feel we need to wait for sometime before
+    stopping the shots so that any unrendered change has rendered and captured for user's eyes.
+    This may be a perfect place to do so, without having to put a raw wait, while program output is
+    being saved into ESDB, shots may continue to capture the opened browser window. This may
+    result in some redundant shots when program output saving takes more time than expected and
+    shots continue to come of the same browser state due to everything already loaded. I am
+    expecting ESDB output save to be quick thus preventing lot of redundant shots.
+    TODO: Keep an eye here
+     */
+    // stop shots
+    LOG.debug("Shots are going to stop");
+    captureShotHandler.stopShot(); // takes no time
     
     // flush shots, may block long time.
     LOG.debug("pushing shots and waiting");
@@ -506,7 +533,7 @@ public class BuildRunHandler {
       if (stopOccurred) {
         exMsg = "A STOP request was issued";
       } else if (currentTestVersion.getTestVersionId() == 0) {
-        exMsg = "Unexpected exception occurred before initiating the build";
+        exMsg = "Unexpected exception occurred before any test version could start running";
       } else {
         exMsg = "An exception occurred, check test version(s) of this build for details";
       }

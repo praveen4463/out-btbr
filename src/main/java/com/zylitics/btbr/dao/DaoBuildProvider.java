@@ -1,7 +1,6 @@
 package com.zylitics.btbr.dao;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.runner.provider.BuildProvider;
@@ -34,6 +33,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
     String sql = "SELECT" +
         " bu.build_key" +
         ", bu.bt_build_vm_id" +
+        ", bu.is_success" +
         ", bu.zluser_id" +
         ", bc.shot_bucket_session_storage" +
         ", bc.shot_take_test_shot" +
@@ -80,6 +80,9 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
             .setBuildId(buildId)
             .setBuildKey(rs.getString("build_key"))
             .setBuildVMId(rs.getInt("bt_build_vm_id"))
+            // cast rather than getBoolean because this method always returns 'false' as default
+            // value whereas we want to see a null if it's null.
+            .setSuccess((Boolean) rs.getObject("is_success"))
             .setUserId(rs.getInt("zluser_id"))
             .setBuildCapability(new BuildCapability()
                 .setShotBucketSessionStorage(rs.getString("shot_bucket_session_storage"))

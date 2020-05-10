@@ -16,7 +16,6 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
@@ -157,6 +156,11 @@ public class RunnerController {
             requestBuildRun.getBuildId() + " doesn't exists"), HttpStatus.BAD_REQUEST);
       }
       build = b.get();
+      if (build.isSuccess() != null) {
+        return processErrResponse(new IllegalArgumentException("The given buildId " +
+            requestBuildRun.getBuildId() + " has already completed it's execution and can't run" +
+            " again."), HttpStatus.BAD_REQUEST);
+      }
       return run0(requestBuildRun, build);
     } catch (Throwable t) {
       // delete VM if an uncaught exception occurs before the session is created, after that

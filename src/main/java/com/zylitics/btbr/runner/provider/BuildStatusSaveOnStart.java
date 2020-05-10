@@ -5,11 +5,7 @@ import com.zylitics.btbr.runner.TestStatus;
 
 import java.time.OffsetDateTime;
 
-public class BuildStatusSaveOnStart {
-  
-  private final int buildId;
-  
-  private final int testVersionId;
+public class BuildStatusSaveOnStart  extends AbstractBuildStatus {
   
   private final TestStatus status;
   
@@ -17,23 +13,12 @@ public class BuildStatusSaveOnStart {
   
   public BuildStatusSaveOnStart(int buildId, int testVersionId, TestStatus status,
                                 OffsetDateTime startDate) {
-    Preconditions.checkArgument(buildId > 0, "buildId is required");
-    Preconditions.checkArgument(testVersionId > 0, "testVersionId is required");
+    super(buildId, testVersionId);
     Preconditions.checkNotNull(status, "status can't be null");
     Preconditions.checkNotNull(startDate, "startDate can't be null");
     
-    this.buildId = buildId;
-    this.testVersionId = testVersionId;
     this.status = status;
     this.startDate = startDate;
-  }
-  
-  public int getBuildId() {
-    return buildId;
-  }
-  
-  public int getTestVersionId() {
-    return testVersionId;
   }
   
   public TestStatus getStatus() {
@@ -47,10 +32,8 @@ public class BuildStatusSaveOnStart {
   @Override
   public String toString() {
     return "BuildStatusSaveOnStart{" +
-        "buildId=" + buildId +
-        ", testVersionId=" + testVersionId +
-        ", status=" + status +
+        "status=" + status +
         ", startDate=" + startDate +
-        '}';
+        "} " + super.toString();
   }
 }

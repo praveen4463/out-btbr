@@ -58,6 +58,8 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
   
   private final String sessionKey;
   
+  private final ShotNameProvider shotNameProvider;
+  
   private final CurrentTestVersion currentTestVersion;
   
   private final CaptureDevice captureDevice;
@@ -96,6 +98,7 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
     this.shotMetadataProvider = shotMetadataProvider;
     this.build = build;
     this.sessionKey = sessionKey;
+    shotNameProvider = new ShotNameProvider(sessionKey, build.getBuildKey(), shotProps.getExt());
     this.currentTestVersion = currentTestVersion;
   
     captureDevice = CaptureDevice.Factory.getDefault().create(shotProps.getExt());
@@ -127,6 +130,7 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
     this.shotMetadataProvider = shotMetadataProvider;
     this.build = build;
     this.sessionKey = sessionKey;
+    shotNameProvider = new ShotNameProvider(sessionKey, build.getBuildKey(), shotProps.getExt());
     this.currentTestVersion = currentTestVersion;
     this.captureDevice = captureDevice;
     this.processShotExecutor = processShotExecutor;
@@ -243,7 +247,7 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
         // an ERROR and save in db otherwise we'll save what is provided (If EOS can't be saved, we
         // will save same metadata, so that we know an EOS was reached which means success)
         ShotMetadata metadataOnError = metadata;
-        String shotIdentifier = getShotIdentifier(metadata.getShotName());
+        String shotIdentifier = shotNameProvider.getIdentifier(metadata.getShotName());
         if (!(shotIdentifier.equals(shotProps.getErrorShot())
             || shotIdentifier.equals(shotProps.getEosShot()))) {
           metadataOnError = getShotMetadata(shotProps.getErrorShot(), DateTimeUtil.getCurrentUTC());
@@ -269,23 +273,13 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
   
   private ShotMetadata getShotMetadata(String shotIdentifier, OffsetDateTime dateTime) {
     return new ShotMetadata()
-        .setShotName(getShotName(shotIdentifier))
+        .setShotName(shotNameProvider.getName(shotIdentifier))
         .setBuildId(build.getBuildId())
         .setTestVersionId(currentTestVersion.getTestVersionId())
         .setBuildKey(build.getBuildKey())
         .setSessionKey(sessionKey)
         .setAtLineZwl(currentTestVersion.getControlAtLineInProgram())
         .setCreateDate(dateTime);
-  }
-  
-  String getShotName(String shotIdentifier) {
-    return sessionKey + "-" + build.getBuildKey() + "-" + shotIdentifier + "." + shotProps.getExt();
-  }
-  
-  String getShotIdentifier(String shotName) {
-    // sessionId may have '-' too thus its safe to get last index of it which will be just behind
-    // identifier.
-    return shotName.substring(shotName.lastIndexOf("-") + 1, shotName.lastIndexOf("."));
   }
   
   class ShotCaptureThread implements Runnable {

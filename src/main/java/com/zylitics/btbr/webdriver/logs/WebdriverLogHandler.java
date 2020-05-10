@@ -144,7 +144,7 @@ public class WebdriverLogHandler {
   private void writeLogs(Path file, List<LogEntry> logs) {
     try {
       Files.write(file, logs.stream().map(LogEntry::toString).collect(Collectors.toList())
-          , StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE,
+          , StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
           StandardOpenOption.APPEND);
     } catch (IOException io) {
       LOG.error("couldn't write to file, will be taking logging system down.", io);
