@@ -236,8 +236,8 @@ public class RunnerController {
         .setStatus(ResponseStatus.RUNNING.name()).setHttpStatusCode(HttpStatus.OK.value()));
   }
   
-  @GetMapping
-  public ResponseEntity<AbstractResponse> stop(@RequestParam int buildId) {
+  @DeleteMapping("/{buildId}")
+  public ResponseEntity<AbstractResponse> stop(@PathVariable int buildId) {
     LOG.info("Getting a stop for build {}", buildId);
     Thread buildThread = threadMap.get(BUILD_MAIN_THREAD_STARTS_WITH + buildId);
     if (buildThread == null) {
@@ -256,10 +256,10 @@ public class RunnerController {
     // on post completion tasks like saving shots/logs.)
     buildThread.setName(STOPPED_BUILD_MAIN_THREAD_STARTS_WITH + buildId);
     
-    LOG.debug("The name of running thread was updated upon, response will now return");
-    
+    LOG.debug("The name of running thread was updated in response to a STOP, response will now" +
+        " return");
     return ResponseEntity.status(HttpStatus.OK).body(new ResponseCommon()
-        .setStatus(ResponseStatus.SUCCESS.name()).setHttpStatusCode(HttpStatus.OK.value()));
+        .setStatus(ResponseStatus.STOPPING.name()).setHttpStatusCode(HttpStatus.OK.value()));
   }
   
   /**

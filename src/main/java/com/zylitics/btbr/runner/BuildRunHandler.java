@@ -9,6 +9,8 @@ import com.zylitics.btbr.model.*;
 import com.zylitics.btbr.runner.provider.*;
 import com.zylitics.btbr.util.CallbackOnlyPrintStream;
 import com.zylitics.btbr.util.DateTimeUtil;
+import com.zylitics.btbr.webdriver.Configuration;
+import com.zylitics.btbr.webdriver.TimeoutType;
 import com.zylitics.btbr.webdriver.logs.WebdriverLogHandler;
 import com.zylitics.zwl.antlr4.StoringErrorListener;
 import com.zylitics.zwl.api.ZwlApi;
@@ -89,6 +91,8 @@ public class BuildRunHandler {
   private final int storedPageLoadTimeout;
   private final int storedScriptTimeout;
   private final int storedElementAccessTimeout;
+  
+  private final String buildStopThreadNewName;
   // -----------program state ends----------------
   
   private BuildRunHandler(RequestBuildRun requestBuildRun,
@@ -172,6 +176,8 @@ public class BuildRunHandler {
     storedPageLoadTimeout = buildCapability.getWdTimeoutsPageLoad();
     storedScriptTimeout = buildCapability.getWdTimeoutsScript();
     storedElementAccessTimeout = buildCapability.getWdTimeoutsElementAccess();
+    buildStopThreadNewName =
+        RunnerController.STOPPED_BUILD_MAIN_THREAD_STARTS_WITH + build.getBuildId();
   }
   
   void handle() {
@@ -239,6 +245,8 @@ public class BuildRunHandler {
         // handle()
         zwlApi.interpret(zwlWdTestProperties,
             z -> z.setLineChangeListener(this::onZwlProgramLineChanged));
+      } catch (StopRequestException s) {
+        throw s;
       } catch (Throwable t) {
         LOG.debug("An exception occurred while running testVersion {}: {}.{}",
             getTestVersionIdentifier(testVersion), t.getClass().getSimpleName(), t.getMessage());
@@ -265,21 +273,24 @@ public class BuildRunHandler {
   // order of actions matter, they are in priority
   private void onZwlProgramLineChanged(int currentLine) {
     LOG.debug("onZwlProgramLineChanged invoked for line {}", currentLine);
-    // check if we can't move forward
-    if (Thread.currentThread().getName().equals(
-        RunnerController.STOPPED_BUILD_MAIN_THREAD_STARTS_WITH + build.getBuildId())) {
-      LOG.debug("A stop request has arrived while running {}",
-          currentTestVersion.getTestVersionId());
-      // a stop request arrived, handle() will catch the thrown exception.
-      throw new StopRequestException("A STOP was requested");
-    }
     
     // set line to currentTestVersion so that shots process can take it.
     currentTestVersion.setControlAtLineInProgram(currentLine);
     
+    // I've use this for two things, checking arrival of a STOP and line update. Checking the
+    // arrival doesn't have to be done on every line change, and don't want to keep another timer
+    // for simplicity, just use this for now.
     // push build status line update after a delay
     if (ChronoUnit.MILLIS.between(lastBuildStatusLineUpdateAt, clock.instant()) >=
         apiCoreProperties.getRunner().getUpdateLineBuildStatusAfter()) {
+      // check if we can't move forward
+      if (Thread.currentThread().getName().equals(buildStopThreadNewName)) {
+        LOG.debug("A stop request has arrived while running testVersion {}",
+            currentTestVersion.getTestVersionId());
+        // a stop request arrived, handle() will catch the thrown exception.
+        throw new StopRequestException("A STOP was requested");
+      }
+      
       LOG.debug("Pushing a line update for testVersion {}, line {}",
           currentTestVersion.getTestVersionId(), currentLine);
       int result = buildStatusProvider.updateLine(new BuildStatusUpdateLine(build.getBuildId(),
@@ -333,15 +344,18 @@ public class BuildRunHandler {
     }
     if (buildCapability.isBuildAetResetTimeouts()) {
       LOG.debug("Resetting timeouts");
-      // rest driver timeouts to their default
-      driver.manage().timeouts().pageLoadTimeout(wdProps.getDefaultTimeoutPageLoad(),
-          TimeUnit.MILLISECONDS);
-      driver.manage().timeouts().setScriptTimeout(wdProps.getDefaultTimeoutScript(),
-          TimeUnit.MILLISECONDS);
-      // reset build capability timeouts to the stored timeouts
+      // reset build capability timeouts to the original values
       buildCapability.setWdTimeoutsElementAccess(storedElementAccessTimeout);
       buildCapability.setWdTimeoutsPageLoad(storedPageLoadTimeout);
       buildCapability.setWdTimeoutsScript(storedScriptTimeout);
+      // rest driver timeouts to their default
+      Configuration configuration = new Configuration();
+      driver.manage().timeouts().pageLoadTimeout(
+          configuration.getTimeouts(wdProps, buildCapability, TimeoutType.PAGE_LOAD),
+          TimeUnit.MILLISECONDS);
+      driver.manage().timeouts().setScriptTimeout(
+          configuration.getTimeouts(wdProps, buildCapability, TimeoutType.JAVASCRIPT),
+          TimeUnit.MILLISECONDS);
     }
   }
   
@@ -533,7 +547,7 @@ public class BuildRunHandler {
       if (stopOccurred) {
         exMsg = "A STOP request was issued";
       } else if (currentTestVersion.getTestVersionId() == 0) {
-        exMsg = "Unexpected exception occurred before any test version could start running";
+        exMsg = "Unexpected error occurred before any test version could start running";
       } else {
         exMsg = "An exception occurred, check test version(s) of this build for details";
       }
