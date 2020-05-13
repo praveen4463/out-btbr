@@ -42,10 +42,9 @@ public class RunnerController {
   
   private static final Logger LOG = LoggerFactory.getLogger(RunnerController.class);
   private static final String BUILD_MAIN_THREAD_STARTS_WITH = "build_main_thread_";
-  static final String STOPPED_BUILD_MAIN_THREAD_STARTS_WITH = "stopped_build_main_thread_";
   
   // a map is used rather than directly assigning current build's main thread.
-  private final Map<String, Thread> threadMap = new ConcurrentHashMap<>();
+  private final Map<Integer, BuildRunStatus> buildRunStatus = new ConcurrentHashMap<>();
   
   private final APICoreProperties apiCoreProperties;
   private final SecretsManager secretsManager;
@@ -142,7 +141,7 @@ public class RunnerController {
       @Validated @RequestBody RequestBuildRun requestBuildRun) throws Exception {
     LOG.info("received request to run: {}", requestBuildRun.toString());
     // validate no build is currently running
-    if (threadMap.values().stream().anyMatch(Thread::isAlive)) {
+    if (buildRunStatus.values().stream().anyMatch(b -> b == BuildRunStatus.RUNNING)) {
       return processErrResponse(new IllegalArgumentException("Can't run a new build here because" +
           " something is already running"), HttpStatus.BAD_REQUEST);
     }
@@ -161,12 +160,20 @@ public class RunnerController {
             requestBuildRun.getBuildId() + " has already completed it's execution and can't run" +
             " again."), HttpStatus.BAD_REQUEST);
       }
+      // mark the build running
+      buildRunStatus.put(build.getBuildId(), BuildRunStatus.RUNNING);
       return run0(requestBuildRun, build);
     } catch (Throwable t) {
-      // delete VM if an uncaught exception occurs before the session is created, after that
-      // VM deletion is taken care by run handler.
+      /* cleanup when an an uncaught exception occurs before the session is created, after that
+         runner does it.*/
+      // mark build as completed
+      if (build != null) {
+        buildRunStatus.put(build.getBuildId(), BuildRunStatus.COMPLETED);
+      }
+      // delete VM
       vmDeleteHandler.delete(build != null ? build.getBuildVMId() : null,
           requestBuildRun.getVmDeleteUrl());
+      // throw to return some error response
       throw t;
     }
   }
@@ -222,12 +229,12 @@ public class RunnerController {
         testVersions.get(),
         captureShotHandlerFactory,
         driver,
-        buildDir);
+        buildDir,
+        buildRunStatus);
     // Note: in unit test, I can catch the current thread on buildRunHandler.handle method, store
     // it, send a stop, and check it's name change to verify.
     String mainThreadName = BUILD_MAIN_THREAD_STARTS_WITH + build.getBuildId();
     Thread buildThread = new Thread(buildRunHandler::handle, mainThreadName);
-    threadMap.put(mainThreadName, buildThread);
     buildThread.start();
     LOG.debug("A new thread {} is assigned to run the build further, response will now return",
         mainThreadName);
@@ -239,25 +246,18 @@ public class RunnerController {
   @DeleteMapping("/{buildId}")
   public ResponseEntity<AbstractResponse> stop(@PathVariable int buildId) {
     LOG.info("Getting a stop for build {}", buildId);
-    Thread buildThread = threadMap.get(BUILD_MAIN_THREAD_STARTS_WITH + buildId);
-    if (buildThread == null) {
-      return processErrResponse(new IllegalArgumentException("There is no such thread running on" +
-          " server that matches build " + buildId), HttpStatus.BAD_REQUEST);
+    LOG.info("buildRunStatus before stop is {}", buildRunStatus);
+    BuildRunStatus runningStatus = buildRunStatus.get(buildId);
+    if (runningStatus == null) {
+      return processErrResponse(new IllegalArgumentException("There is no such build running on" +
+          " server with buildId " + buildId), HttpStatus.BAD_REQUEST);
     }
-    if (!buildThread.isAlive()) {
-      return processErrResponse(new IllegalArgumentException("Thread for the given buildId isn't" +
-          " alive" + buildId), HttpStatus.BAD_REQUEST);
+    if (runningStatus != BuildRunStatus.RUNNING) {
+      return processErrResponse(new IllegalArgumentException("Given build " + buildId +
+          " isn't in Running state"), HttpStatus.BAD_REQUEST);
     }
-    // don't interrupt thread to stop the build as it may raise InterruptedException from anywhere
-    // that I don't want to handle separately. Let's change the name of the thread to something
-    // that can be checked during build run and build could stop. Once build is completed and post
-    // completion tasks are running, stop request won't do anything as we won't check it's name
-    // change then (we don't want build to be halted once webdriver tests are completed and we're
-    // on post completion tasks like saving shots/logs.)
-    buildThread.setName(STOPPED_BUILD_MAIN_THREAD_STARTS_WITH + buildId);
-    
-    LOG.debug("The name of running thread was updated in response to a STOP, response will now" +
-        " return");
+    buildRunStatus.put(buildId, BuildRunStatus.STOPPED);
+    LOG.info("buildRunStatus after stop is {}", buildRunStatus);
     return ResponseEntity.status(HttpStatus.OK).body(new ResponseCommon()
         .setStatus(ResponseStatus.STOPPING.name()).setHttpStatusCode(HttpStatus.OK.value()));
   }

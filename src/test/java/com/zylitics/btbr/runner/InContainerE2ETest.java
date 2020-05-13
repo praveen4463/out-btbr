@@ -68,10 +68,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * mappings.
  * 3. A new buildId must be supplied for each test using unique system properties. Every test
  * requires it's buildId to be created specifically to let the test pass and be able to assert the
- * values it was made for, make sure this requirement is fulfilled. Refer to each test description
+ * values it was made for, make sure this requirement is fulfilled. Refer to each test's description
  * for details of the requirements and then refer test db scripts for creating them.
  * 4. GOOGLE_APPLICATION_CREDENTIALS env variable should be present pointing to service account file
  * 5. Must be run sequentially, parallel execution is not supported in api
+ * Notes:
+ * 1. When all tests are run at once, just one application context is created and same instance of
+ *    Runner is used for all request, this asserts that the api works in 'build debug' mode where
+ *    builds may run one after another sequentially using the same VM.
  */
 @SuppressWarnings("unused")
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -88,10 +92,10 @@ public class InContainerE2ETest {
   
   private static final String STOP_TEST_BUILD_ID_SYS_PROP = "zl.btbr.e2e.stopTestBuildId";
   
-  private static final String WD_ERROR_TEST_BUILD_ID_SYS_PROP = "zl.btbr.e2e.wdErrorTestBuildId";
+  private static final String ZWL_ERROR_TEST_BUILD_ID_SYS_PROP = "zl.btbr.e2e.zwlErrorTestBuildId";
   
-  private static final String WD_ERROR_TEST_ABORT_BUILD_ID_SYS_PROP =
-      "zl.btbr.e2e.wdErrorTestAbortBuildId";
+  private static final String ZWL_ERROR_TEST_ABORT_BUILD_ID_SYS_PROP =
+      "zl.btbr.e2e.zwlErrorTestAbortBuildId";
   
   private static final String INVALID_VM_DELETE_URL =
       "http://10.12.1.2/beta/zones/us-central1/grids/fake-grid";
@@ -133,15 +137,14 @@ public class InContainerE2ETest {
     apiVersion = env.getProperty(APP_VER_KEY);
     client = client.mutate().responseTimeout(Duration.ofSeconds(60)).build();
   }
-  // more tests: functionality of stop, sequence of shots, failure test, debug mode of build.
   
   /*
   BuildId requirements:
-  - Prefers a buildId that has all logs set at Trace level and ON, it includes
+  - Requires a buildId that must have all logs set at Trace level and ON, it includes
   -   All browser/performance logs at build caps level
-  -   All internal logs using system properties (they could be set for all tests as they don't make
-      big files)
-  - It must have valid tests that have no bugs, it must have already been tested.
+  -   All internal logs using system properties
+  - It must have valid tests that have no bugs, preferably already tested. At least two tests
+  - are required
    */
   @Test
   void straightBuildRunTest() throws Exception {
@@ -180,6 +183,7 @@ public class InContainerE2ETest {
     LOG.debug("asserting test versions success");
     List<TestVersion> testVersions = testVersionProvider.getTestVersions(buildId)
         .orElseThrow(RuntimeException::new);
+    assertTrue(testVersions.size() >= 2);
     for (TestVersion testVersion : testVersions) {
       LOG.debug("asserting testVersion {}", testVersion.getTestVersionId());
       if (testVersion.getZwlProgram().getCode().contains("captureElementScreenshot")) {
@@ -192,7 +196,9 @@ public class InContainerE2ETest {
       assertTrue(bsDetails.getEndDate().isAfter(bsDetails.getStartDate()));
       buildRunTimeSec += bsDetails.getStartDate().until(bsDetails.getEndDate(), ChronoUnit.SECONDS);
       assertEquals(TestStatus.SUCCESS, bsDetails.getStatus());
-      assertTrue(bsDetails.getZwlExecutingLine() > 0);
+      assertTrue(bsDetails.getZwlExecutingLine() >= 0);
+      // could also be 0 when program completes too and no line push goes into db, will check them
+      // properly in unit tests.
       assertNull(bsDetails.getError());
       LOG.debug("completed asserting testVersion {}", testVersion.getTestVersionId());
     }
@@ -407,115 +413,30 @@ public class InContainerE2ETest {
     Blob driverLog = blobs.next();
     assertTrue(driverLog.getSize() >= 10);
     
-    if (Boolean.getBoolean(wdProps.getEnableProfilerLogsProp())) {
-      LOG.debug("Asserting presence of profiler logs");
-      blobs = storage.list(bucket, Storage.BlobListOption.prefix(buildDirName + "/" +
-          wdProps.getInternalLogsDir() + "/" + wdProps.getProfilerLogsFile()))
-          .iterateAll().iterator();
-      assertTrue(blobs.hasNext());
-      Blob profilerLog = blobs.next();
-      assertTrue(profilerLog.getSize() >= 10);
-    }
+    assertTrue(Boolean.getBoolean(wdProps.getEnableProfilerLogsProp()));
+    LOG.debug("Asserting presence of profiler logs");
+    blobs = storage.list(bucket, Storage.BlobListOption.prefix(buildDirName + "/" +
+        wdProps.getInternalLogsDir() + "/" + wdProps.getProfilerLogsFile()))
+        .iterateAll().iterator();
+    assertTrue(blobs.hasNext());
+    Blob profilerLog = blobs.next();
+    assertTrue(profilerLog.getSize() >= 10);
   
-    if (buildCapability.getWdBrowserName().equals(BrowserType.CHROME)
-        && (buildCapability.isWdChromeEnableNetwork() || buildCapability.isWdChromeEnablePage())) {
-      LOG.debug("Asserting presence of performance logs");
-      blobs = storage.list(bucket, Storage.BlobListOption.prefix(buildDirName + "/" +
-          wdProps.getBrowserPerfLogsDir() + "/" + wdProps.getBrowserPerfLogsFile()))
-          .iterateAll().iterator();
-      assertTrue(blobs.hasNext());
-      Blob browserPerfLog = blobs.next();
-      assertTrue(browserPerfLog.getSize() >= 10);
-    }
-  }
-  
-  /*
-  BuildId requirements:
-  - Prefers a buildId that has all logs set at Trace level and ON, it includes
-  -   All browser/performance logs at build caps level
-  -   All internal logs using system properties (they could be set for all tests as they don't make
-      big files)
-  - It must have at least one test that must fail with a ZwlLangException exception, and one test
-    is bug free that follows the failing test so that it can be asserted that build is continued
-    after a failure.
-   */
-  @Test
-  void wdErrorTest() throws Exception {
-    buildId = Integer.getInteger(WD_ERROR_TEST_BUILD_ID_SYS_PROP, 0);
-    Preconditions.checkArgument(buildId > 0, "wdErrorTestBuildId should be supplied as system" +
-        " property");
-    setBuildDirName();
-    
-    Build build = buildProvider.getBuild(buildId).orElseThrow(RuntimeException::new);
-    BuildCapability buildCapability = build.getBuildCapability();
-    
-    int timeoutSec = 120;
-    int sleepBetweenPollSec = 2;
-    int maxExpectedProgramOutput = 1000;
-    boolean testsHaveAnyElementShot = false;
-    String errorRegex = "(?i)[a-z\\s]*(exception|error)[a-z\\s]*";
-  
-    // start a new build
-    String sessionId = startBuild();
-    waitUntilBuildCompletes(build.getBuildVMId(), timeoutSec, sleepBetweenPollSec);
-    
-    // 1. check build failed
-    assertBuildFailure(errorRegex);
-  
-    // 2. check at least one versions passes after a failure to assert that we continued build
-    // after a wedriver exception.
-    LOG.debug("asserting min one test versions passes after a wd failure");
-    List<TestVersion> testVersions = testVersionProvider.getTestVersions(buildId)
-        .orElseThrow(RuntimeException::new);
-    boolean versionFailed = false;
-    boolean successPostFailure = false;
-    int buildRunTimeSec = 0;
-    for (TestVersion testVersion : testVersions) {
-      int tvId = testVersion.getTestVersionId();
-      LOG.debug("on testVersion {}", tvId);
-      if (testVersion.getZwlProgram().getCode().contains("captureElementScreenshot")) {
-        testsHaveAnyElementShot = true;
-      }
-      com.zylitics.btbr.test.model.BuildStatus bsDetails =
-          getBuildStatusDetails(testVersion.getTestVersionId());
-      assertNotNull(bsDetails.getStartDate());
-      assertNotNull(bsDetails.getEndDate());
-      assertTrue(bsDetails.getEndDate().isAfter(bsDetails.getStartDate()));
-      buildRunTimeSec += bsDetails.getStartDate().until(bsDetails.getEndDate(), ChronoUnit.SECONDS);
-      if (bsDetails.getStatus() == TestStatus.ERROR) {
-        LOG.debug("testVersion {} failed", tvId);
-        versionFailed = true;
-        continue;
-      }
-      if (versionFailed && bsDetails.getStatus() == TestStatus.SUCCESS) {
-        LOG.debug("testVersion {} passed after a failure", tvId);
-        successPostFailure = true;
-      }
-    }
-    assertTrue(versionFailed);
-    assertTrue(successPostFailure);
-  
-    // 3. check we pushed some shots to cloud and esdb
-    LOG.debug("asserting shots in cloud and esdb");
-    int maxExpectedShots = buildRunTimeSec * 10; // every second 10 shots
-    int minExpectedShots = buildRunTimeSec; // every second 1 shot
-    LOG.debug("Expecting minimum {} and maximum {} shots", minExpectedShots, maxExpectedShots);
-    assertShotsProcessed(sessionId, build, buildCapability, testVersions, maxExpectedShots,
-        minExpectedShots);
-  
-    // 4. check some program output was saved in esdb
-    LOG.debug("asserting program output");
-    assertProgramOutput(build, testVersions, maxExpectedProgramOutput);
-  
-    // 5. check logs and element screenshots were uploaded to cloud
-    LOG.debug("asserting logs in cloud");
-    assertLogsUploaded(buildCapability, testsHaveAnyElementShot);
+    assertTrue(buildCapability.getWdBrowserName().equals(BrowserType.CHROME)
+        && (buildCapability.isWdChromeEnableNetwork() || buildCapability.isWdChromeEnablePage()));
+    LOG.debug("Asserting presence of performance logs");
+    blobs = storage.list(bucket, Storage.BlobListOption.prefix(buildDirName + "/" +
+        wdProps.getBrowserPerfLogsDir() + "/" + wdProps.getBrowserPerfLogsFile()))
+        .iterateAll().iterator();
+    assertTrue(blobs.hasNext());
+    Blob browserPerfLog = blobs.next();
+    assertTrue(browserPerfLog.getSize() >= 10);
   }
   
   /*
   BuildId requirements:
   - Prefers a buildId that has all logs disabled, so that unnecessary cloud upload doesn't happen.
-  - Prefers the buildId to have at least two tests, all tests must be bug free.
+  - buildId must have at least two tests, all tests must be bug free.
    */
   @Test
   void stopRequestTest() throws Exception {
@@ -526,7 +447,7 @@ public class InContainerE2ETest {
     
     int timeoutSec = 30;
     int sleepBetweenPollSec = 1;
-    String stopErrorRegex = "(?i)[a-z\\s]*(stop|stopped)[a-z\\s]*";
+    String stopErrorRegex = "(?i).*(stop|stopped).*";
     
     // submit a new build to be able to stop it
     startBuild();
@@ -555,6 +476,7 @@ public class InContainerE2ETest {
     LOG.debug("asserting test versions failure on stop");
     List<TestVersion> testVersions = testVersionProvider.getTestVersions(buildId)
         .orElseThrow(RuntimeException::new);
+    assertTrue(testVersions.size() >= 2);
     for (int i = 0; i < testVersions.size(); i++) {
       TestVersion testVersion = testVersions.get(i);
       LOG.debug("asserting testVersion {}", testVersion.getTestVersionId());
@@ -574,6 +496,134 @@ public class InContainerE2ETest {
       }
       LOG.debug("asserting other versions have null values other than status");
       // we don't put any start/end/error to versions that couldn't run
+      assertNull(bsDetails.getStartDate());
+      assertNull(bsDetails.getEndDate());
+      assertNull(bsDetails.getError());
+    }
+  }
+  
+  /*
+  BuildId requirements:
+  - build_abort_on_failure must be set to false in build caps
+  - Requires a buildId that must have logs set at Trace level and ON, it includes
+  -   All browser/performance logs at build caps level
+  -   All internal logs using system properties
+  - It must have at least one test that must fail with a ZwlLangException exception, and one test
+    is bug free that follows the failing test so that it can be asserted that build is continued
+    after a failure.
+   */
+  @Test
+  void zwlErrorTest() throws Exception {
+    buildId = Integer.getInteger(ZWL_ERROR_TEST_BUILD_ID_SYS_PROP, 0);
+    Preconditions.checkArgument(buildId > 0, "zwlErrorTestBuildId should be supplied as system" +
+        " property");
+    setBuildDirName();
+    
+    Build build = buildProvider.getBuild(buildId).orElseThrow(RuntimeException::new);
+    BuildCapability buildCapability = build.getBuildCapability();
+  
+    assertFalse(buildCapability.isBuildAbortOnFailure());
+    
+    int timeoutSec = 120;
+    int sleepBetweenPollSec = 2;
+    boolean testsHaveAnyElementShot = false;
+    String errorRegex = "(?i).*(exception|error).*";
+    
+    // start a new build
+    startBuild();
+    waitUntilBuildCompletes(build.getBuildVMId(), timeoutSec, sleepBetweenPollSec);
+    
+    // 1. check build failed
+    assertBuildFailure(errorRegex);
+    
+    // 2. check at least one versions passes after a failure to assert that we continued build
+    // after a zwl exception.
+    LOG.debug("asserting min one test versions passes after a zwl failure");
+    List<TestVersion> testVersions = testVersionProvider.getTestVersions(buildId)
+        .orElseThrow(RuntimeException::new);
+    assertTrue(testVersions.size() >= 2);
+    boolean versionFailed = false;
+    boolean successPostFailure = false;
+    for (TestVersion testVersion : testVersions) {
+      int tvId = testVersion.getTestVersionId();
+      LOG.debug("on testVersion {}", tvId);
+      if (testVersion.getZwlProgram().getCode().contains("captureElementScreenshot")) {
+        testsHaveAnyElementShot = true;
+      }
+      com.zylitics.btbr.test.model.BuildStatus bsDetails =
+          getBuildStatusDetails(testVersion.getTestVersionId());
+      assertNotNull(bsDetails.getStartDate());
+      assertNotNull(bsDetails.getEndDate());
+      assertTrue(bsDetails.getEndDate().isAfter(bsDetails.getStartDate()));
+      if (bsDetails.getStatus() == TestStatus.ERROR) {
+        LOG.debug("failed testVersion {} found", tvId);
+        versionFailed = true;
+        continue;
+      }
+      if (versionFailed && bsDetails.getStatus() == TestStatus.SUCCESS) {
+        LOG.debug("found a post failure passed testVersion {}", tvId);
+        successPostFailure = true;
+      }
+    }
+    assertTrue(versionFailed);
+    assertTrue(successPostFailure);
+    
+    // 3. check logs and element screenshots were uploaded to cloud
+    LOG.debug("asserting logs in cloud");
+    assertLogsUploaded(buildCapability, testsHaveAnyElementShot);
+  }
+  
+  /*
+  BuildId requirements:
+  - build_abort_on_failure must be set to true in build caps
+  - It must have at least two tests, the first test must fail with a ZwlLangException exception,
+    following tests can be any, as they are not going to be run.
+   */
+  @Test
+  void zwlAbortOnErrorTest() throws Exception {
+    buildId = Integer.getInteger(ZWL_ERROR_TEST_ABORT_BUILD_ID_SYS_PROP, 0);
+    Preconditions.checkArgument(buildId > 0, "zwlErrorTestAbortBuildId should be supplied as" +
+        " system property");
+    setBuildDirName();
+    
+    Build build = buildProvider.getBuild(buildId).orElseThrow(RuntimeException::new);
+    BuildCapability buildCapability = build.getBuildCapability();
+    
+    assertTrue(buildCapability.isBuildAbortOnFailure());
+    
+    int timeoutSec = 30;
+    int sleepBetweenPollSec = 1;
+    String errorRegex = "(?i).*(exception|error).*";
+    
+    // start a new build
+    startBuild();
+    waitUntilBuildCompletes(build.getBuildVMId(), timeoutSec, sleepBetweenPollSec);
+    
+    // 1. check build failed
+    assertBuildFailure(errorRegex);
+    
+    // 2. check first version failed and others Aborted
+    LOG.debug("asserting all versions Aborted after a zwl failure");
+    List<TestVersion> testVersions = testVersionProvider.getTestVersions(buildId)
+        .orElseThrow(RuntimeException::new);
+    assertTrue(testVersions.size() >= 2);
+    for (int i = 0; i < testVersions.size(); i++) {
+      TestVersion testVersion = testVersions.get(i);
+      LOG.debug("asserting testVersion {}", testVersion.getTestVersionId());
+      com.zylitics.btbr.test.model.BuildStatus bsDetails =
+          getBuildStatusDetails(testVersion.getTestVersionId());
+      if (i == 0) {
+        LOG.debug("asserting first version failed");
+        assertEquals(TestStatus.ERROR, bsDetails.getStatus());
+        assertNotNull(bsDetails.getStartDate());
+        assertNotNull(bsDetails.getEndDate());
+        assertNotNull(bsDetails.getError());
+        assertTrue(bsDetails.getError().matches(errorRegex));
+        continue;
+      }
+      LOG.debug("asserting other versions aborted");
+      // we don't put any start/end/error to versions that couldn't run
+      assertEquals(TestStatus.ABORTED, bsDetails.getStatus());
       assertNull(bsDetails.getStartDate());
       assertNull(bsDetails.getEndDate());
       assertNull(bsDetails.getError());
@@ -616,23 +666,21 @@ public class InContainerE2ETest {
   private void waitUntilBuildCompletes(int buildVMId, int timeoutSec,
                                        int sleepBetweenPollSec) throws Exception {
     Instant startTime = Instant.now();
-    boolean vmDeleteDateUpdated = false;
-    while (!vmDeleteDateUpdated || Instant.now().minusSeconds(timeoutSec).isAfter(startTime)) {
+    while (true) {
       String sql = "SELECT delete_date FROM bt_build_vm WHERE bt_build_vm_id = :bt_build_vm_id";
       SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_vm_id",
           new SqlParameterValue(Types.INTEGER, buildVMId));
       if (jdbc.queryForObject(sql, namedParams, (rs, rowNum) -> rs.getDate("delete_date")) != null)
       {
-        vmDeleteDateUpdated = true;
+        LOG.debug("Delete date was updated");
+        break;
+      }
+      if (startTime.until(Instant.now(), ChronoUnit.SECONDS) >= timeoutSec) {
+        throw new TimeoutException("Waited for " + timeoutSec + " seconds but vm's deleted date" +
+            " didn't update");
       }
       //noinspection BusyWait
       Thread.sleep(TimeUnit.MILLISECONDS.convert(sleepBetweenPollSec, TimeUnit.SECONDS));
-    }
-    // This is an invalid warning, log an issue in intellij once you can.
-    //noinspection ConstantConditions
-    if (!vmDeleteDateUpdated) {
-      throw new TimeoutException("Waited for " + timeoutSec + " seconds but vm's deleted date" +
-          " didn't update");
     }
     // after delete date is updated, wait for few more seconds before finishing test to give time
     // to vm delete url invocation.

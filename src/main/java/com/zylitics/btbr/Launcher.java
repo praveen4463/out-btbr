@@ -85,7 +85,7 @@ public class Launcher {
   // Boot won't autoconfigure DataSource if a bean is already declared.
   @Bean
   @Profile("production")
-  DataSource hikariDataSource(APICoreProperties apiCoreProperties,SecretsManager secretsManager) {
+  DataSource hikariDataSource(APICoreProperties apiCoreProperties, SecretsManager secretsManager) {
     APICoreProperties.DataSource ds = apiCoreProperties.getDataSource();
     String privateHost = secretsManager.getSecretAsPlainText(ds.getPrivateHostCloudFile());
     String userPwd = secretsManager.getSecretAsPlainText(ds.getUserSecretCloudFile());

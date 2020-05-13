@@ -92,7 +92,8 @@ public class BuildRunHandler {
   private final int storedScriptTimeout;
   private final int storedElementAccessTimeout;
   
-  private final String buildStopThreadNewName;
+  // referenced from RunnerController
+  private final Map<Integer, BuildRunStatus> buildRunStatus;
   // -----------program state ends----------------
   
   private BuildRunHandler(RequestBuildRun requestBuildRun,
@@ -109,7 +110,8 @@ public class BuildRunHandler {
                           List<TestVersion> testVersions,
                           CaptureShotHandler.Factory captureShotHandlerFactory,
                           RemoteWebDriver driver,
-                          Path buildDir) {
+                          Path buildDir,
+                          Map<Integer, BuildRunStatus> buildRunStatus) {
     this(requestBuildRun,
         apiCoreProperties,
         storage,
@@ -127,7 +129,8 @@ public class BuildRunHandler {
         new LocalAssetsToCloudHandler(apiCoreProperties.getWebdriver(), storage, buildDir),
         driver,
         buildDir,
-        Clock.systemUTC());
+        Clock.systemUTC(),
+        buildRunStatus);
   }
   
   BuildRunHandler(RequestBuildRun requestBuildRun,
@@ -146,7 +149,8 @@ public class BuildRunHandler {
                   LocalAssetsToCloudHandler localAssetsToCloudHandler,
                   RemoteWebDriver driver,
                   Path buildDir,
-                  Clock clock) {
+                  Clock clock,
+                  Map<Integer, BuildRunStatus> buildRunStatus) {
     this.requestBuildRun = requestBuildRun;
     this.apiCoreProperties = apiCoreProperties;
     wdProps = apiCoreProperties.getWebdriver();
@@ -173,11 +177,14 @@ public class BuildRunHandler {
     printStream = new CallbackOnlyPrintStream(this::sendOutput);
     exceptionTranslationProvider = new ExceptionTranslationProvider(storingErrorListener);
     this.clock = clock;
+    // check buildRunStatus has current build
+    Preconditions.checkArgument(buildRunStatus.get(build.getBuildId()) != null
+        && buildRunStatus.get(build.getBuildId()) == BuildRunStatus.RUNNING,
+        "buildRunStatus must contain current build with Running state");
+    this.buildRunStatus = buildRunStatus;
     storedPageLoadTimeout = buildCapability.getWdTimeoutsPageLoad();
     storedScriptTimeout = buildCapability.getWdTimeoutsScript();
     storedElementAccessTimeout = buildCapability.getWdTimeoutsElementAccess();
-    buildStopThreadNewName =
-        RunnerController.STOPPED_BUILD_MAIN_THREAD_STARTS_WITH + build.getBuildId();
   }
   
   void handle() {
@@ -212,9 +219,9 @@ public class BuildRunHandler {
         build,
         driver,
         printStream,
-        immutableMapProvider.getMapFromTable("zwl_preferences").orElse(null),
+        immutableMapProvider.getMapFromTable(build.getUserId(), "zwl_preferences").orElse(null),
         buildDir,
-        immutableMapProvider.getMapFromTable("zwl_globals").orElse(null));
+        immutableMapProvider.getMapFromTable(build.getUserId(), "zwl_globals").orElse(null));
     
     // let's start the build
     boolean firstTest = true;
@@ -284,7 +291,9 @@ public class BuildRunHandler {
     if (ChronoUnit.MILLIS.between(lastBuildStatusLineUpdateAt, clock.instant()) >=
         apiCoreProperties.getRunner().getUpdateLineBuildStatusAfter()) {
       // check if we can't move forward
-      if (Thread.currentThread().getName().equals(buildStopThreadNewName)) {
+      // Note: We don't want build to be halted once webdriver tests are completed and we're
+      // on post completion tasks like saving shots/logs, thus this is checked only here.
+      if (buildRunStatus.get(build.getBuildId()) == BuildRunStatus.STOPPED) {
         LOG.debug("A stop request has arrived while running testVersion {}",
             currentTestVersion.getTestVersionId());
         // a stop request arrived, handle() will catch the thrown exception.
@@ -412,7 +421,7 @@ public class BuildRunHandler {
         t.getMessage());
     // we do this to make sure the version we're marking error was first marked running and
     // actually had an entry in BuildStatus
-    validateTestVersionRunning(testVersion);
+    validateTestVersionRunning(testVersion.getTestVersionId());
     
     String exMessage = exceptionTranslationProvider.get(t);
     LOG.debug("Translated error message is {}", exMessage);
@@ -435,7 +444,7 @@ public class BuildRunHandler {
         getTestVersionIdentifier(testVersion));
     // we do this to make sure the version we're marking success was first marked running and
     // actually had an entry in BuildStatus
-    validateTestVersionRunning(testVersion);
+    validateTestVersionRunning(testVersion.getTestVersionId());
     
     // update build status
     updateBuildStatus(testVersion.getTestVersionId(), TestStatus.SUCCESS, null);
@@ -449,18 +458,15 @@ public class BuildRunHandler {
     testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.SUCCESS);
   }
   
-  private void validateTestVersionRunning(TestVersion testVersion) {
-    LOG.debug("Validating testVersion {} is actually in {} state",
-        getTestVersionIdentifier(testVersion), TestStatus.RUNNING);
-    TestStatus currentStatus = testVersionsStatus.get(testVersion.getTestVersionId());
-    Preconditions.checkNotNull(currentStatus, "testVersionId " + testVersion.getTestVersionId() +
+  private void validateTestVersionRunning(int testVersionId) {
+    LOG.debug("Validating testVersionId {} is actually Running", testVersionId);
+    TestStatus currentStatus = testVersionsStatus.get(testVersionId);
+    Preconditions.checkNotNull(currentStatus, "testVersionId " + testVersionId +
         " doesn't have a state right now");
     
-    // validate the version we're marking as success was actually RUNNING
     if (currentStatus != TestStatus.RUNNING) {
-      throw new RuntimeException(String.format("Can't change state of testVersionId: %s because" +
-              "  it's not in RUNNING status. testVersionsStatus: %s",
-          testVersion.getTestVersionId(), testVersionsStatus));
+      throw new RuntimeException(String.format("testVersionId: %s is not in RUNNING status." +
+          " testVersionsStatus: %s", testVersionId, testVersionsStatus));
     }
   }
   
@@ -529,6 +535,9 @@ public class BuildRunHandler {
     LOG.debug("storing capture logs to cloud");
     localAssetsToCloudHandler.store();
     
+    // mark current build as completed
+    buildRunStatus.put(build.getBuildId(), BuildRunStatus.COMPLETED);
+    
     // delete VM
     LOG.debug("deleting the VM");
     vmDeleteHandler.delete(build.getBuildVMId(), requestBuildRun.getVmDeleteUrl());
@@ -564,14 +573,12 @@ public class BuildRunHandler {
   
   private void updateBuildStatusOnStop() {
     LOG.debug("updateBuildStatusOnStop was invoked");
-    Optional<Integer> running = getRunningVersion();
-    if (!running.isPresent()) {
-      // when a stop comes, the current thread's name change is checked during onLineChange handler,
-      // which can be invoked during a program run, thus some version must be running on STOP.
-      LOG.error("A running test wasn't found on STOP, this should be present");
-    } else {
-      updateBuildStatus(running.get(), TestStatus.STOPPED, "Forcefully stopped while running");
-    }
+    int testVersionId = currentTestVersion.getTestVersionId();
+    validateTestVersionRunning(testVersionId);
+    updateBuildStatus(testVersionId, TestStatus.STOPPED, "Forcefully stopped while running");
+    sendOutput("A Stop was requested during execution of test version " +
+        getTestVersionIdentifier(testVersionId), true);
+    
     saveTestVersionsNotRun(TestStatus.STOPPED);
     // status is not aborted, because when stop was requested, all tests in queue were also forced
     // to stop, this is an explicit request rather than implicit error that causes abort.
@@ -579,31 +586,14 @@ public class BuildRunHandler {
   
   private void updateBuildStatusOnError() {
     LOG.debug("updateBuildStatusOnError was invoked");
-    Optional<Integer> running = getRunningVersion();
-    running.ifPresent(t -> {
-      // I don't expect a Running version while an exception occurs because when it happens,
-      // onTestVersionFailed runs that does all updates and update the status ERROR, thus log this
-      // to keep a watch if this happens.
-      // Although onTestVersionStart and onBuildStart run after marking the current version as
-      // Running and before actually submitting code to interpreter but there is nothing that can
-      // fail (atleast at the time of writing this), onTestVersionStart's db calls are placed before
-      // marking version as Running, thus it's very unlikely this may happen and not being
-      // handled.
-      LOG.error("A running test is found on exception whereas it should've already processed");
-    });
+    /*
+     Just save version those didn't run because the current version should already have been
+     handled in onTestVersionFailed. There may be edge cases when current version is left
+     unhandled, such as an exception occurred in onTestVersionStart and onBuildStart after marking
+     version as 'Running' but it's very unlikely and not handled, if this happens we will know
+     in logs.
+     */
     saveTestVersionsNotRun(TestStatus.ABORTED);
-  }
-  
-  private Optional<Integer> getRunningVersion() {
-    List<Integer> all = testVersionsStatus.entrySet().stream()
-        .filter(e -> e.getValue() == TestStatus.RUNNING).map(Map.Entry::getKey)
-        .collect(Collectors.toList());
-    // shouldn't happen but still log
-    if (all.size() > 1) {
-      LOG.error("There are more than one running versions found, testVersionsStatus: "
-          + testVersionsStatus);
-    }
-    return all.size() == 1 ? Optional.of(all.get(0)) : Optional.empty();
   }
   
   // end date, start date, error are null for tests that couldn't run. status could be either
@@ -656,6 +646,15 @@ public class BuildRunHandler {
     return String.format("%s:%s", testVersion.getTestVersionId(), testVersion.getName());
   }
   
+  private String getTestVersionIdentifier(int testVersionId) {
+    return getTestVersionIdentifier(getTestVersion(testVersionId));
+  }
+  
+  private TestVersion getTestVersion(int testVersionId) {
+    return testVersions.stream().filter(t -> t.getTestVersionId() == testVersionId).findFirst()
+        .orElseThrow(() -> new RuntimeException("Invalid testVersionId" + testVersionId));
+  }
+  
   static class Factory {
     
     BuildRunHandler create(RequestBuildRun requestBuildRun,
@@ -672,7 +671,8 @@ public class BuildRunHandler {
                            List<TestVersion> testVersions,
                            CaptureShotHandler.Factory captureShotHandlerFactory,
                            RemoteWebDriver driver,
-                           Path buildDir) {
+                           Path buildDir,
+                           Map<Integer, BuildRunStatus> buildRunStatus) {
       return new BuildRunHandler(requestBuildRun,
           apiCoreProperties,
           secretsManager,
@@ -687,7 +687,8 @@ public class BuildRunHandler {
           testVersions,
           captureShotHandlerFactory,
           driver,
-          buildDir);
+          buildDir,
+          buildRunStatus);
     }
   }
 }

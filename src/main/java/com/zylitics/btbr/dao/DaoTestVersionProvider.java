@@ -35,7 +35,7 @@ public class DaoTestVersionProvider extends AbstractDaoProvider implements TestV
         " ON (bt.bt_test_version_id = tv.bt_test_version_id)" +
         " INNER JOIN zwl_program AS zp" +
         " ON (tv.zwl_program_id = zp.zwl_program_id)" +
-        " WHERE bt.bt_build_id = :bt_build_id;";
+        " WHERE bt.bt_build_id = :bt_build_id ORDER BY bt.bt_build_tests_id;";
   
     SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_id",
         new SqlParameterValue(Types.INTEGER, buildId));
