@@ -3,6 +3,8 @@ package com.zylitics.btbr.runner.provider;
 import com.google.common.base.Preconditions;
 import com.zylitics.btbr.runner.TestStatus;
 
+import java.util.Objects;
+
 public class BuildStatusSaveWontStart extends AbstractBuildStatus {
   
   private final TestStatus status;
@@ -23,5 +25,19 @@ public class BuildStatusSaveWontStart extends AbstractBuildStatus {
     return "BuildStatusSaveWontStart{" +
         "status=" + status +
         "} " + super.toString();
+  }
+  
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+    BuildStatusSaveWontStart that = (BuildStatusSaveWontStart) o;
+    return status == that.status;
+  }
+  
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), status);
   }
 }

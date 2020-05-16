@@ -12,27 +12,16 @@ import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
-import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
 public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
   
-  private final File driverLogFile;
-  
   public ChromeDriverSessionProvider(APICoreProperties.Webdriver wdProps
       , BuildCapability buildCapability, Path buildDir) {
     super(wdProps, buildCapability, buildDir);
-    this.driverLogFile = getDriverLogFile();
-  }
-  
-  ChromeDriverSessionProvider(APICoreProperties.Webdriver wdProps
-      , BuildCapability buildCapability, File driverLogFile) {
-    super(wdProps, buildCapability, Paths.get(""));
-    this.driverLogFile = driverLogFile;
   }
   
   @Override
@@ -42,7 +31,7 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
     
     ChromeDriverService driverService = new ChromeDriverService.Builder()
         .usingAnyFreePort()
-        .withLogFile(driverLogFile)
+        .withLogFile(getDriverLogFile())
         .withAppendLog(true)
         .withVerbose(buildCapability.isWdChromeVerboseLogging())
         .withSilent(buildCapability.isWdChromeSilentOutput())

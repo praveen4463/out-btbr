@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.zylitics.btbr.runner.TestStatus;
 
 import java.time.OffsetDateTime;
+import java.util.Objects;
 
 public class BuildStatusSaveOnStart  extends AbstractBuildStatus {
   
@@ -35,5 +36,20 @@ public class BuildStatusSaveOnStart  extends AbstractBuildStatus {
         "status=" + status +
         ", startDate=" + startDate +
         "} " + super.toString();
+  }
+  
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+    BuildStatusSaveOnStart that = (BuildStatusSaveOnStart) o;
+    return status == that.status &&
+        Objects.equals(startDate, that.startDate);
+  }
+  
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), status, startDate);
   }
 }

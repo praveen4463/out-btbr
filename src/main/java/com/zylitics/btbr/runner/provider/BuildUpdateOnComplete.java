@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 
 import javax.annotation.Nullable;
 import java.time.OffsetDateTime;
+import java.util.Objects;
 
 public class BuildUpdateOnComplete {
   
@@ -50,5 +51,21 @@ public class BuildUpdateOnComplete {
         ", isSuccess=" + isSuccess +
         ", error='" + error + '\'' +
         '}';
+  }
+  
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    BuildUpdateOnComplete that = (BuildUpdateOnComplete) o;
+    return buildId == that.buildId &&
+        isSuccess == that.isSuccess &&
+        endDate.equals(that.endDate) &&
+        Objects.equals(error, that.error);
+  }
+  
+  @Override
+  public int hashCode() {
+    return Objects.hash(buildId, endDate, isSuccess, error);
   }
 }

@@ -1,8 +1,6 @@
 package com.zylitics.btbr.util;
 
-import javax.annotation.Nullable;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
+import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 
@@ -12,5 +10,9 @@ public class DateTimeUtil {
   // OffsetDateTime also works with ESDB.
   public static OffsetDateTime getCurrentUTC() {
     return OffsetDateTime.now(ZoneId.of("UTC"));
+  }
+  
+  public static OffsetDateTime getCurrent(Clock clock) {
+    return OffsetDateTime.now(clock);
   }
 }

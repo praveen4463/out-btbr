@@ -5,6 +5,7 @@ import com.zylitics.btbr.runner.TestStatus;
 
 import javax.annotation.Nullable;
 import java.time.OffsetDateTime;
+import java.util.Objects;
 
 public class BuildStatusUpdateOnEnd extends AbstractBuildStatus {
   
@@ -44,5 +45,21 @@ public class BuildStatusUpdateOnEnd extends AbstractBuildStatus {
         ", endDate=" + endDate +
         ", error='" + error + '\'' +
         "} " + super.toString();
+  }
+  
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+    BuildStatusUpdateOnEnd that = (BuildStatusUpdateOnEnd) o;
+    return status == that.status &&
+        endDate.equals(that.endDate) &&
+        Objects.equals(error, that.error);
+  }
+  
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), status, endDate, error);
   }
 }

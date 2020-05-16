@@ -164,7 +164,7 @@ public class RunnerController {
       buildRunStatus.put(build.getBuildId(), BuildRunStatus.RUNNING);
       return run0(requestBuildRun, build);
     } catch (Throwable t) {
-      /* cleanup when an an uncaught exception occurs before the session is created, after that
+      /* cleanup when an uncaught exception occurs before the session is created, after that
          runner does it.*/
       // mark build as completed
       if (build != null) {

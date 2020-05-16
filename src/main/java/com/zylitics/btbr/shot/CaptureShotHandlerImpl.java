@@ -78,64 +78,46 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
   
   private volatile boolean errorProcessed = false;
   
-  private CaptureShotHandlerImpl(APICoreProperties apiCoreProperties,
+  private CaptureShotHandlerImpl(APICoreProperties.Shot shotProps,
                                  ShotMetadataProvider shotMetadataProvider,
                                  Storage storage,
                                  Build build,
                                  String sessionKey,
                                  String bucketSessionStorage,
                                  CurrentTestVersion currentTestVersion) {
-    Preconditions.checkNotNull(apiCoreProperties, "APICoreProperties can't be null");
-    Preconditions.checkNotNull(shotMetadataProvider, "ShotMetadataProvider can't be null");
-    Preconditions.checkNotNull(storage, "storage can't be null");
-    Preconditions.checkNotNull(build, "Build can't be null");
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(sessionKey), "sessionKey can't be empty");
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(bucketSessionStorage),
-        "bucketSessionStorage can't be empty");
-    Preconditions.checkNotNull(currentTestVersion, "currentTestVersion can't be null");
-    
-    shotProps = apiCoreProperties.getShot();
-    this.shotMetadataProvider = shotMetadataProvider;
-    this.build = build;
-    this.sessionKey = sessionKey;
-    shotNameProvider = new ShotNameProvider(sessionKey, build.getBuildKey(), shotProps.getExt());
-    this.currentTestVersion = currentTestVersion;
-  
-    captureDevice = CaptureDevice.Factory.getDefault().create(shotProps.getExt());
-    captureDevice.init();
-  
-    processShotExecutor = Executors.newSingleThreadExecutor(r -> {
-      Thread executorThread = new Thread(r, "process_shot_executor_" + build.getBuildId());
-      executorThread.setUncaughtExceptionHandler((t, e) -> LOG.error(e.getMessage(), e));
-      return executorThread;
-    });
-  
-    shotCloudStore = ShotCloudStore.Factory.getDefault().create(bucketSessionStorage, shotProps,
-        storage);
-  
-    shotCaptureThread = new Thread(new ShotCaptureThread(), "shot_capture_thread_" +
-        build.getBuildId());
-    shotCaptureThread.setUncaughtExceptionHandler((t, e) -> LOG.error(e.getMessage(), e));
+    this(shotProps,
+        shotMetadataProvider,
+        build,
+        sessionKey,
+        currentTestVersion,
+        CaptureDevice.Factory.getDefault().create(shotProps.getExt()),
+        ShotCloudStore.Factory.getDefault().create(bucketSessionStorage, shotProps, storage));
   }
   
-  CaptureShotHandlerImpl(APICoreProperties apiCoreProperties,
+  CaptureShotHandlerImpl(APICoreProperties.Shot shotProps,
                   ShotMetadataProvider shotMetadataProvider,
                   Build build,
                   String sessionKey,
                   CurrentTestVersion currentTestVersion,
                   CaptureDevice captureDevice,
-                  ExecutorService processShotExecutor,
                   ShotCloudStore shotCloudStore) {
-    shotProps = apiCoreProperties.getShot();
+    this.shotProps = shotProps;
     this.shotMetadataProvider = shotMetadataProvider;
     this.build = build;
     this.sessionKey = sessionKey;
     shotNameProvider = new ShotNameProvider(sessionKey, build.getBuildKey(), shotProps.getExt());
     this.currentTestVersion = currentTestVersion;
     this.captureDevice = captureDevice;
-    this.processShotExecutor = processShotExecutor;
+    captureDevice.init();
     this.shotCloudStore = shotCloudStore;
-    shotCaptureThread = new Thread(new ShotCaptureThread());
+    processShotExecutor = Executors.newSingleThreadExecutor(r -> {
+      Thread executorThread = new Thread(r, "process_shot_executor_" + build.getBuildId());
+      executorThread.setUncaughtExceptionHandler((t, e) -> LOG.error(e.getMessage(), e));
+      return executorThread;
+    });
+    shotCaptureThread = new Thread(new ShotCaptureThread(), "shot_capture_thread_" +
+        build.getBuildId());
+    shotCaptureThread.setUncaughtExceptionHandler((t, e) -> LOG.error(e.getMessage(), e));
   }
   
   @Override
@@ -295,11 +277,20 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
   public static class Factory implements CaptureShotHandler.Factory {
   
     @Override
-    public CaptureShotHandler create(APICoreProperties apiCoreProperties,
+    public CaptureShotHandler create(APICoreProperties.Shot shotProps,
                                      ShotMetadataProvider shotMetadataProvider, Storage storage,
                                      Build build, String sessionKey, String bucketSessionStorage,
                                      CurrentTestVersion currentTestVersion) {
-      return new CaptureShotHandlerImpl(apiCoreProperties, shotMetadataProvider, storage, build,
+      Preconditions.checkNotNull(shotProps, "shotProps can't be null");
+      Preconditions.checkNotNull(shotMetadataProvider, "shotMetadataProvider can't be null");
+      Preconditions.checkNotNull(storage, "storage can't be null");
+      Preconditions.checkNotNull(build, "build can't be null");
+      Preconditions.checkArgument(!Strings.isNullOrEmpty(sessionKey), "sessionKey can't be empty");
+      Preconditions.checkArgument(!Strings.isNullOrEmpty(bucketSessionStorage),
+          "bucketSessionStorage can't be empty");
+      Preconditions.checkNotNull(currentTestVersion, "currentTestVersion can't be null");
+      
+      return new CaptureShotHandlerImpl(shotProps, shotMetadataProvider, storage, build,
           sessionKey, bucketSessionStorage, currentTestVersion);
     }
   }

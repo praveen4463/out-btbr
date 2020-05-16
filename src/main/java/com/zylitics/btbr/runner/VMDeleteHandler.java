@@ -38,20 +38,10 @@ class VMDeleteHandler {
   VMDeleteHandler(APICoreProperties apiCoreProperties,
                   SecretsManager secretsManager,
                   BuildVMProvider buildVMProvider) {
-    this(apiCoreProperties,
-        secretsManager,
-        buildVMProvider,
-        HttpClient.Factory.createDefault());
-  }
-  
-  VMDeleteHandler(APICoreProperties apiCoreProperties,
-                  SecretsManager secretsManager,
-                  BuildVMProvider buildVMProvider,
-                  HttpClient.Factory httpClientFactory) {
     this.apiCoreProperties = apiCoreProperties;
     this.secretsManager = secretsManager;
     this.buildVMProvider = buildVMProvider;
-    this.httpClientFactory = httpClientFactory;
+    this.httpClientFactory = HttpClient.Factory.createDefault();
   }
   
   /**

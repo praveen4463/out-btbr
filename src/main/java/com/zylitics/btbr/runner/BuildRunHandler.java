@@ -69,6 +69,9 @@ public class BuildRunHandler {
   // providers
   private final ExceptionTranslationProvider exceptionTranslationProvider;
   
+  // suppliers
+  private final ZwlApiSupplier zwlApiSupplier;
+  
   // clock
   private final Clock clock;
   
@@ -130,7 +133,8 @@ public class BuildRunHandler {
         driver,
         buildDir,
         Clock.systemUTC(),
-        buildRunStatus);
+        buildRunStatus,
+        new ZwlApiSupplier());
   }
   
   BuildRunHandler(RequestBuildRun requestBuildRun,
@@ -150,7 +154,8 @@ public class BuildRunHandler {
                   RemoteWebDriver driver,
                   Path buildDir,
                   Clock clock,
-                  Map<Integer, BuildRunStatus> buildRunStatus) {
+                  Map<Integer, BuildRunStatus> buildRunStatus,
+                  ZwlApiSupplier zwlApiSupplier) {
     this.requestBuildRun = requestBuildRun;
     this.apiCoreProperties = apiCoreProperties;
     wdProps = apiCoreProperties.getWebdriver();
@@ -162,7 +167,7 @@ public class BuildRunHandler {
     this.build = build;
     buildCapability = build.getBuildCapability();
     this.testVersions = testVersions;
-    captureShotHandler = captureShotHandlerFactory.create(apiCoreProperties,
+    captureShotHandler = captureShotHandlerFactory.create(apiCoreProperties.getShot(),
         shotMetadataProvider,
         storage,
         build,
@@ -180,11 +185,12 @@ public class BuildRunHandler {
     // check buildRunStatus has current build
     Preconditions.checkArgument(buildRunStatus.get(build.getBuildId()) != null
         && buildRunStatus.get(build.getBuildId()) == BuildRunStatus.RUNNING,
-        "buildRunStatus must contain current build with Running state");
+        "buildRunStatus must contain current build in Running state");
     this.buildRunStatus = buildRunStatus;
     storedPageLoadTimeout = buildCapability.getWdTimeoutsPageLoad();
     storedScriptTimeout = buildCapability.getWdTimeoutsScript();
     storedElementAccessTimeout = buildCapability.getWdTimeoutsElementAccess();
+    this.zwlApiSupplier = zwlApiSupplier;
   }
   
   void handle() {
@@ -246,7 +252,7 @@ public class BuildRunHandler {
       String code = testVersion.getZwlProgram().getCode();
       LOG.debug("Going to run the code {} for testVersion {}", code,
           getTestVersionIdentifier(testVersion));
-      ZwlApi zwlApi = new ZwlApi(code, Collections.singletonList(storingErrorListener));
+      ZwlApi zwlApi = zwlApiSupplier.get(code, Collections.singletonList(storingErrorListener));
       try {
         // handle exceptions only while reading the code, other exceptions will be relayed to
         // handle()
@@ -279,7 +285,8 @@ public class BuildRunHandler {
   
   // order of actions matter, they are in priority
   private void onZwlProgramLineChanged(int currentLine) {
-    LOG.debug("onZwlProgramLineChanged invoked for line {}", currentLine);
+    LOG.debug("onZwlProgramLineChanged invoked for testVersion {}, line {}",
+        currentTestVersion.getTestVersionId(), currentLine);
     
     // set line to currentTestVersion so that shots process can take it.
     currentTestVersion.setControlAtLineInProgram(currentLine);
@@ -331,10 +338,12 @@ public class BuildRunHandler {
       List<String> winHandles = new ArrayList<>(driver.getWindowHandles());
       LOG.debug("Found total windows {}, will close extra windows and keep single",
           winHandles.size());
-      for (int i = 0; i < winHandles.size(); i++) {
-        driver.switchTo().window(winHandles.get(i));
-        if (i < winHandles.size() - 1) {
-          driver.close();
+      if (winHandles.size() > 1) {
+        for (int i = 0; i < winHandles.size(); i++) {
+          driver.switchTo().window(winHandles.get(i));
+          if (i < winHandles.size() - 1) {
+            driver.close();
+          }
         }
       }
       // maximizing and resetting url takes affect only when keep single window is true.
@@ -357,7 +366,7 @@ public class BuildRunHandler {
       buildCapability.setWdTimeoutsElementAccess(storedElementAccessTimeout);
       buildCapability.setWdTimeoutsPageLoad(storedPageLoadTimeout);
       buildCapability.setWdTimeoutsScript(storedScriptTimeout);
-      // rest driver timeouts to their default
+      // reset driver timeouts to their default
       Configuration configuration = new Configuration();
       driver.manage().timeouts().pageLoadTimeout(
           configuration.getTimeouts(wdProps, buildCapability, TimeoutType.PAGE_LOAD),
@@ -368,7 +377,7 @@ public class BuildRunHandler {
     }
   }
   
-  // Order is precise, db interactions are not top so that if it fails, we don't mark the version
+  // Order is precise, db interactions are on top so that if it fails, we don't mark the version
   // Running
   private void onTestVersionStart(TestVersion testVersion) {
     LOG.debug("onTestVersionStart invoked for testVersion {}",
@@ -376,7 +385,7 @@ public class BuildRunHandler {
     
     validateSingleRowDbCommit(buildStatusProvider.saveOnStart(
         new BuildStatusSaveOnStart(build.getBuildId(), testVersion.getTestVersionId(),
-            TestStatus.RUNNING, DateTimeUtil.getCurrentUTC())));
+            TestStatus.RUNNING, DateTimeUtil.getCurrent(clock))));
   
     // set the line to 0 when a new version starts, we do this after test is sanitize and just
     // one window is there with blank url, thus it's safe to change the version. It's ok if a few
@@ -388,6 +397,10 @@ public class BuildRunHandler {
     testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.RUNNING);
     
     printStream.println("Executing test version " + getTestVersionIdentifier(testVersion));
+  
+    // assign an instant back in time so that first time line update go without any wait
+    lastBuildStatusLineUpdateAt = clock.instant()
+        .minusMillis(apiCoreProperties.getRunner().getUpdateLineBuildStatusAfter());
     
     LOG.debug("onTestVersionStart completed for testVersion {}",
         getTestVersionIdentifier(testVersion));
@@ -409,10 +422,6 @@ public class BuildRunHandler {
     // assign current instant to log capture instant, so that log capture waits for sometime
     // from now before trying capturing.
     lastLogCheckAt = clock.instant();
-    
-    // assign an instant so that first time line update go without any wait
-    lastBuildStatusLineUpdateAt = clock.instant()
-        .minusMillis(apiCoreProperties.getRunner().getUpdateLineBuildStatusAfter());
   }
   
   private void onTestVersionFailed(TestVersion testVersion, Throwable t) {
@@ -565,7 +574,7 @@ public class BuildRunHandler {
     // don't throw an exception from here
     try {
       validateSingleRowDbCommit(buildProvider.updateOnComplete(new BuildUpdateOnComplete(
-          build.getBuildId(), DateTimeUtil.getCurrentUTC(), isSuccess, exMsg)));
+          build.getBuildId(), DateTimeUtil.getCurrent(clock), isSuccess, exMsg)));
     } catch (Throwable t) {
       LOG.error(t.getMessage(), t);
     }
@@ -613,7 +622,7 @@ public class BuildRunHandler {
     LOG.debug("Updating buildStatus for testVersionId {} to status {}, error {}", testVersionId,
         status, error);
     validateSingleRowDbCommit(buildStatusProvider.updateOnEnd(new BuildStatusUpdateOnEnd(
-        build.getBuildId(), testVersionId, status, DateTimeUtil.getCurrentUTC(), error)));
+        build.getBuildId(), testVersionId, status, DateTimeUtil.getCurrent(clock), error)));
   }
   
   private void sendOutput(String message) {
@@ -629,7 +638,7 @@ public class BuildRunHandler {
         .setBuildId(build.getBuildId())
         .setTestVersionId(currentTestVersion.getTestVersionId())
         .setOutput(message)
-        .setCreateDate(DateTimeUtil.getCurrentUTC())
+        .setCreateDate(DateTimeUtil.getCurrent(clock))
         .setEnded(versionEndedMessage);
     zwlProgramOutputProvider.saveAsync(zwlProgramOutput);
   }
@@ -652,7 +661,7 @@ public class BuildRunHandler {
   
   private TestVersion getTestVersion(int testVersionId) {
     return testVersions.stream().filter(t -> t.getTestVersionId() == testVersionId).findFirst()
-        .orElseThrow(() -> new RuntimeException("Invalid testVersionId" + testVersionId));
+        .orElseThrow(() -> new RuntimeException("Invalid testVersionId " + testVersionId));
   }
   
   static class Factory {

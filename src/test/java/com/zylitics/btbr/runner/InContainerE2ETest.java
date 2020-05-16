@@ -84,6 +84,10 @@ public class InContainerE2ETest {
   
   private static final Logger LOG = LoggerFactory.getLogger(InContainerE2ETest.class);
   
+  private static final String ERROR_REGEX = "(?i).*(exception|error).*";
+  
+  private static final String STOP_ERROR_REGEX = "(?i).*(stop|stopped).*";
+  
   private static final String API_BASE_PATH = "/{version}/builds";
   
   private static final String APP_VER_KEY = "app-short-version";
@@ -197,8 +201,8 @@ public class InContainerE2ETest {
       buildRunTimeSec += bsDetails.getStartDate().until(bsDetails.getEndDate(), ChronoUnit.SECONDS);
       assertEquals(TestStatus.SUCCESS, bsDetails.getStatus());
       assertTrue(bsDetails.getZwlExecutingLine() >= 0);
-      // could also be 0 when program completes too and no line push goes into db, will check them
-      // properly in unit tests.
+      // could also be 0 when program completes too fast and no line push goes into db, will check
+      // them properly in unit tests.
       assertNull(bsDetails.getError());
       LOG.debug("completed asserting testVersion {}", testVersion.getTestVersionId());
     }
@@ -305,10 +309,10 @@ public class InContainerE2ETest {
         Map<String, Object> source = hit.getSourceAsMap();
         String shotName = (String) source.get(ShotMetadataIndexFields.SHOT_NAME);
         shotsFromEsdb.add(shotName);
-        // assert that shot identifiers when numeric are in increasing order
+        // assert that shot identifiers when numeric are in increasing order of 1
         try {
           int shotIdentifier = Integer.parseInt(shotNameProvider.getIdentifier(shotName));
-          assertTrue(shotIdentifier > lastShotNumericIdentifier);
+          assertEquals(shotIdentifier, lastShotNumericIdentifier + 1);
           lastShotNumericIdentifier = shotIdentifier;
         } catch (NumberFormatException ignore) {}
         // assert that line number is increasing by comparing it with last store line number
@@ -447,8 +451,6 @@ public class InContainerE2ETest {
     
     int timeoutSec = 30;
     int sleepBetweenPollSec = 1;
-    String stopErrorRegex = "(?i).*(stop|stopped).*";
-    
     // submit a new build to be able to stop it
     startBuild();
     // build is running on server, send a stop request now
@@ -470,7 +472,7 @@ public class InContainerE2ETest {
         timeoutSec, sleepBetweenPollSec);
     LOG.debug("Stop is now completed, going to assert results");
     // 1. check build failed
-    assertBuildFailure(stopErrorRegex);
+    assertBuildFailure(STOP_ERROR_REGEX);
     
     // 2. check all versions failed in build status
     LOG.debug("asserting test versions failure on stop");
@@ -491,7 +493,7 @@ public class InContainerE2ETest {
         assertNotNull(bsDetails.getStartDate());
         assertNotNull(bsDetails.getEndDate());
         assertNotNull(bsDetails.getError());
-        assertTrue(bsDetails.getError().matches(stopErrorRegex));
+        assertTrue(bsDetails.getError().matches(STOP_ERROR_REGEX));
         continue;
       }
       LOG.debug("asserting other versions have null values other than status");
@@ -527,14 +529,13 @@ public class InContainerE2ETest {
     int timeoutSec = 120;
     int sleepBetweenPollSec = 2;
     boolean testsHaveAnyElementShot = false;
-    String errorRegex = "(?i).*(exception|error).*";
     
     // start a new build
     startBuild();
     waitUntilBuildCompletes(build.getBuildVMId(), timeoutSec, sleepBetweenPollSec);
     
     // 1. check build failed
-    assertBuildFailure(errorRegex);
+    assertBuildFailure(ERROR_REGEX);
     
     // 2. check at least one versions passes after a failure to assert that we continued build
     // after a zwl exception.
@@ -593,14 +594,13 @@ public class InContainerE2ETest {
     
     int timeoutSec = 30;
     int sleepBetweenPollSec = 1;
-    String errorRegex = "(?i).*(exception|error).*";
     
     // start a new build
     startBuild();
     waitUntilBuildCompletes(build.getBuildVMId(), timeoutSec, sleepBetweenPollSec);
     
     // 1. check build failed
-    assertBuildFailure(errorRegex);
+    assertBuildFailure(ERROR_REGEX);
     
     // 2. check first version failed and others Aborted
     LOG.debug("asserting all versions Aborted after a zwl failure");
@@ -618,7 +618,7 @@ public class InContainerE2ETest {
         assertNotNull(bsDetails.getStartDate());
         assertNotNull(bsDetails.getEndDate());
         assertNotNull(bsDetails.getError());
-        assertTrue(bsDetails.getError().matches(errorRegex));
+        assertTrue(bsDetails.getError().matches(ERROR_REGEX));
         continue;
       }
       LOG.debug("asserting other versions aborted");

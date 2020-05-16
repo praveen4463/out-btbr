@@ -6,25 +6,14 @@ import com.zylitics.btbr.model.BuildCapability;
 import org.openqa.selenium.ie.*;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
-import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 
 public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
   
-  private final File driverLogFile;
-  
   public IEDriverSessionProvider(APICoreProperties.Webdriver wdProps
       , BuildCapability buildCapability, Path buildDir) {
     super(wdProps, buildCapability, buildDir);
-    this.driverLogFile = getDriverLogFile();
-  }
-  
-  IEDriverSessionProvider(APICoreProperties.Webdriver wdProps
-      , BuildCapability buildCapability, File driverLogFile) {
-    super(wdProps, buildCapability, Paths.get(""));
-    this.driverLogFile = driverLogFile;
   }
   
   @Override
@@ -35,7 +24,7 @@ public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
   
     InternetExplorerDriverService driverService = new InternetExplorerDriverService.Builder()
         .usingAnyFreePort()
-        .withLogFile(driverLogFile)
+        .withLogFile(getDriverLogFile())
         .build();
   
     // IE driver has lot of custom capabilities available as ie options, their description could

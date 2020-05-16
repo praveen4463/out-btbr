@@ -48,7 +48,7 @@ public interface CaptureShotHandler {
   
   interface Factory {
     
-    CaptureShotHandler create(APICoreProperties apiCoreProperties,
+    CaptureShotHandler create(APICoreProperties.Shot shotProps,
                               ShotMetadataProvider shotMetadataProvider,
                               Storage storage,
                               Build build,
