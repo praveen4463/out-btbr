@@ -236,8 +236,8 @@ public class RunnerController {
     String mainThreadName = BUILD_MAIN_THREAD_STARTS_WITH + build.getBuildId();
     Thread buildThread = new Thread(buildRunHandler::handle, mainThreadName);
     buildThread.start();
-    LOG.debug("A new thread {} is assigned to run the build further, response will now return",
-        mainThreadName);
+    LOG.info("A new thread {} is assigned to run the build {} further, response will now return",
+        mainThreadName, build.getBuildId());
     return ResponseEntity.status(HttpStatus.OK).body(new ResponseBuildRun()
         .setSessionId(driver.getSessionId().toString())
         .setStatus(ResponseStatus.RUNNING.name()).setHttpStatusCode(HttpStatus.OK.value()));

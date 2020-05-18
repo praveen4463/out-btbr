@@ -1,2 +1,28 @@
 Zylitics Browser Test Build Runner (zl-btbr) is a Restful api at zylitics that can run previously compiled browser tests on
 newly provisioned cloud servers.
+
+Deploying:
+
+1. Run all type of tests locally
+
+2. Local deployment:
+- mvn clean package -DskipTest=true
+3. Cloud deployment (replace #VERSION#):
+jar_ver=#VERSION# && app=zl-btbr && jar=$app-$jar_ver.jar \
+&& cd ~/documents/zylitics/$app && mvn clean package -DskipTest=true \
+&& cd ~/documents/zylitics/all-assets/releases && rm -f $jar \
+&& cp ~/documents/zylitics/$app/target/$jar . \
+&& zip -j $app-$jar_ver.zip $jar && rm -f $jar \
+&& gsutil cp $app-$jar_ver.zip gs://zl-release-artifact
+
+Running:
+1. Local run (replace #VERSION#):
+java -noverify -XX:+AlwaysPreTouch -Xmx32m -Xss256k \
+-Dwebdriver.chrome.driver=/Users/praveentiwari/.chrome-driver/chromedriver \
+-Dwebdriver.gecko.driver=/Users/praveentiwari/.firefox-driver/geckodriver \
+-Djava.awt.headless=false \
+-Dspring.http.log-request-details=true \
+-jar target/zl-btbr-#VERSION#.jar --spring.profiles.active=e2e \
+--spring.config.location=classpath:/application.properties,classpath:/application.yaml --debug
+2. Cloud production run (replace all constants with valid values):
+java -noverify -XX:+AlwaysPreTouch -Xmx32m -Xss256k -D<driver_system_property>=<driver's_server_path> -Djava.awt.headless=false -jar <path_to_downloaded_jar> <project_level_options> <instance_level_options>

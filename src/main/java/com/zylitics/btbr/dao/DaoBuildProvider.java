@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -75,7 +76,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
     SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_id",
         new SqlParameterValue(Types.INTEGER, buildId));
     
-    Build build = jdbc.queryForObject(sql, namedParams, (rs, rowNum) ->
+    List<Build> build = jdbc.query(sql, namedParams, (rs, rowNum) ->
         new Build()
             .setBuildId(buildId)
             .setBuildKey(rs.getString("build_key"))
@@ -120,7 +121,10 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
                 .setBuildAetUpdateUrlBlank(rs.getBoolean("build_aet_update_url_blank"))
                 .setBuildAetResetTimeouts(rs.getBoolean("build_aet_reset_timeouts"))
                 .setBuildAetDeleteAllCookies(rs.getBoolean("build_aet_delete_all_cookies"))));
-    return Optional.ofNullable(build);
+    if (build.size() == 0) {
+      return Optional.empty();
+    }
+    return Optional.of(build.get(0));
   }
   
   @Override

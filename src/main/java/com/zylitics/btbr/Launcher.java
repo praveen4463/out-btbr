@@ -24,9 +24,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
 
@@ -47,7 +44,6 @@ public class Launcher {
   @Bean
   @Profile({"production", "e2e"})
   Storage storage() {
-    System.out.println("entered storage");
     return StorageOptions.getDefaultInstance().getService();
   }
   
@@ -106,23 +102,12 @@ public class Launcher {
   // a different bean method name is required even if profiles are different else context won't
   // load this bean.
   DataSource hikariLocalDataSource(APICoreProperties apiCoreProperties) {
-    System.out.println("entered datasource");
     APICoreProperties.DataSource ds = apiCoreProperties.getDataSource();
     HikariConfig config = new HikariConfig();
     config.setJdbcUrl(String.format("jdbc:postgresql://localhost/%s", ds.getDbName()));
     config.setUsername(ds.getUserName());
     config.setMinimumIdle(ds.getMinIdleConnPool());
     return new HikariDataSource(config);
-  }
-  
-  // https://docs.spring.io/spring/docs/current/spring-framework-reference/data-access.html#tx-prog-template-settings
-  @Bean
-  @Profile({"production", "e2e"})
-  TransactionTemplate transactionTemplate(PlatformTransactionManager platformTransactionManager) {
-    TransactionTemplate transactionTemplate = new TransactionTemplate(platformTransactionManager);
-    // TODO (optional): specify any transaction settings.
-    transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_DEFAULT);
-    return transactionTemplate;
   }
   
   @Bean

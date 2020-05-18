@@ -670,6 +670,8 @@ public class InContainerE2ETest {
       String sql = "SELECT delete_date FROM bt_build_vm WHERE bt_build_vm_id = :bt_build_vm_id";
       SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_vm_id",
           new SqlParameterValue(Types.INTEGER, buildVMId));
+      // queryForObject throws exception if row doesn't exist, use wisely. 'query' is always safe
+      // as we can check for existence of row.
       if (jdbc.queryForObject(sql, namedParams, (rs, rowNum) -> rs.getDate("delete_date")) != null)
       {
         LOG.debug("Delete date was updated");
