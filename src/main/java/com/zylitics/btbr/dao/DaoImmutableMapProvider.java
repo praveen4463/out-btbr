@@ -23,16 +23,29 @@ public class DaoImmutableMapProvider extends AbstractDaoProvider implements Immu
   }
   
   @Override
-  public Optional<Map<String, String>> getMapFromTable(int userId, String table) {
+  public Optional<Map<String, String>> getMapFromTableByUser(int userId, String table) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(table), "table is required");
-    
+  
     String sql = "SELECT key, value FROM " + table + " WHERE zluser_id = :zluser_id";
     SqlParameterSource namedParams = new MapSqlParameterSource("zluser_id",
         new SqlParameterValue(Types.INTEGER, userId));
-    
+    return get(sql, namedParams);
+  }
+  
+  @Override
+  public Optional<Map<String, String>> getMapFromTableByBuild(int buildId, String table) {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(table), "table is required");
+  
+    String sql = "SELECT key, value FROM " + table + " WHERE bt_build_id = :bt_build_id";
+    SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_id",
+        new SqlParameterValue(Types.INTEGER, buildId));
+    return get(sql, namedParams);
+  }
+  
+  private Optional<Map<String, String>> get(String sql, SqlParameterSource namedParams) {
     List<Map.Entry<String, String>> l = jdbc.query(sql, namedParams, (rs, rowNum) ->
         new AbstractMap.SimpleImmutableEntry<>(rs.getString("key"), rs.getString("value")));
-    
+  
     if (l.size() == 0) {
       return Optional.empty();
     }

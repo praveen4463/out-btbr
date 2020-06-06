@@ -19,6 +19,7 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
   private final Build build;
   private final RemoteWebDriver driver;
   private final PrintStream printStream;
+  private final Map<String, String> buildVariables;
   private final Map<String, String> zwlPreferences;
   private final Path buildDir;
   private final Map<String, String> zwlGlobals;
@@ -28,6 +29,7 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
                                  Build build,
                                  RemoteWebDriver driver,
                                  PrintStream printStream,
+                                 @Nullable Map<String, String> buildVariables,
                                  @Nullable Map<String, String> zwlPreferences,
                                  Path buildDir,
                                  @Nullable Map<String, String> zwlGlobals) {
@@ -36,6 +38,7 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
     this.build = build;
     this.driver = driver;
     this.printStream = printStream;
+    this.buildVariables = buildVariables;
     this.zwlPreferences = zwlPreferences;
     this.buildDir = buildDir;
     this.zwlGlobals = zwlGlobals;
@@ -142,6 +145,12 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
   @Override
   public Variables getVariables() {
     return new Variables() {
+      @Nullable
+      @Override
+      public Map<String, String> getBuildVariables() {
+        return buildVariables;
+      }
+  
       @Nullable
       @Override
       public Map<String, String> getPreferences() {

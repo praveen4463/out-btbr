@@ -91,6 +91,9 @@ class JavaRobotCaptureDevice implements CaptureDevice {
     return new ByteArrayInputStream(bytes);
   }
   
+  // !! Note that it turns out Java 8 already compresses png to maximum possible
+  // https://stackoverflow.com/a/54422581/1624454
+  // We may not use jpg for more compression cause they're best for pictures not web pages.
   private static byte[] getBytesFromImage(RenderedImage bufImg, String imgFormat)
       throws IOException {
     ByteArrayOutputStream bOStream = new ByteArrayOutputStream(2000000);    // buffer size 2MB

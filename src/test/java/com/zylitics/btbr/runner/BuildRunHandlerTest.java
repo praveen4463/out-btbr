@@ -390,7 +390,10 @@ public class BuildRunHandlerTest {
   
   private ImmutableMapProvider getImmutableMapProvider() {
     ImmutableMapProvider immutableMapProvider = mock(ImmutableMapProvider.class);
-    when(immutableMapProvider.getMapFromTable(anyInt(), anyString())).thenReturn(Optional.empty());
+    when(immutableMapProvider.getMapFromTableByUser(anyInt(), anyString()))
+        .thenReturn(Optional.empty());
+    when(immutableMapProvider.getMapFromTableByBuild(anyInt(), anyString()))
+        .thenReturn(Optional.empty());
     return immutableMapProvider;
   }
   

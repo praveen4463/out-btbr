@@ -50,8 +50,9 @@ final class GCPShotCloudStore implements ShotCloudStore {
     // our shots are ~1MB, prefer uploading in chunks as described here,
     // https://github.com/googleapis/google-cloud-java/blob/b47858f62e4944ca2efc4301e2e0a1c5f22dc728
     // /google-cloud-examples/src/main/java/com/google/cloud/examples/storage/StorageExample.java#L295
+    // Set a cache control header so that client browser caches a downloaded shot.
     BlobInfo blobInfo = BlobInfo.newBuilder(bucket, name)
-        .setContentType(shotProps.getContentType()).build();
+        .setContentType(shotProps.getContentType()).setCacheControl("max-age=31536000").build();
     String blobUploadErrInfo = ", blob " + name;
     
     int reattempts = 0;

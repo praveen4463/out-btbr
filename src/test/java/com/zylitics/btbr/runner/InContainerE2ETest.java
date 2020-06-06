@@ -77,7 +77,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *    Runner is used for all request, this asserts that the api works in 'build debug' mode where
  *    builds may run one after another sequentially using the same VM.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings("TestFailedLine")
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("e2e")
 public class InContainerE2ETest {
@@ -733,10 +733,6 @@ public class InContainerE2ETest {
       return null;
     }
     return timestamp.toLocalDateTime();
-  }
-  
-  private String atTimeZone() {
-    return String.format("AT TIME ZONE '%s'", DESIRED_OFFSET);
   }
   
   private void setBuildDirName() {

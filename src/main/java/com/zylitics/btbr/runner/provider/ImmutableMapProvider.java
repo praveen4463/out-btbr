@@ -8,5 +8,7 @@ import java.util.Optional;
  */
 public interface ImmutableMapProvider {
   
-  Optional<Map<String, String>> getMapFromTable(int userId, String table);
+  Optional<Map<String, String>> getMapFromTableByUser(int userId, String table);
+  
+  Optional<Map<String, String>> getMapFromTableByBuild(int buildId, String table);
 }
