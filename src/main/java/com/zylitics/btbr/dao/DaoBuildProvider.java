@@ -35,7 +35,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         " bu.build_key" +
         ", bu.bt_build_vm_id" +
         ", bu.is_success" +
-        ", bu.zluser_id" +
+        ", project.zluser_id" +
         ", bc.shot_bucket_session_storage" +
         ", bc.shot_take_test_shot" +
         ", bc.program_output_flush_no" +
@@ -71,6 +71,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bc.build_aet_delete_all_cookies" +
         " FROM bt_build AS bu INNER JOIN bt_build_capability AS bc" +
         " ON (bu.bt_build_capability_id = bc.bt_build_capability_id)" +
+        " INNER JOIN bt_project AS project" +
+        " ON (bu.bt_project_id = project.bt_project_id)" +
         " where bu.bt_build_id = :bt_build_id;";
     
     SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_id",

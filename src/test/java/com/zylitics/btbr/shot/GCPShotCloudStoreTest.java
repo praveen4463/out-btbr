@@ -8,6 +8,7 @@ import com.zylitics.btbr.config.APICoreProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -16,6 +17,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,8 +28,9 @@ class GCPShotCloudStoreTest {
   @Test
   @DisplayName("Verify reattempts happen when shots fail to upload")
   void verifyReattemptsOnFailure() {
+    String contentType = "image/png";
     APICoreProperties.Shot shotProps = new APICoreProperties.Shot();
-    shotProps.setContentType("image/png");
+    shotProps.setContentType(contentType);
     String bucket = "some-bucket";
     String shotName = "some-shot";
     String storageException = "reaching api limit for today";
@@ -37,9 +40,12 @@ class GCPShotCloudStoreTest {
     GCPShotCloudStore gcp = new GCPShotCloudStore("some-bucket", shotProps, storage);
     InputStream stream = new ByteArrayInputStream("some-text".getBytes());
     
-    BlobInfo blobInfo = BlobInfo.newBuilder(bucket, shotName)
-        .setContentType(shotProps.getContentType()).build();
-    when(storage.writer(blobInfo)).thenThrow(new StorageException(errorCode, storageException))
+    when(storage.writer(argThat((ArgumentMatcher<BlobInfo>) b ->
+        b.getName().equals(shotName)
+            && b.getBucket().equals(bucket)
+            && b.getContentType().equals(contentType)
+            && b.getCacheControl() != null)))
+        .thenThrow(new StorageException(errorCode, storageException))
         .thenReturn(channel);
     
     assertTrue(gcp.storeShot(shotName, stream));

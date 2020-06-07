@@ -225,12 +225,13 @@ public class BuildRunHandler {
         build,
         driver,
         printStream,
-        immutableMapProvider.getMapFromTableByBuild(build.getBuildId(), "bt_build_variables")
-            .orElse(null),
-        immutableMapProvider.getMapFromTableByUser(build.getUserId(), "zwl_preferences")
-            .orElse(null),
+        immutableMapProvider.getMapFromTableByBuild(build.getBuildId()
+            , "bt_build_zwl_build_variables").orElse(null),
+        immutableMapProvider.getMapFromTableByBuild(build.getBuildId()
+            , "bt_build_zwl_preferences").orElse(null),
         buildDir,
-        immutableMapProvider.getMapFromTableByUser(build.getUserId(), "zwl_globals").orElse(null));
+        immutableMapProvider.getMapFromTableByBuild(build.getBuildId()
+            , "bt_build_zwl_globals").orElse(null));
     
     // let's start the build
     boolean firstTest = true;
