@@ -4,7 +4,6 @@ import com.google.cloud.storage.Storage;
 import com.google.common.base.Preconditions;
 import com.zylitics.btbr.SecretsManager;
 import com.zylitics.btbr.config.APICoreProperties;
-import com.zylitics.btbr.http.RequestBuildRun;
 import com.zylitics.btbr.model.*;
 import com.zylitics.btbr.runner.provider.*;
 import com.zylitics.btbr.util.CallbackOnlyPrintStream;
@@ -30,11 +29,12 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/*
+  TODO: fix all places that use versionId:name and use something like filename:testName
+ */
 public class BuildRunHandler {
   
   private static final Logger LOG = LoggerFactory.getLogger(BuildRunHandler.class);
-  
-  private final RequestBuildRun requestBuildRun;
   
   private final APICoreProperties apiCoreProperties;
   private final APICoreProperties.Webdriver wdProps;
@@ -55,7 +55,7 @@ public class BuildRunHandler {
   
   // handlers
   private final CaptureShotHandler captureShotHandler;
-  private final VMDeleteHandler vmDeleteHandler;
+  private final VMUpdateHandler vmUpdateHandler;
   private final WebdriverLogHandler webdriverLogHandler;
   private final LocalAssetsToCloudHandler localAssetsToCloudHandler;
   
@@ -99,8 +99,7 @@ public class BuildRunHandler {
   private final Map<Integer, BuildRunStatus> buildRunStatus;
   // -----------program state ends----------------
   
-  private BuildRunHandler(RequestBuildRun requestBuildRun,
-                          APICoreProperties apiCoreProperties,
+  private BuildRunHandler(APICoreProperties apiCoreProperties,
                           SecretsManager secretsManager,
                           Storage storage,
                           BuildProvider buildProvider,
@@ -115,8 +114,7 @@ public class BuildRunHandler {
                           RemoteWebDriver driver,
                           Path buildDir,
                           Map<Integer, BuildRunStatus> buildRunStatus) {
-    this(requestBuildRun,
-        apiCoreProperties,
+    this(apiCoreProperties,
         storage,
         buildProvider,
         buildStatusProvider,
@@ -126,7 +124,7 @@ public class BuildRunHandler {
         build,
         testVersions,
         captureShotHandlerFactory,
-        new VMDeleteHandler(apiCoreProperties, secretsManager, buildVMProvider),
+        new VMUpdateHandler(apiCoreProperties, secretsManager, buildVMProvider),
         new WebdriverLogHandler(driver, apiCoreProperties.getWebdriver(),
             build.getBuildCapability(), buildDir),
         new LocalAssetsToCloudHandler(apiCoreProperties.getWebdriver(), storage, buildDir),
@@ -137,8 +135,7 @@ public class BuildRunHandler {
         new ZwlApiSupplier());
   }
   
-  BuildRunHandler(RequestBuildRun requestBuildRun,
-                  APICoreProperties apiCoreProperties,
+  BuildRunHandler(APICoreProperties apiCoreProperties,
                   Storage storage,
                   BuildProvider buildProvider,
                   BuildStatusProvider buildStatusProvider,
@@ -148,7 +145,7 @@ public class BuildRunHandler {
                   Build build,
                   List<TestVersion> testVersions,
                   CaptureShotHandler.Factory captureShotHandlerFactory,
-                  VMDeleteHandler vmDeleteHandler,
+                  VMUpdateHandler vmUpdateHandler,
                   WebdriverLogHandler webdriverLogHandler,
                   LocalAssetsToCloudHandler localAssetsToCloudHandler,
                   RemoteWebDriver driver,
@@ -156,7 +153,6 @@ public class BuildRunHandler {
                   Clock clock,
                   Map<Integer, BuildRunStatus> buildRunStatus,
                   ZwlApiSupplier zwlApiSupplier) {
-    this.requestBuildRun = requestBuildRun;
     this.apiCoreProperties = apiCoreProperties;
     wdProps = apiCoreProperties.getWebdriver();
     this.storage = storage;
@@ -174,7 +170,7 @@ public class BuildRunHandler {
         driver.getSessionId().toString(),
         buildCapability.getShotBucketSessionStorage(),
         currentTestVersion);
-    this.vmDeleteHandler = vmDeleteHandler;
+    this.vmUpdateHandler = vmUpdateHandler;
     this.webdriverLogHandler = webdriverLogHandler;
     this.localAssetsToCloudHandler = localAssetsToCloudHandler;
     this.driver = driver;
@@ -551,9 +547,9 @@ public class BuildRunHandler {
     // mark current build as completed
     buildRunStatus.put(build.getBuildId(), BuildRunStatus.COMPLETED);
     
-    // delete VM
-    LOG.debug("deleting the VM");
-    vmDeleteHandler.delete(build.getBuildVMId(), requestBuildRun.getVmDeleteUrl());
+    // update VM
+    LOG.debug("updating the VM");
+    vmUpdateHandler.update(build);
   }
   
   private void updateBuildOnFinish(boolean stopOccurred) {
@@ -588,7 +584,10 @@ public class BuildRunHandler {
     LOG.debug("updateBuildStatusOnStop was invoked");
     int testVersionId = currentTestVersion.getTestVersionId();
     validateTestVersionRunning(testVersionId);
+    // TODO: remove error text when stop, error text should appear only with status = ERROR
     updateBuildStatus(testVersionId, TestStatus.STOPPED, "Forcefully stopped while running");
+    // TODO: just keep 'Stopping...' and remove TestVersionIdentifier from output, we shouldn't show it
+    //  in front end.
     sendOutput("A Stop was requested during execution of test version " +
         getTestVersionIdentifier(testVersionId), true);
     
@@ -654,7 +653,7 @@ public class BuildRunHandler {
   }
   
   // Test version names are not unique across versions, thus identifier for a test version will have
-  // it's id and name separated by a colon such as 1:v-1.
+  // it's id and name separated by a colon such as 1:v1.
   private String getTestVersionIdentifier(TestVersion testVersion) {
     return String.format("%s:%s", testVersion.getTestVersionId(), testVersion.getName());
   }
@@ -670,8 +669,7 @@ public class BuildRunHandler {
   
   static class Factory {
     
-    BuildRunHandler create(RequestBuildRun requestBuildRun,
-                           APICoreProperties apiCoreProperties,
+    BuildRunHandler create(APICoreProperties apiCoreProperties,
                            SecretsManager secretsManager,
                            Storage storage,
                            BuildProvider buildProvider,
@@ -686,8 +684,7 @@ public class BuildRunHandler {
                            RemoteWebDriver driver,
                            Path buildDir,
                            Map<Integer, BuildRunStatus> buildRunStatus) {
-      return new BuildRunHandler(requestBuildRun,
-          apiCoreProperties,
+      return new BuildRunHandler(apiCoreProperties,
           secretsManager,
           storage,
           buildProvider,

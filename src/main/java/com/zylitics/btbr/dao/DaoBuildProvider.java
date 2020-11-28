@@ -73,7 +73,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         " ON (bu.bt_build_capability_id = bc.bt_build_capability_id)" +
         " INNER JOIN bt_project AS project" +
         " ON (bu.bt_project_id = project.bt_project_id)" +
-        " where bu.bt_build_id = :bt_build_id;";
+        " WHERE bu.bt_build_id = :bt_build_id;";
     
     SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_id",
         new SqlParameterValue(Types.INTEGER, buildId));

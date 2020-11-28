@@ -11,8 +11,6 @@ public class RequestBuildRun {
   @Min(1)
   private Integer buildId;
   
-  private String vmDeleteUrl;
-  
   public int getBuildId() {
     return buildId;
   }
@@ -23,21 +21,10 @@ public class RequestBuildRun {
     }
   }
   
-  public String getVmDeleteUrl() {
-    return vmDeleteUrl;
-  }
-  
-  public void setVmDeleteUrl(String vmDeleteUrl) {
-    if (this.vmDeleteUrl == null) {
-      this.vmDeleteUrl = vmDeleteUrl;
-    }
-  }
-  
   @Override
   public String toString() {
     return "RequestBuildRun{" +
         "buildId=" + buildId +
-        ", vmDeleteUrl='" + vmDeleteUrl + '\'' +
         '}';
   }
   
@@ -46,12 +33,11 @@ public class RequestBuildRun {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     RequestBuildRun that = (RequestBuildRun) o;
-    return buildId.equals(that.buildId) &&
-        Objects.equals(vmDeleteUrl, that.vmDeleteUrl);
+    return buildId.equals(that.buildId);
   }
   
   @Override
   public int hashCode() {
-    return Objects.hash(buildId, vmDeleteUrl);
+    return Objects.hash(buildId);
   }
 }

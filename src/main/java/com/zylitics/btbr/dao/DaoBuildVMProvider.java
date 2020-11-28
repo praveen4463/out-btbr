@@ -1,6 +1,7 @@
 package com.zylitics.btbr.dao;
 
 import com.google.common.base.Preconditions;
+import com.zylitics.btbr.model.BuildVM;
 import com.zylitics.btbr.runner.provider.BuildVMProvider;
 import com.zylitics.btbr.runner.provider.BuildVMUpdateDeleteDate;
 import com.zylitics.btbr.util.CollectionUtil;
@@ -13,7 +14,9 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Repository
 public class DaoBuildVMProvider extends AbstractDaoProvider implements BuildVMProvider {
@@ -21,6 +24,27 @@ public class DaoBuildVMProvider extends AbstractDaoProvider implements BuildVMPr
   @Autowired
   DaoBuildVMProvider(NamedParameterJdbcTemplate jdbc) {
     super(jdbc);
+  }
+  
+  @Override
+  public Optional<BuildVM> getBuildVM(int buildVMId) {
+    Preconditions.checkArgument(buildVMId > 0, "buildVMId is required");
+    String sql = "SELECT" +
+        " name" +
+        ", zone" +
+        ", delete_from_runner" +
+        " FROM bt_build_vm WHERE bt_build_vm_id = :bt_build_vm_id;";
+    SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_vm_id",
+        new SqlParameterValue(Types.INTEGER, buildVMId));
+    List<BuildVM> buildVM = jdbc.query(sql, namedParams, (rs, rowNum) ->
+        new BuildVM()
+            .setName(rs.getString("name"))
+            .setZone(rs.getString("zone"))
+            .setDeleteFromRunner(rs.getBoolean("delete_from_runner")));
+    if (buildVM.size() == 0) {
+      return Optional.empty();
+    }
+    return Optional.of(buildVM.get(0));
   }
   
   @Override

@@ -77,7 +77,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *    Runner is used for all request, this asserts that the api works in 'build debug' mode where
  *    builds may run one after another sequentially using the same VM.
  */
-@SuppressWarnings("TestFailedLine")
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("e2e")
 public class InContainerE2ETest {
@@ -100,9 +99,6 @@ public class InContainerE2ETest {
   
   private static final String ZWL_ERROR_TEST_ABORT_BUILD_ID_SYS_PROP =
       "zl.btbr.e2e.zwlErrorTestAbortBuildId";
-  
-  private static final String INVALID_VM_DELETE_URL =
-      "http://10.12.1.2/beta/zones/us-central1/grids/fake-grid";
   
   // Front end api should get user's preference/current location to get the offset. This is
   // important otherwise postgres will return timestamp converted to it's own local timezone.
@@ -225,7 +221,7 @@ public class InContainerE2ETest {
     LOG.debug("asserting logs in cloud");
     assertLogsUploaded(buildCapability, testsHaveAnyElementShot);
     
-    // no need to check vm delete date updated cause it's already done.
+    // no need to check vm delete date updated cause it's already done in waitUntilBuildCompletes.
   }
   
   /**
@@ -237,7 +233,6 @@ public class InContainerE2ETest {
     LOG.debug("Submitting buildId {} to runner for execution..", buildId);
     RequestBuildRun request = new RequestBuildRun();
     request.setBuildId(buildId);
-    request.setVmDeleteUrl(INVALID_VM_DELETE_URL);
     
     ResponseBuildRun response = client.post()
         .uri(uriBuilder -> uriBuilder.path(API_BASE_PATH).build(apiVersion))

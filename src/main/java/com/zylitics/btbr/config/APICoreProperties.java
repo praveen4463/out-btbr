@@ -267,6 +267,18 @@ public class APICoreProperties {
     
     @Min(1)
     private Integer updateLineBuildStatusAfter;
+  
+    @NotBlank
+    private String labelKeyAvailabilityStatus;
+  
+    @NotBlank
+    private String labelValueAvailabilityStatus;
+  
+    @NotBlank
+    private String wzgpEndpoint;
+  
+    @NotBlank
+    private String wzgpVersion;
     
     @NotBlank
     private String wzgpAuthUser;
@@ -295,6 +307,46 @@ public class APICoreProperties {
     public void setUpdateLineBuildStatusAfter(Integer updateLineBuildStatusAfter) {
       if (this.updateLineBuildStatusAfter == null) {
         this.updateLineBuildStatusAfter = updateLineBuildStatusAfter;
+      }
+    }
+  
+    public String getLabelKeyAvailabilityStatus() {
+      return labelKeyAvailabilityStatus;
+    }
+  
+    public void setLabelKeyAvailabilityStatus(String labelKeyAvailabilityStatus) {
+      if (this.labelKeyAvailabilityStatus == null) {
+        this.labelKeyAvailabilityStatus = labelKeyAvailabilityStatus;
+      }
+    }
+  
+    public String getLabelValueAvailabilityStatus() {
+      return labelValueAvailabilityStatus;
+    }
+  
+    public void setLabelValueAvailabilityStatus(String labelValueAvailabilityStatus) {
+      if (this.labelValueAvailabilityStatus == null) {
+        this.labelValueAvailabilityStatus = labelValueAvailabilityStatus;
+      }
+    }
+  
+    public String getWzgpEndpoint() {
+      return wzgpEndpoint;
+    }
+  
+    public void setWzgpEndpoint(String wzgpEndpoint) {
+      if (this.wzgpEndpoint == null) {
+        this.wzgpEndpoint = wzgpEndpoint;
+      }
+    }
+  
+    public String getWzgpVersion() {
+      return wzgpVersion;
+    }
+  
+    public void setWzgpVersion(String wzgpVersion) {
+      if (this.wzgpVersion == null) {
+        this.wzgpVersion = wzgpVersion;
       }
     }
   

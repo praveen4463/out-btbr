@@ -4,7 +4,6 @@ import com.google.cloud.storage.Storage;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.zylitics.btbr.config.APICoreProperties;
-import com.zylitics.btbr.http.RequestBuildRun;
 import com.zylitics.btbr.model.*;
 import com.zylitics.btbr.runner.provider.*;
 import com.zylitics.btbr.util.DateTimeUtil;
@@ -225,7 +224,7 @@ public class BuildRunHandlerTest {
     CaptureShotHandler captureShotHandler = mock(CaptureShotHandler.class);
     WebdriverLogHandler webdriverLogHandler = getWebdriverLogHandler();
     LocalAssetsToCloudHandler localAssetsToCloudHandler = getLocalAssetsToCloudHandler();
-    VMDeleteHandler vmDeleteHandler = getVMDeleteHandler();
+    VMUpdateHandler vmUpdateHandler = getVMDeleteHandler();
     Map<Integer, BuildRunStatus> buildRunStatus = new HashMap<>();
     buildRunStatus.put(buildId, BuildRunStatus.RUNNING);
     new Builder()
@@ -239,14 +238,14 @@ public class BuildRunHandlerTest {
         .withDriver(driver)
         .withWebdriverLogHandler(webdriverLogHandler)
         .withLocalAssetsToCloudHandler(localAssetsToCloudHandler)
-        .withVmDeleteHandler(vmDeleteHandler)
+        .withVmDeleteHandler(vmUpdateHandler)
         .withBuildRunStatus(buildRunStatus)
         .build().handle();
     assertEquals(BuildRunStatus.COMPLETED, buildRunStatus.get(buildId));
     
     InOrder inOrder = inOrder(buildStatusProvider, buildProvider, zwlProgramOutputProvider,
         captureShotHandler, driver, webdriverLogHandler, localAssetsToCloudHandler,
-        vmDeleteHandler);
+        vmUpdateHandler);
     
     inOrder.verify(buildStatusProvider).saveOnStart(new BuildStatusSaveOnStart(buildId,
         testVersionId1, TestStatus.RUNNING, currentDT));
@@ -280,7 +279,7 @@ public class BuildRunHandlerTest {
     inOrder.verify(webdriverLogHandler).capture();
     inOrder.verify(driver).quit();
     inOrder.verify(localAssetsToCloudHandler).store();
-    inOrder.verify(vmDeleteHandler).delete(eq(buildId), anyString());
+    inOrder.verify(vmUpdateHandler).update(argThat(b -> b.getBuildId() == buildId));
   }
   
   @Test
@@ -350,13 +349,6 @@ public class BuildRunHandlerTest {
         && z.isSuccess() == expected.isSuccess()
         && z.getError().startsWith(expected.getError())
         && z.getEndDate().equals(expected.getEndDate());
-  }
-  
-  private RequestBuildRun getRequestBuildRun(int buildId) {
-    RequestBuildRun request = new RequestBuildRun();
-    request.setBuildId(buildId);
-    request.setVmDeleteUrl("http://10.10.2.3");
-    return request;
   }
   
   private APICoreProperties getAPICoreProperties(int updateLineMillis, int captureLogsMillis) {
@@ -448,8 +440,8 @@ public class BuildRunHandlerTest {
     return factory;
   }
   
-  private VMDeleteHandler getVMDeleteHandler() {
-    return mock(VMDeleteHandler.class);
+  private VMUpdateHandler getVMDeleteHandler() {
+    return mock(VMUpdateHandler.class);
   }
   
   private WebdriverLogHandler getWebdriverLogHandler() {
@@ -511,7 +503,7 @@ public class BuildRunHandlerTest {
     private CaptureShotHandler.Factory captureShotHandlerFactory = null;
     private WebdriverLogHandler webdriverLogHandler = null;
     private LocalAssetsToCloudHandler localAssetsToCloudHandler = null;
-    private VMDeleteHandler vmDeleteHandler = null;
+    private VMUpdateHandler vmUpdateHandler = null;
     private Map<Integer, BuildRunStatus> buildRunStatus = null;
   
     Builder withBuildId(int buildId) {
@@ -586,8 +578,8 @@ public class BuildRunHandlerTest {
       return this;
     }
   
-    public Builder withVmDeleteHandler(VMDeleteHandler vmDeleteHandler) {
-      this.vmDeleteHandler = vmDeleteHandler;
+    public Builder withVmDeleteHandler(VMUpdateHandler vmUpdateHandler) {
+      this.vmUpdateHandler = vmUpdateHandler;
       return this;
     }
   
@@ -639,19 +631,18 @@ public class BuildRunHandlerTest {
       if (localAssetsToCloudHandler == null) {
         localAssetsToCloudHandler = getLocalAssetsToCloudHandler();
       }
-      if (vmDeleteHandler == null) {
-        vmDeleteHandler = getVMDeleteHandler();
+      if (vmUpdateHandler == null) {
+        vmUpdateHandler = getVMDeleteHandler();
       }
       if (buildRunStatus == null) {
         buildRunStatus = new HashMap<>();
         buildRunStatus.put(buildId, BuildRunStatus.RUNNING);
       }
       
-      return new BuildRunHandler(getRequestBuildRun(buildId),
-          getAPICoreProperties(updateLineMillis, captureLogsMillis),
+      return new BuildRunHandler(getAPICoreProperties(updateLineMillis, captureLogsMillis),
           getStorage(), buildProvider, buildStatusProvider,
           getImmutableMapProvider(), getShotMetadataProvider(), zwlProgramOutputProvider, build,
-          testVersions, captureShotHandlerFactory, vmDeleteHandler,
+          testVersions, captureShotHandlerFactory, vmUpdateHandler,
           webdriverLogHandler, localAssetsToCloudHandler, driver, getBuildDir(),
           clock, buildRunStatus, getZwlApiSupplier(zwlApi));
     }

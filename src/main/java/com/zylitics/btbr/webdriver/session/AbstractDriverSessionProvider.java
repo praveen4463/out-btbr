@@ -22,6 +22,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
+/*
+TODO: We should send browser specific switches so that whenever browser starts, we clear all
+ type of storage, caches, cookies and whatever else saved by browser from last session. This
+ should be done from here before a session is created.
+ */
 public abstract class AbstractDriverSessionProvider {
   
   private static final String BROWSER_BINARY_PATH_TEMPLATE_WIN =

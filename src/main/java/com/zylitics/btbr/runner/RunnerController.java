@@ -65,7 +65,7 @@ public class RunnerController {
   private final BuildRunHandler.Factory buildRunHandlerFactory;
   
   // handlers
-  private final VMDeleteHandler vmDeleteHandler;
+  private final VMUpdateHandler vmUpdateHandler;
   
   private final IOWrapper ioWrapper;
   private final Configuration configuration;
@@ -96,7 +96,7 @@ public class RunnerController {
         shotMetadataProviderFactory,
         zwlProgramOutputProviderFactory,
         new BuildRunHandler.Factory(),
-        new VMDeleteHandler(apiCoreProperties, secretsManager, buildVMProvider),
+        new VMUpdateHandler(apiCoreProperties, secretsManager, buildVMProvider),
         new IOWrapper(),
         new Configuration()
         );
@@ -115,7 +115,7 @@ public class RunnerController {
                    ShotMetadataProvider.Factory shotMetadataProviderFactory,
                    ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory,
                    BuildRunHandler.Factory buildRunHandlerFactory,
-                   VMDeleteHandler vmDeleteHandler,
+                   VMUpdateHandler vmUpdateHandler,
                    IOWrapper ioWrapper,
                    Configuration configuration) {
     this.apiCoreProperties = apiCoreProperties;
@@ -131,7 +131,7 @@ public class RunnerController {
     this.shotMetadataProviderFactory = shotMetadataProviderFactory;
     this.zwlProgramOutputProviderFactory = zwlProgramOutputProviderFactory;
     this.buildRunHandlerFactory = buildRunHandlerFactory;
-    this.vmDeleteHandler = vmDeleteHandler;
+    this.vmUpdateHandler = vmUpdateHandler;
     this.ioWrapper = ioWrapper;
     this.configuration = configuration;
   }
@@ -143,7 +143,7 @@ public class RunnerController {
     // validate no build is currently running
     if (buildRunStatus.values().stream().anyMatch(b -> b == BuildRunStatus.RUNNING)) {
       return processErrResponse(new IllegalArgumentException("Can't run a new build here because" +
-          " something is already running"), HttpStatus.BAD_REQUEST);
+          " something is already running"), HttpStatus.TOO_MANY_REQUESTS);
     }
     
     Build build = null;
@@ -169,10 +169,9 @@ public class RunnerController {
       // mark build as completed
       if (build != null) {
         buildRunStatus.put(build.getBuildId(), BuildRunStatus.COMPLETED);
+        // delete VM
+        vmUpdateHandler.update(build);
       }
-      // delete VM
-      vmDeleteHandler.delete(build != null ? build.getBuildVMId() : null,
-          requestBuildRun.getVmDeleteUrl());
       // throw to return some error response
       throw t;
     }
@@ -214,8 +213,7 @@ public class RunnerController {
   
     // start a new thread to run the build asynchronously because the current request will now
     // return.
-    BuildRunHandler buildRunHandler = buildRunHandlerFactory.create(requestBuildRun,
-        apiCoreProperties,
+    BuildRunHandler buildRunHandler = buildRunHandlerFactory.create(apiCoreProperties,
         secretsManager,
         storage,
         buildProvider,

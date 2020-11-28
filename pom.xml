@@ -14,7 +14,7 @@
     <google-cloud-storage.version>1.107.0</google-cloud-storage.version>
     <selenium.version>4.0.0-alpha-5</selenium.version>
     <stackdriver-logback.version>0.117.0-alpha</stackdriver-logback.version>
-    <zwl.version>0.2.1-SNAPSHOT</zwl.version>
+    <zwl.version>0.4.1-SNAPSHOT</zwl.version>
 
     <skipTest>false</skipTest>
   </properties>

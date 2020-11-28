@@ -24,11 +24,14 @@ api-core:
     # https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing
     min-idle-conn-pool: 2
   runner:
-    program-output-flush-no: 10
+    program-output-flush-no: 5
     # later we may give it as build caps too for custom values, this is done so that non-webdriver
     # code (which executes in microseconds) wouldn't put lot of load on db.
     update-line-build-status-after: 1000
-    # wzgp_auth_xx are used to authenticate to the vm deletion api.
+    label-key-availability-status: availability-status
+    label-value-availability-status: FREE
+    wzgp-endpoint: https://wzgp.api.zylitics.io
+    wzgp-version: beta
     wzgp-auth-user: prod-test
     wzgp-auth-secret-cloud-file: zl-wzgp-prod-test-auth.encrypt
   shot:
