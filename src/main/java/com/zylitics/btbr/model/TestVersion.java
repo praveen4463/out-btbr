@@ -6,7 +6,11 @@ public class TestVersion {
   
   private String name;
   
-  private ZwlProgram zwlProgram;
+  private String code;
+  
+  private Test test;
+  
+  private File file;
   
   public int getTestVersionId() {
     return testVersionId;
@@ -26,12 +30,30 @@ public class TestVersion {
     return this;
   }
   
-  public ZwlProgram getZwlProgram() {
-    return zwlProgram;
+  public String getCode() {
+    return code;
   }
   
-  public TestVersion setZwlProgram(ZwlProgram zwlProgram) {
-    this.zwlProgram = zwlProgram;
+  public TestVersion setCode(String code) {
+    this.code = code;
+    return this;
+  }
+  
+  public Test getTest() {
+    return test;
+  }
+  
+  public TestVersion setTest(Test test) {
+    this.test = test;
+    return this;
+  }
+  
+  public File getFile() {
+    return file;
+  }
+  
+  public TestVersion setFile(File file) {
+    this.file = file;
     return this;
   }
   
@@ -40,7 +62,9 @@ public class TestVersion {
     return "TestVersion{" +
         "testVersionId=" + testVersionId +
         ", name='" + name + '\'' +
-        ", zwlProgram=" + zwlProgram +
+        ", code='" + code + '\'' +
+        ", test=" + test +
+        ", file=" + file +
         '}';
   }
 }

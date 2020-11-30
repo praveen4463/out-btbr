@@ -29,9 +29,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-/*
-  TODO: fix all places that use versionId:name and use something like filename:testName
- */
 public class BuildRunHandler {
   
   private static final Logger LOG = LoggerFactory.getLogger(BuildRunHandler.class);
@@ -232,7 +229,7 @@ public class BuildRunHandler {
     // let's start the build
     boolean firstTest = true;
     for (TestVersion testVersion : testVersions) {
-      LOG.debug("Starting testVersion {}", getTestVersionIdentifier(testVersion));
+      LOG.debug("Starting testVersion {}", getTestVersionIdentifierShort(testVersion));
       if (!firstTest) {
         LOG.debug("Going to sanitize before running next test");
         // sanitize only after the first version is completed
@@ -249,9 +246,9 @@ public class BuildRunHandler {
         onBuildStart();
         firstTest = false;
       }
-      String code = testVersion.getZwlProgram().getCode();
+      String code = testVersion.getCode();
       LOG.debug("Going to run the code {} for testVersion {}", code,
-          getTestVersionIdentifier(testVersion));
+          getTestVersionIdentifierShort(testVersion));
       ZwlApi zwlApi = zwlApiSupplier.get(code, Collections.singletonList(storingErrorListener));
       try {
         // handle exceptions only while reading the code, other exceptions will be relayed to
@@ -262,14 +259,14 @@ public class BuildRunHandler {
         throw s;
       } catch (Throwable t) {
         LOG.debug("An exception occurred while running testVersion {}: {}.{}",
-            getTestVersionIdentifier(testVersion), t.getClass().getSimpleName(), t.getMessage());
+            getTestVersionIdentifierShort(testVersion), t.getClass().getSimpleName(), t.getMessage());
         onTestVersionFailed(testVersion, t);
         // try to run other versions only when the exception is a ZwlLangException, cause it's very
         // unlikely any other test will pass when there is a problem in our application that caused
         // an unknown exception.
         if (t instanceof ZwlLangException && !buildCapability.isBuildAbortOnFailure()) {
           LOG.debug("Will continue running from next testVersion after an error in {}",
-              getTestVersionIdentifier(testVersion));
+              getTestVersionIdentifierShort(testVersion));
           // when we continue, log the exception.
           LOG.error(t.getMessage(), t);
           continue;
@@ -277,7 +274,7 @@ public class BuildRunHandler {
         LOG.debug("Will not continue to next testVersion, throwing exception");
         throw t; // handle() will catch it
       }
-      LOG.debug("testVersion {} was successful", getTestVersionIdentifier(testVersion));
+      LOG.debug("testVersion {} was successful", getTestVersionIdentifierShort(testVersion));
       onTestVersionSuccess(testVersion);
     }
     // once build is completed, even with errors, handle() will take care of it.
@@ -381,7 +378,7 @@ public class BuildRunHandler {
   // Running
   private void onTestVersionStart(TestVersion testVersion) {
     LOG.debug("onTestVersionStart invoked for testVersion {}",
-        getTestVersionIdentifier(testVersion));
+        getTestVersionIdentifierShort(testVersion));
     
     validateSingleRowDbCommit(buildStatusProvider.saveOnStart(
         new BuildStatusSaveOnStart(build.getBuildId(), testVersion.getTestVersionId(),
@@ -396,14 +393,14 @@ public class BuildRunHandler {
   
     testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.RUNNING);
     
-    printStream.println("Executing test version " + getTestVersionIdentifier(testVersion));
+    printStream.println("Executing test version " + getTestVersionIdentifierLong(testVersion));
   
     // assign an instant back in time so that first time line update go without any wait
     lastBuildStatusLineUpdateAt = clock.instant()
         .minusMillis(apiCoreProperties.getRunner().getUpdateLineBuildStatusAfter());
     
     LOG.debug("onTestVersionStart completed for testVersion {}",
-        getTestVersionIdentifier(testVersion));
+        getTestVersionIdentifierShort(testVersion));
   }
   
   // do things that require only one time execution/invocation on build start
@@ -426,7 +423,7 @@ public class BuildRunHandler {
   
   private void onTestVersionFailed(TestVersion testVersion, Throwable t) {
     LOG.debug("onTestVersionFailed invoked for testVersion {}, exception {}",
-        getTestVersionIdentifier(testVersion),
+        getTestVersionIdentifierShort(testVersion),
         t.getMessage());
     // we do this to make sure the version we're marking error was first marked running and
     // actually had an entry in BuildStatus
@@ -434,13 +431,25 @@ public class BuildRunHandler {
     
     String exMessage = exceptionTranslationProvider.get(t);
     LOG.debug("Translated error message is {}", exMessage);
+    String fromPos = null;
+    String toPos = null;
+    if (t instanceof ZwlLangException) {
+      ZwlLangException ex = (ZwlLangException) t; // all exceptions either derive from or wrap in ZwlLangException
+      fromPos = ex.getFromPos();
+      toPos = ex.getToPos();
+    } else {
+      LOG.warn("Expected " + ZwlLangException.class.getSimpleName() + " but was " +
+          t.getClass().getSimpleName(), t);
+    }
+    
     // update build status
-    updateBuildStatus(testVersion.getTestVersionId(), TestStatus.ERROR, exMessage);
+    updateBuildStatus(testVersion.getTestVersionId(), TestStatus.ERROR, exMessage, fromPos,
+        toPos);
     
     // once a version's execution is done, push a message, don't use printStream as we need to send
     // another argument.
     String outputMsg = "Exception occurred during execution of test version " +
-        getTestVersionIdentifier(testVersion);
+        getTestVersionIdentifierLong(testVersion);
     sendOutput(outputMsg + ":\n" + exMessage, true);
     
     // Now mark this test version as error
@@ -450,17 +459,17 @@ public class BuildRunHandler {
   
   private void onTestVersionSuccess(TestVersion testVersion) {
     LOG.debug("onTestVersionSuccess invoked for testVersion {}",
-        getTestVersionIdentifier(testVersion));
+        getTestVersionIdentifierShort(testVersion));
     // we do this to make sure the version we're marking success was first marked running and
     // actually had an entry in BuildStatus
     validateTestVersionRunning(testVersion.getTestVersionId());
     
     // update build status
-    updateBuildStatus(testVersion.getTestVersionId(), TestStatus.SUCCESS, null);
+    updateBuildStatus(testVersion.getTestVersionId(), TestStatus.SUCCESS);
     
     // once a version's execution is done, push a message, don't use printStream as we need to send
     // another argument.
-    sendOutput("Completed execution for test version " + getTestVersionIdentifier(testVersion),
+    sendOutput("Completed execution for test version " + getTestVersionIdentifierLong(testVersion),
         true);
     
     // Now mark this test version as completed
@@ -584,12 +593,8 @@ public class BuildRunHandler {
     LOG.debug("updateBuildStatusOnStop was invoked");
     int testVersionId = currentTestVersion.getTestVersionId();
     validateTestVersionRunning(testVersionId);
-    // TODO: remove error text when stop, error text should appear only with status = ERROR
-    updateBuildStatus(testVersionId, TestStatus.STOPPED, "Forcefully stopped while running");
-    // TODO: just keep 'Stopping...' and remove TestVersionIdentifier from output, we shouldn't show it
-    //  in front end.
-    sendOutput("A Stop was requested during execution of test version " +
-        getTestVersionIdentifier(testVersionId), true);
+    updateBuildStatus(testVersionId, TestStatus.STOPPED);
+    sendOutput("Stopping...");
     
     saveTestVersionsNotRun(TestStatus.STOPPED);
     // status is not aborted, because when stop was requested, all tests in queue were also forced
@@ -621,11 +626,17 @@ public class BuildRunHandler {
     });
   }
   
-  private void updateBuildStatus(int testVersionId, TestStatus status, @Nullable String error) {
+  private void updateBuildStatus(int testVersionId, TestStatus status, @Nullable String error,
+                                 @Nullable String errorFromPos, @Nullable String errorToPos) {
     LOG.debug("Updating buildStatus for testVersionId {} to status {}, error {}", testVersionId,
         status, error);
     validateSingleRowDbCommit(buildStatusProvider.updateOnEnd(new BuildStatusUpdateOnEnd(
-        build.getBuildId(), testVersionId, status, DateTimeUtil.getCurrent(clock), error)));
+        build.getBuildId(), testVersionId, status, DateTimeUtil.getCurrent(clock), error,
+        errorFromPos, errorToPos)));
+  }
+  
+  private void updateBuildStatus(int testVersionId, TestStatus status) {
+    updateBuildStatus(testVersionId, status, null, null, null);
   }
   
   private void sendOutput(String message) {
@@ -652,19 +663,14 @@ public class BuildRunHandler {
     }
   }
   
-  // Test version names are not unique across versions, thus identifier for a test version will have
-  // it's id and name separated by a colon such as 1:v1.
-  private String getTestVersionIdentifier(TestVersion testVersion) {
-    return String.format("%s:%s", testVersion.getTestVersionId(), testVersion.getName());
+  private String getTestVersionIdentifierShort(TestVersion testVersion) {
+    return String.format("%s:%s:%s", testVersion.getFile().getFileId(),
+        testVersion.getTest().getTestId(), testVersion.getTestVersionId());
   }
   
-  private String getTestVersionIdentifier(int testVersionId) {
-    return getTestVersionIdentifier(getTestVersion(testVersionId));
-  }
-  
-  private TestVersion getTestVersion(int testVersionId) {
-    return testVersions.stream().filter(t -> t.getTestVersionId() == testVersionId).findFirst()
-        .orElseThrow(() -> new RuntimeException("Invalid testVersionId " + testVersionId));
+  private String getTestVersionIdentifierLong(TestVersion testVersion) {
+    return String.format("%s>%s>%s", testVersion.getFile().getName(),
+        testVersion.getTest().getName(), testVersion.getName());
   }
   
   static class Factory {

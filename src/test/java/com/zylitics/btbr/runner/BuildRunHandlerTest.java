@@ -80,10 +80,10 @@ public class BuildRunHandlerTest {
       return null;
     }).when(zwlApi).interpret(any(ZwlWdTestProperties.class), any(ZwlInterpreterVisitor.class));
     
-    TestVersion testVersion1 = new TestVersion().setTestVersionId(testVersionId1).setName("v-1")
-        .setZwlProgram(new ZwlProgram().setCode("a = 1"));
-    TestVersion testVersion2 = new TestVersion().setTestVersionId(testVersionId2).setName("v-1")
-        .setZwlProgram(new ZwlProgram().setCode("b = 1"));
+    TestVersion testVersion1 = new TestVersion().setTestVersionId(testVersionId1).setName("v1")
+        .setCode("a = 1");
+    TestVersion testVersion2 = new TestVersion().setTestVersionId(testVersionId2).setName("v1")
+        .setCode("b = 1");
     
     RemoteWebDriver driver = getRemoteWebDriver();
     addTimeoutMock(driver);
@@ -125,12 +125,12 @@ public class BuildRunHandlerTest {
   @Test
   @Tag("sanitize")
   void validateSanitize() {
-    TestVersion testVersion1 = new TestVersion().setTestVersionId(1).setName("v-1")
-        .setZwlProgram(new ZwlProgram().setCode("a = 1"));
-    TestVersion testVersion2 = new TestVersion().setTestVersionId(2).setName("v-1")
-        .setZwlProgram(new ZwlProgram().setCode("b = 1"));
-    TestVersion testVersion3 = new TestVersion().setTestVersionId(3).setName("v-1")
-        .setZwlProgram(new ZwlProgram().setCode("c = 1"));
+    TestVersion testVersion1 = new TestVersion().setTestVersionId(1).setName("v1")
+        .setCode("a = 1");
+    TestVersion testVersion2 = new TestVersion().setTestVersionId(2).setName("v1")
+        .setCode("b = 1");
+    TestVersion testVersion3 = new TestVersion().setTestVersionId(3).setName("v1")
+        .setCode("c = 1");
     List<TestVersion> versions = ImmutableList.of(testVersion1, testVersion2, testVersion3);
     
     //test with sanitize on
@@ -208,10 +208,10 @@ public class BuildRunHandlerTest {
     int testVersionId2 = 2;
     Clock clock = Clock.fixed(Instant.now(), ZoneId.of("UTC"));
     OffsetDateTime currentDT = DateTimeUtil.getCurrent(clock);
-    TestVersion testVersion1 = new TestVersion().setTestVersionId(1).setName("v-1")
-        .setZwlProgram(new ZwlProgram().setCode("a = 1"));
-    TestVersion testVersion2 = new TestVersion().setTestVersionId(2).setName("v-1")
-        .setZwlProgram(new ZwlProgram().setCode("b = 1"));
+    TestVersion testVersion1 = new TestVersion().setTestVersionId(1).setName("v1")
+        .setCode("a = 1");
+    TestVersion testVersion2 = new TestVersion().setTestVersionId(2).setName("v1")
+        .setCode("b = 1");
     List<TestVersion> versions = ImmutableList.of(testVersion1, testVersion2);
     Build build = getBuild(buildId);
     RemoteWebDriver driver = getRemoteWebDriver();
@@ -294,8 +294,8 @@ public class BuildRunHandlerTest {
     ZwlProgramOutputProvider zwlProgramOutputProvider = getZwlProgramOutputProvider();
     ZwlLangException zwEx = new ZwlLangException(error);
     // when single version is run
-    TestVersion testVersion1 = new TestVersion().setTestVersionId(testVersionId).setName("v-1")
-        .setZwlProgram(new ZwlProgram().setCode("a = 1"));
+    TestVersion testVersion1 = new TestVersion().setTestVersionId(testVersionId).setName("v1")
+        .setCode("a = 1");
     ZwlApi zwlApi = mock(ZwlApi.class);
     doAnswer(i -> {
       throw zwEx;
@@ -419,14 +419,14 @@ public class BuildRunHandlerTest {
     List<TestVersion> versions = new ArrayList<>();
     TestVersion version = new TestVersion();
     version.setTestVersionId(1);
-    version.setName("v-1");
-    version.setZwlProgram(new ZwlProgram().setCode("a = 1"));
+    version.setName("v1");
+    version.setCode("a = 1");
     versions.add(version);
   
     version = new TestVersion();
     version.setTestVersionId(2);
-    version.setName("v-1");
-    version.setZwlProgram(new ZwlProgram().setCode("a = 1"));
+    version.setName("v1");
+    version.setCode("a = 1");
     versions.add(version);
     return versions;
   }
