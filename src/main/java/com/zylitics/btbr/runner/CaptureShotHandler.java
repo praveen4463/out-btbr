@@ -53,7 +53,6 @@ public interface CaptureShotHandler {
                               Storage storage,
                               Build build,
                               String sessionKey,
-                              String bucketSessionStorage,
                               CurrentTestVersion currentTestVersion);
   }
 }

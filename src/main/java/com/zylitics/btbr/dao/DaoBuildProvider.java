@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,17 +30,20 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
   
   @Override
   public Optional<Build> getBuild(int buildId) {
-    Preconditions.checkArgument(buildId > 0, "build is required");
+    Preconditions.checkArgument(buildId > 0, "buildId is required");
     
     String sql = "SELECT" +
         " bu.build_key" +
         ", bu.bt_build_vm_id" +
         ", bu.is_success" +
+        ", bu.shot_bucket_session_storage" +
+        ", bu.abort_on_failure" +
+        ", bu.aet_keep_single_window" +
+        ", bu.aet_update_url_blank" +
+        ", bu.aet_reset_timeouts" +
+        ", bu.aet_delete_all_cookies" +
         ", project.zluser_id" +
-        ", bc.shot_bucket_session_storage" +
         ", bc.shot_take_test_shot" +
-        ", bc.program_output_flush_no" +
-        ", bc.program_output_flush_millis" +
         ", bc.wd_browser_name" +
         ", bc.wd_browser_version" +
         ", bc.wd_platform_name" +
@@ -53,7 +57,6 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bc.wd_unhandled_prompt_behavior" +
         ", bc.wd_ie_element_scroll_behavior" +
         ", bc.wd_ie_enable_persistent_hovering" +
-        ", bc.wd_ie_introduce_flakiness_by_ignoring_security_domains" +
         ", bc.wd_ie_require_window_focus" +
         ", bc.wd_ie_disable_native_events" +
         ", bc.wd_ie_destructively_ensure_clean_session" +
@@ -64,13 +67,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bc.wd_chrome_enable_page" +
         ", bc.wd_firefox_log_level" +
         ", bc.wd_brw_start_maximize" +
-        ", bc.build_abort_on_failure" +
-        ", bc.build_aet_keep_single_window" +
-        ", bc.build_aet_update_url_blank" +
-        ", bc.build_aet_reset_timeouts" +
-        ", bc.build_aet_delete_all_cookies" +
-        " FROM bt_build AS bu INNER JOIN bt_build_capability AS bc" +
-        " ON (bu.bt_build_capability_id = bc.bt_build_capability_id)" +
+        " FROM bt_build AS bu INNER JOIN bt_build_captured_capabilities AS bc" +
+        " ON (bu.bt_build_id = bc.bt_build_id)" +
         " INNER JOIN bt_project AS project" +
         " ON (bu.bt_project_id = project.bt_project_id)" +
         " WHERE bu.bt_build_id = :bt_build_id;";
@@ -86,12 +84,15 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
             // cast rather than getBoolean because this method always returns 'false' as default
             // value whereas we want to see a null if it's null.
             .setSuccess((Boolean) rs.getObject("is_success"))
+            .setShotBucketSessionStorage(rs.getString("shot_bucket_session_storage"))
+            .setAbortOnFailure(rs.getBoolean("abort_on_failure"))
+            .setAetKeepSingleWindow(rs.getBoolean("aet_keep_single_window"))
+            .setAetUpdateUrlBlank(rs.getBoolean("aet_update_url_blank"))
+            .setAetResetTimeouts(rs.getBoolean("aet_reset_timeouts"))
+            .setAetDeleteAllCookies(rs.getBoolean("aet_delete_all_cookies"))
             .setUserId(rs.getInt("zluser_id"))
             .setBuildCapability(new BuildCapability()
-                .setShotBucketSessionStorage(rs.getString("shot_bucket_session_storage"))
                 .setShotTakeTestShot(rs.getBoolean("shot_take_test_shot"))
-                .setProgramOutputFlushNo(rs.getInt("program_output_flush_no"))
-                .setProgramOutputFlushMillis(rs.getLong("program_output_flush_millis"))
                 .setWdBrowserName(rs.getString("wd_browser_name"))
                 .setWdBrowserVersion(rs.getString("wd_browser_version"))
                 .setWdPlatformName(rs.getString("wd_platform_name"))
@@ -105,8 +106,6 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
                 .setWdUnhandledPromptBehavior(rs.getString("wd_unhandled_prompt_behavior"))
                 .setWdIeElementScrollBehavior(rs.getString("wd_ie_element_scroll_behavior"))
                 .setWdIeEnablePersistentHovering(rs.getBoolean("wd_ie_enable_persistent_hovering"))
-                .setWdIeIntroduceFlakinessByIgnoringSecurityDomains(rs.getBoolean(
-                    "wd_ie_introduce_flakiness_by_ignoring_security_domains"))
                 .setWdIeRequireWindowFocus(rs.getBoolean("wd_ie_require_window_focus"))
                 .setWdIeDisableNativeEvents(rs.getBoolean("wd_ie_disable_native_events"))
                 .setWdIeDestructivelyEnsureCleanSession(
@@ -117,12 +116,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
                 .setWdChromeEnableNetwork(rs.getBoolean("wd_chrome_enable_network"))
                 .setWdChromeEnablePage(rs.getBoolean("wd_chrome_enable_page"))
                 .setWdFirefoxLogLevel(rs.getString("wd_firefox_log_level"))
-                .setWdBrwStartMaximize(rs.getBoolean("wd_brw_start_maximize"))
-                .setBuildAbortOnFailure(rs.getBoolean("build_abort_on_failure"))
-                .setBuildAetKeepSingleWindow(rs.getBoolean("build_aet_keep_single_window"))
-                .setBuildAetUpdateUrlBlank(rs.getBoolean("build_aet_update_url_blank"))
-                .setBuildAetResetTimeouts(rs.getBoolean("build_aet_reset_timeouts"))
-                .setBuildAetDeleteAllCookies(rs.getBoolean("build_aet_delete_all_cookies"))));
+                .setWdBrwStartMaximize(rs.getBoolean("wd_brw_start_maximize"))));
     if (build.size() == 0) {
       return Optional.empty();
     }
@@ -148,6 +142,25 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         buildUpdateOnComplete.isSuccess()));
   
     params.put("error", new SqlParameterValue(Types.OTHER, buildUpdateOnComplete.getError()));
+  
+    SqlParameterSource namedParams = new MapSqlParameterSource(params);
+  
+    return jdbc.update(sql, namedParams);
+  }
+  
+  @Override
+  public int updateOnAllTasksDone(int buildId, OffsetDateTime allDoneDate) {
+    Preconditions.checkArgument(buildId > 0, "buildId is required");
+    Preconditions.checkNotNull(allDoneDate, "allDoneDate can't be null");
+  
+    String sql = "UPDATE bt_build SET all_done_date = :all_done_date WHERE" +
+        " bt_build_id = :bt_build_id";
+  
+    Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(2));
+  
+    params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, buildId));
+  
+    params.put("all_done_date", new SqlParameterValue(Types.TIMESTAMP_WITH_TIMEZONE, allDoneDate));
   
     SqlParameterSource namedParams = new MapSqlParameterSource(params);
   

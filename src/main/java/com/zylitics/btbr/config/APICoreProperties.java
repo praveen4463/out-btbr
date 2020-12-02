@@ -1,7 +1,6 @@
 package com.zylitics.btbr.config;
 
 import com.google.common.collect.ImmutableSet;
-import com.zylitics.btbr.model.BuildCapability;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -286,10 +285,6 @@ public class APICoreProperties {
     @NotBlank
     private String wzgpAuthSecretCloudFile;
     
-    /**
-     * The default value to use when {@link BuildCapability#getProgramOutputFlushNo()} or
-     * {@link BuildCapability#getProgramOutputFlushMillis()} are not provided (are equals to 0)
-     */
     public Integer getProgramOutputFlushNo() {
       return programOutputFlushNo;
     }

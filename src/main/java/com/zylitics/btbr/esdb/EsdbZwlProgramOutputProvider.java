@@ -1,7 +1,6 @@
 package com.zylitics.btbr.esdb;
 
 import com.zylitics.btbr.config.APICoreProperties;
-import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.model.ZwlProgramOutput;
 import com.zylitics.btbr.runner.provider.ZwlProgramOutputProvider;
 import org.elasticsearch.action.bulk.BackoffPolicy;
@@ -13,33 +12,25 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 // BulkProcessor https://www.elastic.co/guide/en/elasticsearch/client/java-rest/7.4/java-rest-high-document-bulk.html
 public class EsdbZwlProgramOutputProvider extends AbstractBulkSaveProvider<ZwlProgramOutput>
     implements ZwlProgramOutputProvider {
   
   private EsdbZwlProgramOutputProvider(APICoreProperties apiCoreProperties,
-                                       RestHighLevelClient client,
-                                       BuildCapability buildCapability) {
-    super((listener) -> {
-      BulkProcessor.Builder builder = BulkProcessor.builder((request, bulkListener) ->
-          client.bulkAsync(request, RequestOptions.DEFAULT, bulkListener), listener)
-          .setConcurrentRequests(1) // keep it 1 so that bulk can execute on separate thread
-          .setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueSeconds(1),
-              apiCoreProperties.getEsdb().getMaxRetries()));
-      if (buildCapability.getProgramOutputFlushNo() > 0) {
-        builder.setBulkActions(buildCapability.getProgramOutputFlushNo());
-      } else if (buildCapability.getProgramOutputFlushMillis() > 0) {
-        builder.setFlushInterval(new TimeValue(buildCapability.getProgramOutputFlushMillis(),
-            TimeUnit.MILLISECONDS));
-      } else {
-        builder.setBulkActions(apiCoreProperties.getRunner().getProgramOutputFlushNo());
-      }
-      return builder.build();
-    }, apiCoreProperties);
+                                       RestHighLevelClient client) {
+    super((listener ->
+            BulkProcessor.builder((request, bulkListener) ->
+                client.bulkAsync(request, RequestOptions.DEFAULT, bulkListener), listener)
+                .setBulkActions(apiCoreProperties.getRunner().getProgramOutputFlushNo())
+                .setConcurrentRequests(1) // keep it 1 so that bulk can execute on separate thread
+                .setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueSeconds(1),
+                    apiCoreProperties.getEsdb().getMaxRetries()))
+                .build()),
+        apiCoreProperties);
   }
   
+  @SuppressWarnings("unused")
   EsdbZwlProgramOutputProvider(APICoreProperties apiCoreProperties, BulkProcessor bulkProcessor) {
     super((l) -> bulkProcessor, apiCoreProperties);
   }
@@ -68,12 +59,11 @@ public class EsdbZwlProgramOutputProvider extends AbstractBulkSaveProvider<ZwlPr
   }
   
   public static class Factory implements ZwlProgramOutputProvider.Factory {
-  
+    
     @Override
     public ZwlProgramOutputProvider create(APICoreProperties apiCoreProperties,
-                                           RestHighLevelClient client,
-                                           BuildCapability buildCapability) {
-      return new EsdbZwlProgramOutputProvider(apiCoreProperties, client, buildCapability);
+                                           RestHighLevelClient client) {
+      return new EsdbZwlProgramOutputProvider(apiCoreProperties, client);
     }
   }
 }

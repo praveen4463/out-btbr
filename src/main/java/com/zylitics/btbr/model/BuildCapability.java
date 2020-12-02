@@ -1,14 +1,8 @@
 package com.zylitics.btbr.model;
 
 public class BuildCapability {
-
-  private String shotBucketSessionStorage;
   
   private boolean shotTakeTestShot;
-  
-  private int programOutputFlushNo;
-  
-  private long programOutputFlushMillis;
   
   private String wdBrowserName;
   
@@ -36,8 +30,6 @@ public class BuildCapability {
   
   private boolean wdIeEnablePersistentHovering;
   
-  private boolean wdIeIntroduceFlakinessByIgnoringSecurityDomains;
-  
   private boolean wdIeRequireWindowFocus;
   
   private boolean wdIeDisableNativeEvents;
@@ -58,25 +50,6 @@ public class BuildCapability {
   
   private boolean wdBrwStartMaximize;
   
-  private boolean buildAbortOnFailure;
-  
-  private boolean buildAetKeepSingleWindow;
-  
-  private boolean buildAetUpdateUrlBlank;
-  
-  private boolean buildAetResetTimeouts;
-  
-  private boolean buildAetDeleteAllCookies;
-  
-  public String getShotBucketSessionStorage() {
-    return shotBucketSessionStorage;
-  }
-  
-  public BuildCapability setShotBucketSessionStorage(String shotBucketSessionStorage) {
-    this.shotBucketSessionStorage = shotBucketSessionStorage;
-    return this;
-  }
-  
   // not in use currently but keeping
   @SuppressWarnings("unused")
   public boolean isShotTakeTestShot() {
@@ -85,24 +58,6 @@ public class BuildCapability {
   
   public BuildCapability setShotTakeTestShot(boolean shotTakeTestShot) {
     this.shotTakeTestShot = shotTakeTestShot;
-    return this;
-  }
-  
-  public int getProgramOutputFlushNo() {
-    return programOutputFlushNo;
-  }
-  
-  public BuildCapability setProgramOutputFlushNo(int programOutputFlushNo) {
-    this.programOutputFlushNo = programOutputFlushNo;
-    return this;
-  }
-  
-  public long getProgramOutputFlushMillis() {
-    return programOutputFlushMillis;
-  }
-  
-  public BuildCapability setProgramOutputFlushMillis(long programOutputFlushMillis) {
-    this.programOutputFlushMillis = programOutputFlushMillis;
     return this;
   }
   
@@ -224,17 +179,6 @@ public class BuildCapability {
     return this;
   }
   
-  public boolean isWdIeIntroduceFlakinessByIgnoringSecurityDomains() {
-    return wdIeIntroduceFlakinessByIgnoringSecurityDomains;
-  }
-  
-  public BuildCapability setWdIeIntroduceFlakinessByIgnoringSecurityDomains(
-      boolean wdIeIntroduceFlakinessByIgnoringSecurityDomains) {
-    this.wdIeIntroduceFlakinessByIgnoringSecurityDomains =
-        wdIeIntroduceFlakinessByIgnoringSecurityDomains;
-    return this;
-  }
-  
   public boolean isWdIeRequireWindowFocus() {
     return wdIeRequireWindowFocus;
   }
@@ -326,58 +270,10 @@ public class BuildCapability {
     return this;
   }
   
-  public boolean isBuildAbortOnFailure() {
-    return buildAbortOnFailure;
-  }
-  
-  public BuildCapability setBuildAbortOnFailure(boolean buildAbortOnFailure) {
-    this.buildAbortOnFailure = buildAbortOnFailure;
-    return this;
-  }
-  
-  public boolean isBuildAetKeepSingleWindow() {
-    return buildAetKeepSingleWindow;
-  }
-  
-  public BuildCapability setBuildAetKeepSingleWindow(boolean buildAetKeepSingleWindow) {
-    this.buildAetKeepSingleWindow = buildAetKeepSingleWindow;
-    return this;
-  }
-  
-  public boolean isBuildAetUpdateUrlBlank() {
-    return buildAetUpdateUrlBlank;
-  }
-  
-  public BuildCapability setBuildAetUpdateUrlBlank(boolean buildAetUpdateUrlBlank) {
-    this.buildAetUpdateUrlBlank = buildAetUpdateUrlBlank;
-    return this;
-  }
-  
-  public boolean isBuildAetResetTimeouts() {
-    return buildAetResetTimeouts;
-  }
-  
-  public BuildCapability setBuildAetResetTimeouts(boolean buildAetResetTimeouts) {
-    this.buildAetResetTimeouts = buildAetResetTimeouts;
-    return this;
-  }
-  
-  public boolean isBuildAetDeleteAllCookies() {
-    return buildAetDeleteAllCookies;
-  }
-  
-  public BuildCapability setBuildAetDeleteAllCookies(boolean buildAetDeleteAllCookies) {
-    this.buildAetDeleteAllCookies = buildAetDeleteAllCookies;
-    return this;
-  }
-  
   @Override
   public String toString() {
     return "BuildCapability{" +
-        "shotBucketSessionStorage='" + shotBucketSessionStorage + '\'' +
-        ", shotTakeTestShot=" + shotTakeTestShot +
-        ", programOutputFlushNo=" + programOutputFlushNo +
-        ", programOutputFlushMillis=" + programOutputFlushMillis +
+        "shotTakeTestShot=" + shotTakeTestShot +
         ", wdBrowserName='" + wdBrowserName + '\'' +
         ", wdBrowserVersion='" + wdBrowserVersion + '\'' +
         ", wdPlatformName='" + wdPlatformName + '\'' +
@@ -391,9 +287,9 @@ public class BuildCapability {
         ", wdUnhandledPromptBehavior='" + wdUnhandledPromptBehavior + '\'' +
         ", wdIeElementScrollBehavior='" + wdIeElementScrollBehavior + '\'' +
         ", wdIeEnablePersistentHovering=" + wdIeEnablePersistentHovering +
-        ", wdIeIntroduceFlakinessByIgnoringSecurityDomains=" + wdIeIntroduceFlakinessByIgnoringSecurityDomains +
         ", wdIeRequireWindowFocus=" + wdIeRequireWindowFocus +
         ", wdIeDisableNativeEvents=" + wdIeDisableNativeEvents +
+        ", wdIeDestructivelyEnsureCleanSession=" + wdIeDestructivelyEnsureCleanSession +
         ", wdIeLogLevel='" + wdIeLogLevel + '\'' +
         ", wdChromeVerboseLogging=" + wdChromeVerboseLogging +
         ", wdChromeSilentOutput=" + wdChromeSilentOutput +
@@ -401,11 +297,6 @@ public class BuildCapability {
         ", wdChromeEnablePage=" + wdChromeEnablePage +
         ", wdFirefoxLogLevel='" + wdFirefoxLogLevel + '\'' +
         ", wdBrwStartMaximize=" + wdBrwStartMaximize +
-        ", buildAbortOnFailure=" + buildAbortOnFailure +
-        ", buildAetKeepSingleWindow=" + buildAetKeepSingleWindow +
-        ", buildAetUpdateUrlBlank=" + buildAetUpdateUrlBlank +
-        ", buildAetResetTimeouts=" + buildAetResetTimeouts +
-        ", buildAetDeleteAllCookies=" + buildAetDeleteAllCookies +
         '}';
   }
 }

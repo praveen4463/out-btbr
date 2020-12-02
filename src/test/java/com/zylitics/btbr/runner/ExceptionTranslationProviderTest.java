@@ -45,7 +45,8 @@ class ExceptionTranslationProviderTest {
         new ElementNotInteractableException(elementNotInteractable);
     TimeoutException timeoutException = new TimeoutException(timeout,
         elementNotInteractableException);
-    ZwlLangException zwlLangException = new ZwlLangException(lineNColumn, timeoutException);
+    ZwlLangException zwlLangException = new ZwlLangException(null, null, lineNColumn,
+        timeoutException);
     String translated = new ExceptionTranslationProvider(new StoringErrorListener())
         .get(zwlLangException).trim();
     LOG.debug(translated);
@@ -60,7 +61,7 @@ class ExceptionTranslationProviderTest {
   void zwlLangExWithoutCauseComeAsIs() {
     String message = "variable vxn not found";
     String lineNColumn = " at line 13:2";
-    ZwlLangException zwlLangException = new ZwlLangException(message + lineNColumn);
+    ZwlLangException zwlLangException = new ZwlLangException(null, null, message + lineNColumn);
     String translated = new ExceptionTranslationProvider(new StoringErrorListener())
         .get(zwlLangException);
     assertEquals("ZwlLangException: " + message + lineNColumn, translated);
@@ -74,7 +75,7 @@ class ExceptionTranslationProviderTest {
     @SuppressWarnings("rawtypes") Recognizer recognizer = mock(Recognizer.class);
     StoringErrorListener storingErrorListener = new StoringErrorListener();
     storingErrorListener.syntaxError(recognizer, null, 12, 32, message, r);
-    ZwlLangException zwlLangException = new ZwlLangException(r);
+    ZwlLangException zwlLangException = new ZwlLangException(null, null, r);
     String translated = new ExceptionTranslationProvider(storingErrorListener).
         get(zwlLangException);
     LOG.debug(translated);

@@ -61,9 +61,6 @@ public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
       // Useful in tests that need to hover over elements to bring them into visibility.
       ie.enablePersistentHovering();
     }
-    if (buildCapability.isWdIeIntroduceFlakinessByIgnoringSecurityDomains()) {
-      ie.introduceFlakinessByIgnoringSecurityDomains();
-    }
     /*
       Let's not enable this by default and give it to use to decide, give mostly all IE caps to them
       to decide as there are of uncertainties and different use case may require different set of

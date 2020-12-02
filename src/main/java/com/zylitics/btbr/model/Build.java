@@ -12,6 +12,19 @@ public class Build {
   
   private Boolean isSuccess;
   
+  private String shotBucketSessionStorage;
+  
+  private boolean abortOnFailure;
+  
+  private boolean aetKeepSingleWindow;
+  
+  private boolean aetUpdateUrlBlank;
+  
+  private boolean aetResetTimeouts;
+  
+  private boolean aetDeleteAllCookies;
+  
+  
   private int userId;
   
   public int getBuildId() {
@@ -59,6 +72,60 @@ public class Build {
     return this;
   }
   
+  public String getShotBucketSessionStorage() {
+    return shotBucketSessionStorage;
+  }
+  
+  public Build setShotBucketSessionStorage(String shotBucketSessionStorage) {
+    this.shotBucketSessionStorage = shotBucketSessionStorage;
+    return this;
+  }
+  
+  public boolean isAbortOnFailure() {
+    return abortOnFailure;
+  }
+  
+  public Build setAbortOnFailure(boolean abortOnFailure) {
+    this.abortOnFailure = abortOnFailure;
+    return this;
+  }
+  
+  public boolean isAetKeepSingleWindow() {
+    return aetKeepSingleWindow;
+  }
+  
+  public Build setAetKeepSingleWindow(boolean aetKeepSingleWindow) {
+    this.aetKeepSingleWindow = aetKeepSingleWindow;
+    return this;
+  }
+  
+  public boolean isAetUpdateUrlBlank() {
+    return aetUpdateUrlBlank;
+  }
+  
+  public Build setAetUpdateUrlBlank(boolean aetUpdateUrlBlank) {
+    this.aetUpdateUrlBlank = aetUpdateUrlBlank;
+    return this;
+  }
+  
+  public boolean isAetResetTimeouts() {
+    return aetResetTimeouts;
+  }
+  
+  public Build setAetResetTimeouts(boolean aetResetTimeouts) {
+    this.aetResetTimeouts = aetResetTimeouts;
+    return this;
+  }
+  
+  public boolean isAetDeleteAllCookies() {
+    return aetDeleteAllCookies;
+  }
+  
+  public Build setAetDeleteAllCookies(boolean aetDeleteAllCookies) {
+    this.aetDeleteAllCookies = aetDeleteAllCookies;
+    return this;
+  }
+  
   public int getUserId() {
     return userId;
   }
@@ -76,6 +143,12 @@ public class Build {
         ", buildCapability=" + buildCapability +
         ", buildVMId=" + buildVMId +
         ", isSuccess=" + isSuccess +
+        ", shotBucketSessionStorage='" + shotBucketSessionStorage + '\'' +
+        ", abortOnFailure=" + abortOnFailure +
+        ", aetKeepSingleWindow=" + aetKeepSingleWindow +
+        ", aetUpdateUrlBlank=" + aetUpdateUrlBlank +
+        ", aetResetTimeouts=" + aetResetTimeouts +
+        ", aetDeleteAllCookies=" + aetDeleteAllCookies +
         ", userId=" + userId +
         '}';
   }

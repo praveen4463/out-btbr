@@ -48,6 +48,9 @@ public class BuildRunHandlerTest {
     int changeLineMillis = updateLineMillis + updateLineMillis / 2;
     int captureLogsMillis = changeLineMillis + changeLineMillis / 2;
     int buildId = 1;
+    int fileId = 1;
+    int testId1 = 1;
+    int testId2 = 2;
     int testVersionId1 = 1;
     int testVersionId2 = 2;
     
@@ -81,9 +84,13 @@ public class BuildRunHandlerTest {
     }).when(zwlApi).interpret(any(ZwlWdTestProperties.class), any(ZwlInterpreterVisitor.class));
     
     TestVersion testVersion1 = new TestVersion().setTestVersionId(testVersionId1).setName("v1")
-        .setCode("a = 1");
+        .setCode("a = 1")
+        .setTest(new com.zylitics.btbr.model.Test().setTestId(testId1).setName("t1"))
+        .setFile(new File().setFileId(fileId).setName("UntilTests"));
     TestVersion testVersion2 = new TestVersion().setTestVersionId(testVersionId2).setName("v1")
-        .setCode("b = 1");
+        .setCode("b = 1")
+        .setTest(new com.zylitics.btbr.model.Test().setTestId(testId2).setName("t2"))
+        .setFile(new File().setFileId(fileId).setName("UntilTests"));
     
     RemoteWebDriver driver = getRemoteWebDriver();
     addTimeoutMock(driver);
@@ -126,11 +133,17 @@ public class BuildRunHandlerTest {
   @Tag("sanitize")
   void validateSanitize() {
     TestVersion testVersion1 = new TestVersion().setTestVersionId(1).setName("v1")
-        .setCode("a = 1");
+        .setCode("a = 1")
+        .setTest(new com.zylitics.btbr.model.Test().setTestId(1).setName("t1"))
+        .setFile(new File().setFileId(1).setName("UT"));
     TestVersion testVersion2 = new TestVersion().setTestVersionId(2).setName("v1")
-        .setCode("b = 1");
+        .setCode("b = 1")
+        .setTest(new com.zylitics.btbr.model.Test().setTestId(2).setName("t2"))
+        .setFile(new File().setFileId(1).setName("UT"));
     TestVersion testVersion3 = new TestVersion().setTestVersionId(3).setName("v1")
-        .setCode("c = 1");
+        .setCode("c = 1")
+        .setTest(new com.zylitics.btbr.model.Test().setTestId(3).setName("t3"))
+        .setFile(new File().setFileId(1).setName("UT"));
     List<TestVersion> versions = ImmutableList.of(testVersion1, testVersion2, testVersion3);
     
     //test with sanitize on
@@ -161,10 +174,9 @@ public class BuildRunHandlerTest {
     addTargetLocatorMock(driver);
   
     Build build = getBuild(1);
-    BuildCapability buildCapability = build.getBuildCapability();
-    buildCapability.setBuildAetKeepSingleWindow(false);
-    buildCapability.setBuildAetDeleteAllCookies(false);
-    buildCapability.setBuildAetResetTimeouts(false);
+    build.setAetKeepSingleWindow(false);
+    build.setAetDeleteAllCookies(false);
+    build.setAetResetTimeouts(false);
     
     new Builder()
         .withTestVersions(versions)
@@ -208,10 +220,14 @@ public class BuildRunHandlerTest {
     int testVersionId2 = 2;
     Clock clock = Clock.fixed(Instant.now(), ZoneId.of("UTC"));
     OffsetDateTime currentDT = DateTimeUtil.getCurrent(clock);
-    TestVersion testVersion1 = new TestVersion().setTestVersionId(1).setName("v1")
-        .setCode("a = 1");
-    TestVersion testVersion2 = new TestVersion().setTestVersionId(2).setName("v1")
-        .setCode("b = 1");
+    TestVersion testVersion1 = new TestVersion().setTestVersionId(testVersionId1).setName("v1")
+        .setCode("a = 1")
+        .setTest(new com.zylitics.btbr.model.Test().setTestId(1).setName("t1"))
+        .setFile(new File().setFileId(1).setName("UT"));
+    TestVersion testVersion2 = new TestVersion().setTestVersionId(testVersionId2).setName("v1")
+        .setCode("b = 1")
+        .setTest(new com.zylitics.btbr.model.Test().setTestId(2).setName("t2"))
+        .setFile(new File().setFileId(1).setName("UT"));
     List<TestVersion> versions = ImmutableList.of(testVersion1, testVersion2);
     Build build = getBuild(buildId);
     RemoteWebDriver driver = getRemoteWebDriver();
@@ -219,7 +235,7 @@ public class BuildRunHandlerTest {
     addDefaultWinHandle(driver);
     
     BuildStatusProvider buildStatusProvider = getBuildStatusProvider();
-    BuildProvider buildProvider = getBuildProvider();
+    BuildProvider buildProvider = getBuildProvider(buildId);
     ZwlProgramOutputProvider zwlProgramOutputProvider = getZwlProgramOutputProvider();
     CaptureShotHandler captureShotHandler = mock(CaptureShotHandler.class);
     WebdriverLogHandler webdriverLogHandler = getWebdriverLogHandler();
@@ -254,7 +270,7 @@ public class BuildRunHandlerTest {
             .setOutput("Executing").setEnded(false).setCreateDate(currentDT))));
     inOrder.verify(captureShotHandler).startShot();
     inOrder.verify(buildStatusProvider).updateOnEnd(new BuildStatusUpdateOnEnd(buildId,
-        testVersionId1, TestStatus.SUCCESS, currentDT, null));
+        testVersionId1, TestStatus.SUCCESS, currentDT));
     inOrder.verify(zwlProgramOutputProvider).saveAsync(argThat(matchZwlProgramOutput(
         new ZwlProgramOutput().setBuildId(buildId).setTestVersionId(testVersionId1)
             .setOutput("Completed").setEnded(true).setCreateDate(currentDT))));
@@ -266,7 +282,7 @@ public class BuildRunHandlerTest {
         new ZwlProgramOutput().setBuildId(buildId).setTestVersionId(testVersionId2)
             .setOutput("Executing").setEnded(false).setCreateDate(currentDT))));
     inOrder.verify(buildStatusProvider).updateOnEnd(new BuildStatusUpdateOnEnd(buildId,
-        testVersionId2, TestStatus.SUCCESS, currentDT, null));
+        testVersionId2, TestStatus.SUCCESS, currentDT));
     inOrder.verify(zwlProgramOutputProvider).saveAsync(argThat(matchZwlProgramOutput(
         new ZwlProgramOutput().setBuildId(buildId).setTestVersionId(testVersionId2)
             .setOutput("Completed").setEnded(true).setCreateDate(currentDT))));
@@ -288,14 +304,16 @@ public class BuildRunHandlerTest {
     int testVersionId = 1;
     String error = "invalid identifier";
     BuildStatusProvider buildStatusProvider = getBuildStatusProvider();
-    BuildProvider buildProvider = getBuildProvider();
     Clock clock = Clock.fixed(Instant.now(), ZoneId.of("UTC"));
+    BuildProvider buildProvider = getBuildProvider(buildId);
     OffsetDateTime currentDT = DateTimeUtil.getCurrent(clock);
     ZwlProgramOutputProvider zwlProgramOutputProvider = getZwlProgramOutputProvider();
-    ZwlLangException zwEx = new ZwlLangException(error);
+    ZwlLangException zwEx = new ZwlLangException(null, null, error);
     // when single version is run
     TestVersion testVersion1 = new TestVersion().setTestVersionId(testVersionId).setName("v1")
-        .setCode("a = 1");
+        .setCode("a = 1")
+        .setTest(new com.zylitics.btbr.model.Test().setTestId(1).setName("t1"))
+        .setFile(new File().setFileId(1).setName("UT"));
     ZwlApi zwlApi = mock(ZwlApi.class);
     doAnswer(i -> {
       throw zwEx;
@@ -312,7 +330,8 @@ public class BuildRunHandlerTest {
     InOrder inOrder = inOrder(buildStatusProvider, buildProvider, zwlProgramOutputProvider);
     inOrder.verify(buildStatusProvider).updateOnEnd(argThat(matchBuildStatusUpdateOnEnd(
         new BuildStatusUpdateOnEnd(buildId, testVersionId, TestStatus.ERROR, currentDT
-            , new ExceptionTranslationProvider(new StoringErrorListener()).get(zwEx)))));
+            , new ExceptionTranslationProvider(new StoringErrorListener()).get(zwEx), "0:0",
+            "0:1"))));
     inOrder.verify(zwlProgramOutputProvider).saveAsync(argThat(matchZwlProgramOutput(
         new ZwlProgramOutput().setBuildId(buildId).setTestVersionId(testVersionId)
             .setOutput("Exception").setEnded(true).setCreateDate(currentDT))));
@@ -367,9 +386,10 @@ public class BuildRunHandlerTest {
     return mock(Storage.class);
   }
   
-  private BuildProvider getBuildProvider() {
+  private BuildProvider getBuildProvider(int buildId) {
     BuildProvider buildProvider = mock(BuildProvider.class);
     when(buildProvider.updateOnComplete(any(BuildUpdateOnComplete.class))).thenReturn(1);
+    when(buildProvider.updateOnAllTasksDone(eq(buildId), any(OffsetDateTime.class))).thenReturn(1);
     return buildProvider;
   }
   
@@ -400,34 +420,34 @@ public class BuildRunHandlerTest {
     build.setUserId(1);
     build.setBuildId(buildId);
     build.setBuildVMId(1);
+    build.setAetDeleteAllCookies(true);
+    build.setAetResetTimeouts(true);
+    build.setAetKeepSingleWindow(true);
+    build.setAetUpdateUrlBlank(true);
+    build.setShotBucketSessionStorage("shot-bucket");
   
     BuildCapability buildCapability = new BuildCapability();
     buildCapability.setWdTimeoutsScript(-1);
     buildCapability.setWdTimeoutsPageLoad(-1);
     buildCapability.setWdTimeoutsElementAccess(-1);
-    buildCapability.setBuildAetDeleteAllCookies(true);
-    buildCapability.setBuildAetResetTimeouts(true);
-    buildCapability.setBuildAetKeepSingleWindow(true);
-    buildCapability.setBuildAetUpdateUrlBlank(true);
     buildCapability.setWdBrwStartMaximize(true);
-    buildCapability.setShotBucketSessionStorage("shot-bucket");
     build.setBuildCapability(buildCapability);
     return build;
   }
   
   private List<TestVersion> getVersions() {
     List<TestVersion> versions = new ArrayList<>();
-    TestVersion version = new TestVersion();
-    version.setTestVersionId(1);
-    version.setName("v1");
-    version.setCode("a = 1");
-    versions.add(version);
+    TestVersion testVersion1 = new TestVersion().setTestVersionId(1).setName("v1")
+        .setCode("a = 1")
+        .setTest(new com.zylitics.btbr.model.Test().setTestId(1).setName("t1"))
+        .setFile(new File().setFileId(1).setName("UT"));
+    versions.add(testVersion1);
   
-    version = new TestVersion();
-    version.setTestVersionId(2);
-    version.setName("v1");
-    version.setCode("a = 1");
-    versions.add(version);
+    TestVersion testVersion2 = new TestVersion().setTestVersionId(2).setName("v1")
+        .setCode("b = 1")
+        .setTest(new com.zylitics.btbr.model.Test().setTestId(2).setName("t2"))
+        .setFile(new File().setFileId(1).setName("UT"));
+    versions.add(testVersion2);
     return versions;
   }
   
@@ -435,7 +455,7 @@ public class BuildRunHandlerTest {
       CaptureShotHandler captureShotHandler) {
     CaptureShotHandler.Factory factory = mock(CaptureShotHandler.Factory.class);
     when(factory.create(any(APICoreProperties.Shot.class), any(ShotMetadataProvider.class),
-        any(Storage.class), any(Build.class), anyString(), anyString(),
+        any(Storage.class), any(Build.class), anyString(),
         any(CurrentTestVersion.class))).thenReturn(captureShotHandler);
     return factory;
   }
@@ -602,7 +622,7 @@ public class BuildRunHandlerTest {
         zwlApi = mock(ZwlApi.class);
       }
       if (buildProvider == null) {
-        buildProvider = getBuildProvider();
+        buildProvider = getBuildProvider(buildId);
       }
       if (buildStatusProvider == null) {
         buildStatusProvider = getBuildStatusProvider();

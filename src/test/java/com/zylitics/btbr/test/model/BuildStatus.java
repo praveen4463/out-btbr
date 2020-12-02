@@ -16,6 +16,10 @@ public class BuildStatus {
   
   private String error;
   
+  private String errorFrom;
+  
+  private String errorTo;
+  
   public TestStatus getStatus() {
     return status;
   }
@@ -61,6 +65,24 @@ public class BuildStatus {
     return this;
   }
   
+  public String getErrorFrom() {
+    return errorFrom;
+  }
+  
+  public BuildStatus setErrorFrom(String errorFrom) {
+    this.errorFrom = errorFrom;
+    return this;
+  }
+  
+  public String getErrorTo() {
+    return errorTo;
+  }
+  
+  public BuildStatus setErrorTo(String errorTo) {
+    this.errorTo = errorTo;
+    return this;
+  }
+  
   @Override
   public String toString() {
     return "BuildStatus{" +
@@ -69,6 +91,8 @@ public class BuildStatus {
         ", startDate=" + startDate +
         ", endDate=" + endDate +
         ", error='" + error + '\'' +
+        ", errorFrom='" + errorFrom + '\'' +
+        ", errorTo='" + errorTo + '\'' +
         '}';
   }
 }

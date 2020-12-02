@@ -74,8 +74,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * 5. Must be run sequentially, parallel execution is not supported in api
  * Notes:
  * 1. When all tests are run at once, just one application context is created and same instance of
- *    Runner is used for all request, this asserts that the api works in 'build debug' mode where
- *    builds may run one after another sequentially using the same VM.
+ *    Runner is used for all request, this asserts that the api works when same vm is used for multiple
+ *    tests, such as IDE tests.
  */
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("e2e")
@@ -186,7 +186,7 @@ public class InContainerE2ETest {
     assertTrue(testVersions.size() >= 2);
     for (TestVersion testVersion : testVersions) {
       LOG.debug("asserting testVersion {}", testVersion.getTestVersionId());
-      if (testVersion.getZwlProgram().getCode().contains("captureElementScreenshot")) {
+      if (testVersion.getCode().contains("captureElementScreenshot")) {
         testsHaveAnyElementShot = true;
       }
       com.zylitics.btbr.test.model.BuildStatus bsDetails =
@@ -210,8 +210,7 @@ public class InContainerE2ETest {
     int maxExpectedShots = buildRunTimeSec * 10; // every second 10 shots
     int minExpectedShots = buildRunTimeSec; // every second 1 shot
     LOG.debug("Expecting minimum {} and maximum {} shots", minExpectedShots, maxExpectedShots);
-    assertShotsProcessed(sessionId, build, buildCapability, testVersions, maxExpectedShots,
-        minExpectedShots);
+    assertShotsProcessed(sessionId, build, testVersions, maxExpectedShots, minExpectedShots);
     
     // 4. check some program output was saved in esdb
     LOG.debug("asserting program output");
@@ -220,6 +219,11 @@ public class InContainerE2ETest {
     // 5. check logs and element screenshots were uploaded to cloud
     LOG.debug("asserting logs in cloud");
     assertLogsUploaded(buildCapability, testsHaveAnyElementShot);
+    
+    // 6. check build allDoneDate is updated and is greater than endDate
+    LocalDateTime allDoneDate = getBuildAllDoneDate();
+    assertNotNull(allDoneDate);
+    assertTrue(allDoneDate.isAfter(buildDetails.getEndDate()));
     
     // no need to check vm delete date updated cause it's already done in waitUntilBuildCompletes.
   }
@@ -257,7 +261,6 @@ public class InContainerE2ETest {
   
   private void assertShotsProcessed(String sessionId,
                                     Build build,
-                                    BuildCapability buildCapability,
                                     List<TestVersion> testVersions,
                                     int maxExpectedShots,
                                     int minExpectedShots) throws Exception {
@@ -265,7 +268,7 @@ public class InContainerE2ETest {
         apiCoreProps.getShot().getExt());
     
     // get all the shots pushed to cloud with this session as prefix, assuming shots start with it.
-    Page<Blob> blobs = storage.list(buildCapability.getShotBucketSessionStorage(),
+    Page<Blob> blobs = storage.list(build.getShotBucketSessionStorage(),
         Storage.BlobListOption.prefix(sessionId));
     Iterator<Blob> blobIterator = blobs.iterateAll().iterator();
     List<String> shotsFromCloud = new ArrayList<>();
@@ -398,7 +401,7 @@ public class InContainerE2ETest {
       assertTrue(blobs.hasNext()); // at least one blob is there
       while (blobs.hasNext()) {
         Blob elementShot = blobs.next();
-        assertTrue(elementShot.getSize() >= 1000); // at least a KB
+        assertTrue(elementShot.getSize() >= 10); // a few bytes
         assertTrue(elementShot.getName().endsWith("png"));
         LOG.debug("Element shot {} found", elementShot.getName());
       }
@@ -487,21 +490,18 @@ public class InContainerE2ETest {
         LOG.debug("asserting first version got stopped while running");
         assertNotNull(bsDetails.getStartDate());
         assertNotNull(bsDetails.getEndDate());
-        assertNotNull(bsDetails.getError());
-        assertTrue(bsDetails.getError().matches(STOP_ERROR_REGEX));
         continue;
       }
       LOG.debug("asserting other versions have null values other than status");
       // we don't put any start/end/error to versions that couldn't run
       assertNull(bsDetails.getStartDate());
       assertNull(bsDetails.getEndDate());
-      assertNull(bsDetails.getError());
     }
   }
   
   /*
   BuildId requirements:
-  - build_abort_on_failure must be set to false in build caps
+  - abort_on_failure must be set to false in build caps
   - Requires a buildId that must have logs set at Trace level and ON, it includes
   -   All browser/performance logs at build caps level
   -   All internal logs using system properties
@@ -519,7 +519,7 @@ public class InContainerE2ETest {
     Build build = buildProvider.getBuild(buildId).orElseThrow(RuntimeException::new);
     BuildCapability buildCapability = build.getBuildCapability();
   
-    assertFalse(buildCapability.isBuildAbortOnFailure());
+    assertFalse(build.isAbortOnFailure());
     
     int timeoutSec = 120;
     int sleepBetweenPollSec = 2;
@@ -543,7 +543,7 @@ public class InContainerE2ETest {
     for (TestVersion testVersion : testVersions) {
       int tvId = testVersion.getTestVersionId();
       LOG.debug("on testVersion {}", tvId);
-      if (testVersion.getZwlProgram().getCode().contains("captureElementScreenshot")) {
+      if (testVersion.getCode().contains("captureElementScreenshot")) {
         testsHaveAnyElementShot = true;
       }
       com.zylitics.btbr.test.model.BuildStatus bsDetails =
@@ -553,6 +553,9 @@ public class InContainerE2ETest {
       assertTrue(bsDetails.getEndDate().isAfter(bsDetails.getStartDate()));
       if (bsDetails.getStatus() == TestStatus.ERROR) {
         LOG.debug("failed testVersion {} found", tvId);
+        assertNotNull(bsDetails.getError());
+        assertNotNull(bsDetails.getErrorFrom());
+        assertNotNull(bsDetails.getErrorTo());
         versionFailed = true;
         continue;
       }
@@ -571,7 +574,7 @@ public class InContainerE2ETest {
   
   /*
   BuildId requirements:
-  - build_abort_on_failure must be set to true in build caps
+  - abort_on_failure must be set to true in build caps
   - It must have at least two tests, the first test must fail with a ZwlLangException exception,
     following tests can be any, as they are not going to be run.
    */
@@ -583,9 +586,8 @@ public class InContainerE2ETest {
     setBuildDirName();
     
     Build build = buildProvider.getBuild(buildId).orElseThrow(RuntimeException::new);
-    BuildCapability buildCapability = build.getBuildCapability();
     
-    assertTrue(buildCapability.isBuildAbortOnFailure());
+    assertTrue(build.isAbortOnFailure());
     
     int timeoutSec = 30;
     int sleepBetweenPollSec = 1;
@@ -700,10 +702,21 @@ public class InContainerE2ETest {
         .setError(rowSet.getString("error"));
   }
   
+  private LocalDateTime getBuildAllDoneDate() {
+    String sql = "SELECT all_done_date AT TIME ZONE :tz AS all_done_date" +
+        " FROM bt_build WHERE bt_build_id = :bt_build_id";
+    Map<String, SqlParameterValue> params = new HashMap<>();
+    params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, buildId));
+    params.put("tz", new SqlParameterValue(Types.VARCHAR, DESIRED_OFFSET));
+    SqlRowSet rowSet = jdbc.queryForRowSet(sql, params);
+    assertTrue(rowSet.next());
+    return sqlTimestampToLocal(rowSet.getTimestamp("all_done_date"));
+  }
+  
   private com.zylitics.btbr.test.model.BuildStatus getBuildStatusDetails(int testVersionId) {
     String sql = "SELECT status, zwl_executing_line," +
         " start_date AT TIME ZONE :tz AS start_date, end_date AT TIME ZONE :tz AS end_date," +
-        " error FROM bt_build_status" +
+        " error, error_from_pos, error_to_pos FROM bt_build_status" +
         " WHERE bt_build_id = :bt_build_id AND bt_test_version_id = :bt_test_version_id";
     Map<String, SqlParameterValue> params = new HashMap<>();
     params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, buildId));
@@ -716,7 +729,9 @@ public class InContainerE2ETest {
         .setZwlExecutingLine(rowSet.getInt("zwl_executing_line"))
         .setStartDate(sqlTimestampToLocal(rowSet.getTimestamp("start_date")))
         .setEndDate(sqlTimestampToLocal(rowSet.getTimestamp("end_date")))
-        .setError(rowSet.getString("error"));
+        .setError(rowSet.getString("error"))
+        .setErrorFrom(rowSet.getString("error_from_pos"))
+        .setErrorTo(rowSet.getString("error_to_pos"));
   }
   
   /**

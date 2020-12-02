@@ -165,7 +165,6 @@ public class BuildRunHandler {
         storage,
         build,
         driver.getSessionId().toString(),
-        buildCapability.getShotBucketSessionStorage(),
         currentTestVersion);
     this.vmUpdateHandler = vmUpdateHandler;
     this.webdriverLogHandler = webdriverLogHandler;
@@ -264,7 +263,7 @@ public class BuildRunHandler {
         // try to run other versions only when the exception is a ZwlLangException, cause it's very
         // unlikely any other test will pass when there is a problem in our application that caused
         // an unknown exception.
-        if (t instanceof ZwlLangException && !buildCapability.isBuildAbortOnFailure()) {
+        if (t instanceof ZwlLangException && !build.isAbortOnFailure()) {
           LOG.debug("Will continue running from next testVersion after an error in {}",
               getTestVersionIdentifierShort(testVersion));
           // when we continue, log the exception.
@@ -328,7 +327,7 @@ public class BuildRunHandler {
   }
   
   private void sanitizeBetweenTests() {
-    if (buildCapability.isBuildAetKeepSingleWindow()) {
+    if (build.isAetKeepSingleWindow()) {
       LOG.debug("Cleaning up opened windows, maximizing browser..");
       // delete any open windows and leave just one with about:blank, delete all cookies before
       // reading new test
@@ -348,16 +347,16 @@ public class BuildRunHandler {
         LOG.debug("Maximizing the window");
         driver.manage().window().maximize();
       }
-      if (buildCapability.isBuildAetUpdateUrlBlank()) {
+      if (build.isAetUpdateUrlBlank()) {
         LOG.debug("Setting up blank url to window");
         driver.get("about:blank"); // "about local scheme" can be given to 'get' per webdriver spec
       }
     }
-    if (buildCapability.isBuildAetDeleteAllCookies()) {
+    if (build.isAetDeleteAllCookies()) {
       LOG.debug("Deleting all cookies");
       driver.manage().deleteAllCookies(); // delete all cookies
     }
-    if (buildCapability.isBuildAetResetTimeouts()) {
+    if (build.isAetResetTimeouts()) {
       LOG.debug("Resetting timeouts");
       // reset build capability timeouts to the original values
       buildCapability.setWdTimeoutsElementAccess(storedElementAccessTimeout);
@@ -393,7 +392,7 @@ public class BuildRunHandler {
   
     testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.RUNNING);
     
-    printStream.println("Executing test version " + getTestVersionIdentifierLong(testVersion));
+    printStream.println("Executing test " + getTestVersionIdentifierLong(testVersion));
   
     // assign an instant back in time so that first time line update go without any wait
     lastBuildStatusLineUpdateAt = clock.instant()
@@ -448,7 +447,7 @@ public class BuildRunHandler {
     
     // once a version's execution is done, push a message, don't use printStream as we need to send
     // another argument.
-    String outputMsg = "Exception occurred during execution of test version " +
+    String outputMsg = "Exception occurred during execution of test " +
         getTestVersionIdentifierLong(testVersion);
     sendOutput(outputMsg + ":\n" + exMessage, true);
     
@@ -469,7 +468,7 @@ public class BuildRunHandler {
     
     // once a version's execution is done, push a message, don't use printStream as we need to send
     // another argument.
-    sendOutput("Completed execution for test version " + getTestVersionIdentifierLong(testVersion),
+    sendOutput("Completed execution for test " + getTestVersionIdentifierLong(testVersion),
         true);
     
     // Now mark this test version as completed
@@ -509,7 +508,8 @@ public class BuildRunHandler {
   private void onBuildFinish(boolean stopOccurred) {
     LOG.debug("onBuildFinish was invoked");
     
-    // update build, very quick
+    // update build, this marks finish of build but build tasks are not yet completed and that will
+    // be marked separately just before vm is turned off or marked free.
     updateBuildOnFinish(stopOccurred);
     
     // flush program output, blocks.
@@ -553,6 +553,9 @@ public class BuildRunHandler {
     LOG.debug("storing capture logs to cloud");
     localAssetsToCloudHandler.store();
     
+    // all done, we can mark all build tasks completed
+    updateBuildOnAllTaskDone();
+    
     // mark current build as completed
     buildRunStatus.put(build.getBuildId(), BuildRunStatus.COMPLETED);
     
@@ -584,6 +587,16 @@ public class BuildRunHandler {
     try {
       validateSingleRowDbCommit(buildProvider.updateOnComplete(new BuildUpdateOnComplete(
           build.getBuildId(), DateTimeUtil.getCurrent(clock), isSuccess, exMsg)));
+    } catch (Throwable t) {
+      LOG.error(t.getMessage(), t);
+    }
+  }
+  
+  private void updateBuildOnAllTaskDone() {
+    // don't throw an exception from here
+    try {
+      validateSingleRowDbCommit(buildProvider.updateOnAllTasksDone(build.getBuildId(),
+          DateTimeUtil.getCurrent(clock)));
     } catch (Throwable t) {
       LOG.error(t.getMessage(), t);
     }

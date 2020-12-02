@@ -83,7 +83,6 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
                                  Storage storage,
                                  Build build,
                                  String sessionKey,
-                                 String bucketSessionStorage,
                                  CurrentTestVersion currentTestVersion) {
     this(shotProps,
         shotMetadataProvider,
@@ -91,7 +90,8 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
         sessionKey,
         currentTestVersion,
         CaptureDevice.Factory.getDefault().create(shotProps.getExt()),
-        ShotCloudStore.Factory.getDefault().create(bucketSessionStorage, shotProps, storage));
+        ShotCloudStore.Factory.getDefault().create(build.getShotBucketSessionStorage(), shotProps,
+            storage));
   }
   
   CaptureShotHandlerImpl(APICoreProperties.Shot shotProps,
@@ -279,19 +279,17 @@ public final class CaptureShotHandlerImpl implements CaptureShotHandler {
     @Override
     public CaptureShotHandler create(APICoreProperties.Shot shotProps,
                                      ShotMetadataProvider shotMetadataProvider, Storage storage,
-                                     Build build, String sessionKey, String bucketSessionStorage,
+                                     Build build, String sessionKey,
                                      CurrentTestVersion currentTestVersion) {
       Preconditions.checkNotNull(shotProps, "shotProps can't be null");
       Preconditions.checkNotNull(shotMetadataProvider, "shotMetadataProvider can't be null");
       Preconditions.checkNotNull(storage, "storage can't be null");
       Preconditions.checkNotNull(build, "build can't be null");
       Preconditions.checkArgument(!Strings.isNullOrEmpty(sessionKey), "sessionKey can't be empty");
-      Preconditions.checkArgument(!Strings.isNullOrEmpty(bucketSessionStorage),
-          "bucketSessionStorage can't be empty");
       Preconditions.checkNotNull(currentTestVersion, "currentTestVersion can't be null");
       
       return new CaptureShotHandlerImpl(shotProps, shotMetadataProvider, storage, build,
-          sessionKey, bucketSessionStorage, currentTestVersion);
+          sessionKey, currentTestVersion);
     }
   }
 }
