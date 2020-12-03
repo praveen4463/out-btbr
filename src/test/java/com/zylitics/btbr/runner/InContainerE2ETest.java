@@ -392,12 +392,11 @@ public class InContainerE2ETest {
     // all blobs under that dir or a specific file name for specific blob.
     Iterator<Blob> blobs;
     APICoreProperties.Webdriver wdProps = apiCoreProps.getWebdriver();
-    String bucket = apiCoreProps.getWebdriver().getServerLogsBucket();
     if (testsHaveAnyElementShot) {
       LOG.debug("Asserting presence of element shots");
       // it's ok to check we uploaded some element shot, don't try asserting on the numbers.
-      blobs = storage.list(bucket, Storage.BlobListOption.prefix(buildDirName + "/" +
-          wdProps.getElementShotDir())).iterateAll().iterator();
+      blobs = storage.list(wdProps.getElemShotsBucket(), Storage.BlobListOption
+          .prefix(buildDirName)).iterateAll().iterator();
       assertTrue(blobs.hasNext()); // at least one blob is there
       while (blobs.hasNext()) {
         Blob elementShot = blobs.next();
@@ -406,10 +405,12 @@ public class InContainerE2ETest {
         LOG.debug("Element shot {} found", elementShot.getName());
       }
     }
+  
+    String serverLogsBucket = wdProps.getServerLogsBucket();
     
     // lets assume our tests haven't silent the driver logs
     LOG.debug("Asserting presence of driver logs");
-    blobs = storage.list(bucket, Storage.BlobListOption.prefix(buildDirName + "/" +
+    blobs = storage.list(serverLogsBucket, Storage.BlobListOption.prefix(buildDirName + "/" +
         wdProps.getDriverLogsDir() + "/" + wdProps.getDriverLogsFile())).iterateAll().iterator();
     assertTrue(blobs.hasNext());
     Blob driverLog = blobs.next();
@@ -417,7 +418,7 @@ public class InContainerE2ETest {
     
     assertTrue(Boolean.getBoolean(wdProps.getEnableProfilerLogsProp()));
     LOG.debug("Asserting presence of profiler logs");
-    blobs = storage.list(bucket, Storage.BlobListOption.prefix(buildDirName + "/" +
+    blobs = storage.list(serverLogsBucket, Storage.BlobListOption.prefix(buildDirName + "/" +
         wdProps.getInternalLogsDir() + "/" + wdProps.getProfilerLogsFile()))
         .iterateAll().iterator();
     assertTrue(blobs.hasNext());
@@ -427,7 +428,7 @@ public class InContainerE2ETest {
     assertTrue(buildCapability.getWdBrowserName().equals(BrowserType.CHROME)
         && (buildCapability.isWdChromeEnableNetwork() || buildCapability.isWdChromeEnablePage()));
     LOG.debug("Asserting presence of performance logs");
-    blobs = storage.list(bucket, Storage.BlobListOption.prefix(buildDirName + "/" +
+    blobs = storage.list(serverLogsBucket, Storage.BlobListOption.prefix(buildDirName + "/" +
         wdProps.getBrowserPerfLogsDir() + "/" + wdProps.getBrowserPerfLogsFile()))
         .iterateAll().iterator();
     assertTrue(blobs.hasNext());

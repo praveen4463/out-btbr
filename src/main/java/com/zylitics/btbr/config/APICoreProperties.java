@@ -194,6 +194,9 @@ public class APICoreProperties {
     
     @NotBlank
     private String zwlProgramOutputIndex;
+  
+    @NotBlank
+    private String browserIndex;
     
     @NotBlank
     private String envVarHost;
@@ -248,6 +251,16 @@ public class APICoreProperties {
       }
     }
   
+    public String getBrowserIndex() {
+      return browserIndex;
+    }
+  
+    public void setBrowserIndex(String browserIndex) {
+      if (this.browserIndex == null) {
+        this.browserIndex = browserIndex;
+      }
+    }
+  
     public String getEnvVarHost() {
       return envVarHost;
     }
@@ -284,7 +297,10 @@ public class APICoreProperties {
   
     @NotBlank
     private String wzgpAuthSecretCloudFile;
-    
+  
+    @NotBlank
+    private String winServerBuildStartupScriptPath;
+  
     public Integer getProgramOutputFlushNo() {
       return programOutputFlushNo;
     }
@@ -362,6 +378,16 @@ public class APICoreProperties {
     public void setWzgpAuthSecretCloudFile(String wzgpAuthSecretCloudFile) {
       if (this.wzgpAuthSecretCloudFile == null) {
         this.wzgpAuthSecretCloudFile = wzgpAuthSecretCloudFile;
+      }
+    }
+  
+    public String getWinServerBuildStartupScriptPath() {
+      return winServerBuildStartupScriptPath;
+    }
+  
+    public void setWinServerBuildStartupScriptPath(String winServerBuildStartupScriptPath) {
+      if (this.winServerBuildStartupScriptPath == null) {
+        this.winServerBuildStartupScriptPath = winServerBuildStartupScriptPath;
       }
     }
   }
@@ -453,6 +479,9 @@ public class APICoreProperties {
     private String serverLogsBucket;
   
     @NotBlank
+    private String elemShotsBucket;
+  
+    @NotBlank
     private String userDataBucket;
     
     @NotBlank
@@ -525,6 +554,16 @@ public class APICoreProperties {
     public void setServerLogsBucket(String serverLogsBucket) {
       if (this.serverLogsBucket == null) {
         this.serverLogsBucket = serverLogsBucket;
+      }
+    }
+  
+    public String getElemShotsBucket() {
+      return elemShotsBucket;
+    }
+  
+    public void setElemShotsBucket(String elemShotsBucket) {
+      if (this.elemShotsBucket == null) {
+        this.elemShotsBucket = elemShotsBucket;
       }
     }
   

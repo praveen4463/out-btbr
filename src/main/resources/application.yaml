@@ -11,6 +11,7 @@ api-core:
     max-retries: 10
     shot-metadata-index: bt_shot_metadata
     zwl-program-output-index: zwl_program_output
+    browser-index: browser
     env-var-host: ESDB_HOST
   data-source:
     db-name: zbtp
@@ -34,6 +35,7 @@ api-core:
     wzgp-version: beta
     wzgp-auth-user: prod-test
     wzgp-auth-secret-cloud-file: zl-wzgp-prod-test-auth.encrypt
+    win-server-build-startup-script-path: C:\ProgramData\build-startup\prepare-build.bat
   shot:
     ext: png
     content-type: image/png
@@ -44,6 +46,7 @@ api-core:
     shot-metadata-flush-records: 100
   webdriver:
     server-logs-bucket: zl-server-logs
+    elem-shots-bucket: zl-elem-shots
     user-data-bucket: zl-user-data
     # this bucket keeps things like user uploaded files for testing file input in builds
     # etc.

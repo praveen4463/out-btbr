@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.runner.provider.BrowserProvider;
 import com.zylitics.btbr.util.IOUtil;
 import com.zylitics.btbr.webdriver.Configuration;
 import com.zylitics.btbr.webdriver.TimeoutType;
@@ -32,6 +33,9 @@ public abstract class AbstractDriverSessionProvider {
   private static final String BROWSER_BINARY_PATH_TEMPLATE_WIN =
       "C:\\ProgramData\\browsers\\BROWSER_NAME\\BROWSER_VERSION\\BROWSER_NAME.exe";
   
+  private static final String BROWSER_DRIVER_EXE_PATH_TEMPLATE_WIN =
+      "C:\\ProgramData\\webdrivers\\BROWSER_NAME\\DRIVER_VERSION\\DRIVER_EXE";
+  
   final APICoreProperties.Webdriver wdProps;
   
   final BuildCapability buildCapability;
@@ -43,16 +47,37 @@ public abstract class AbstractDriverSessionProvider {
   
   private final Path buildDir;
   
+  private final BrowserProvider browserProvider;
+  
   public AbstractDriverSessionProvider(APICoreProperties.Webdriver wdProps
-      , BuildCapability buildCapability, Path buildDir) {
+      , BuildCapability buildCapability, Path buildDir, BrowserProvider browserProvider) {
     this.wdProps = wdProps;
     this.buildCapability = buildCapability;
     commonCapabilities = getCommonCapabilities();
   
     this.buildDir = buildDir;
+    this.browserProvider = browserProvider;
   }
   
   public abstract RemoteWebDriver createSession();
+  
+  // Just set sys property to the dir path, path should already exist and there is no need to download
+  // driver when it's not available on machine. The script we run before starting session takes care
+  // of figuring out whether the driver exist on machine, if not downloads and puts in place. This is
+  // not done from here as that should be faster from script and code for that is already written. We
+  // could later change that and do it from here too. I could have done setting sys prop from script
+  // but a script can't set sys prop to a running jvm.
+  protected void setDriverExe() {
+    if (Platform.fromString(buildCapability.getWdPlatformName()).is(Platform.MAC)) {
+      return;
+    }
+    String driverVersion = browserProvider.getDriverVersion(buildCapability.getWdBrowserName(),
+        buildCapability.getWdBrowserVersion());
+    System.setProperty(getDriverExeSysProp(), BROWSER_DRIVER_EXE_PATH_TEMPLATE_WIN
+        .replace("BROWSER_NAME", buildCapability.getWdBrowserName())
+        .replace("DRIVER_VERSION", driverVersion)
+        .replace("DRIVER_EXE", getDriverWinExeName()));
+  }
   
   private Capabilities getCommonCapabilities() {
     MutableCapabilities caps = new MutableCapabilities();
@@ -142,4 +167,8 @@ public abstract class AbstractDriverSessionProvider {
         .replace("BROWSER_NAME", buildCapability.getWdBrowserName())
         .replace("BROWSER_VERSION", buildCapability.getWdBrowserVersion());
   }
+  
+  protected abstract String getDriverExeSysProp();
+  
+  protected abstract String getDriverWinExeName();
 }

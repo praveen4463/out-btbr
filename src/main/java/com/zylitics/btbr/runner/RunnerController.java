@@ -11,7 +11,9 @@ import com.zylitics.btbr.model.TestVersion;
 import com.zylitics.btbr.runner.provider.*;
 import com.zylitics.btbr.webdriver.Configuration;
 import com.zylitics.btbr.webdriver.session.AbstractDriverSessionProvider;
+import org.apache.tomcat.jni.Proc;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.openqa.selenium.Platform;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +59,7 @@ public class RunnerController {
   private final BuildVMProvider buildVMProvider;
   private final ImmutableMapProvider immutableMapProvider;
   private final TestVersionProvider testVersionProvider;
+  private final BrowserProvider browserProvider;
   
   // factories
   private final CaptureShotHandler.Factory captureShotHandlerFactory;
@@ -80,6 +83,7 @@ public class RunnerController {
                           BuildVMProvider buildVMProvider,
                           ImmutableMapProvider immutableMapProvider,
                           TestVersionProvider testVersionProvider,
+                          BrowserProvider browserProvider,
                           CaptureShotHandler.Factory captureShotHandlerFactory,
                           ShotMetadataProvider.Factory shotMetadataProviderFactory,
                           ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory) {
@@ -92,6 +96,7 @@ public class RunnerController {
         buildVMProvider,
         immutableMapProvider,
         testVersionProvider,
+        browserProvider,
         captureShotHandlerFactory,
         shotMetadataProviderFactory,
         zwlProgramOutputProviderFactory,
@@ -111,6 +116,7 @@ public class RunnerController {
                    BuildVMProvider buildVMProvider,
                    ImmutableMapProvider immutableMapProvider,
                    TestVersionProvider testVersionProvider,
+                   BrowserProvider browserProvider,
                    CaptureShotHandler.Factory captureShotHandlerFactory,
                    ShotMetadataProvider.Factory shotMetadataProviderFactory,
                    ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory,
@@ -127,6 +133,7 @@ public class RunnerController {
     this.buildVMProvider = buildVMProvider;
     this.immutableMapProvider = immutableMapProvider;
     this.testVersionProvider = testVersionProvider;
+    this.browserProvider = browserProvider;
     this.captureShotHandlerFactory = captureShotHandlerFactory;
     this.shotMetadataProviderFactory = shotMetadataProviderFactory;
     this.zwlProgramOutputProviderFactory = zwlProgramOutputProviderFactory;
@@ -194,11 +201,24 @@ public class RunnerController {
     // Create build's directory for keeping logs and test assets
     Path buildDir = Paths.get(Configuration.SYS_DEF_TEMP_DIR, "build-" + build.getBuildId());
     ioWrapper.createDirectory(buildDir);
-  
+    
+    // before a session is started, run our server script that will look into instance labels and
+    // set things like resolution, timezone, download drivers etc. Wait until it has completed.
+    if (Platform.fromString(buildCapability.getWdPlatformName()).is(Platform.WINDOWS)) {
+      // script shouldn't require any specific environment, pass browser and version and any other
+      // argument it may need. Note that script should call exit in the end
+      // see https://stackoverflow.com/questions/15199119/runtime-exec-waitfor-doesnt-wait-until-process-is-done
+      Process buildStartupProcess =
+          new ProcessBuilder(apiCoreProperties.getRunner().getWinServerBuildStartupScriptPath(),
+              buildCapability.getWdBrowserName(), buildCapability.getWdBrowserVersion()).start();
+      buildStartupProcess.waitFor(); // just wait until process completes, don't check for success or
+      // failure and just assume everything is setup, any error within script will be logged internally.
+    }
+    
     // start driver session
     Optional<AbstractDriverSessionProvider> sessionProvider =
         configuration.getSessionProviderByBrowser(apiCoreProperties.getWebdriver(),
-            buildCapability, buildDir);
+            buildCapability, buildDir, browserProvider);
     if (!sessionProvider.isPresent()) {
       return processErrResponse(new IllegalArgumentException("No session provider found for the" +
           " given browser " + buildCapability.getWdBrowserName()), HttpStatus.BAD_REQUEST);

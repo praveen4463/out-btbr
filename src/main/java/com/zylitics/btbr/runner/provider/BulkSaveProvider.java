@@ -18,6 +18,13 @@ public interface BulkSaveProvider<T> {
   void processRemainingAndTearDown() throws RuntimeException;
   
   /**
+   * Can be invoked anytime to process unsaved submitted records.
+   * This method blocks until completion.
+   * @throws RuntimeException if there were problems processing the remaining in bulk
+   */
+  void processRemaining() throws RuntimeException;
+  
+  /**
    * When the bulk processor is turned down due to some problem, future requests for submission or
    * processing may not be accepted, specifies whether to throw an exception or just return silently
    * @return boolean indicating whether to throw an exception or just return silently.

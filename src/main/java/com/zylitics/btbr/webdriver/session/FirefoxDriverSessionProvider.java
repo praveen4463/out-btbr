@@ -3,6 +3,8 @@ package com.zylitics.btbr.webdriver.session;
 import com.google.common.base.Preconditions;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.runner.provider.BrowserProvider;
+import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxDriverLogLevel;
 import org.openqa.selenium.firefox.FirefoxOptions;
@@ -14,12 +16,13 @@ import java.nio.file.Path;
 public class FirefoxDriverSessionProvider extends AbstractDriverSessionProvider {
   
   public FirefoxDriverSessionProvider(APICoreProperties.Webdriver wdProps
-      , BuildCapability buildCapability, Path buildDir) {
-    super(wdProps, buildCapability, buildDir);
+      , BuildCapability buildCapability, Path buildDir, BrowserProvider browserProvider) {
+    super(wdProps, buildCapability, buildDir, browserProvider);
   }
   
   @Override
   public RemoteWebDriver createSession() {
+    setDriverExe();
     Preconditions.checkNotNull(System.getProperty(GeckoDriverService.GECKO_DRIVER_EXE_PROPERTY),
         "gecko driver exe path must be set as system property");
   
@@ -42,5 +45,15 @@ public class FirefoxDriverSessionProvider extends AbstractDriverSessionProvider 
     // add more browser specific arguments
     
     return new FirefoxDriver(driverService, firefox);
+  }
+  
+  @Override
+  protected String getDriverExeSysProp() {
+    return GeckoDriverService.GECKO_DRIVER_EXE_PROPERTY;
+  }
+  
+  @Override
+  protected String getDriverWinExeName() {
+    return "geckodriver.exe";
   }
 }

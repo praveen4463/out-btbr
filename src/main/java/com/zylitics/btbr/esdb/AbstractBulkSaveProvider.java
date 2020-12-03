@@ -56,6 +56,15 @@ abstract class AbstractBulkSaveProvider<T> implements BulkSaveProvider<T> {
   }
   
   @Override
+  public void processRemaining() throws RuntimeException {
+    if (isTurnedDown) {
+      throwOnDown();
+      return;
+    }
+    bulkProcessor.flush();
+  }
+  
+  @Override
   public void processRemainingAndTearDown() throws RuntimeException {
     if (isTurnedDown) {
       throwOnDown();

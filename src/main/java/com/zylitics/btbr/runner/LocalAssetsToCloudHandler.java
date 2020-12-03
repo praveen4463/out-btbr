@@ -108,9 +108,11 @@ public class LocalAssetsToCloudHandler {
       for (Path path : pathStream) {
         String name = path.getFileName().toString();
         LOG.debug("Storing element shot {}", name);
-        BlobInfo blobInfo = BlobInfo.newBuilder(wdProps.getServerLogsBucket()
-            , getBlobName(wdProps.getElementShotDir(), name))
-            .setContentEncoding("image/png").build();
+        BlobInfo blobInfo = BlobInfo.newBuilder(wdProps.getElemShotsBucket()
+            , buildDir.getFileName() + "/" + name)
+            .setContentEncoding("image/png")
+            .setCacheControl("public, max-age=604800, immutable")
+            .setContentDisposition("attachment").build();
         storeBySize(blobInfo, path);
       }
     } catch (IOException io) {

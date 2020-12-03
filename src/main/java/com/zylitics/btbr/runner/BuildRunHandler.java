@@ -427,6 +427,9 @@ public class BuildRunHandler {
     // we do this to make sure the version we're marking error was first marked running and
     // actually had an entry in BuildStatus
     validateTestVersionRunning(testVersion.getTestVersionId());
+    // first push all pending output and wait for it to finish so that once a version completes,
+    // user has seen all it's output
+    zwlProgramOutputProvider.processRemaining();
     
     String exMessage = exceptionTranslationProvider.get(t);
     LOG.debug("Translated error message is {}", exMessage);
@@ -449,7 +452,8 @@ public class BuildRunHandler {
     // another argument.
     String outputMsg = "Exception occurred during execution of test " +
         getTestVersionIdentifierLong(testVersion);
-    sendOutput(outputMsg + ":\n" + exMessage, true);
+    sendOutput(outputMsg, true); // don't add exMessage as that is already pushed in build status,
+    // adding here would show that twice to user.
     
     // Now mark this test version as error
     testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.ERROR);
@@ -462,6 +466,9 @@ public class BuildRunHandler {
     // we do this to make sure the version we're marking success was first marked running and
     // actually had an entry in BuildStatus
     validateTestVersionRunning(testVersion.getTestVersionId());
+    // first push all pending output and wait for it to finish so that once a version completes,
+    // user has seen all it's output
+    zwlProgramOutputProvider.processRemaining();
     
     // update build status
     updateBuildStatus(testVersion.getTestVersionId(), TestStatus.SUCCESS);

@@ -52,7 +52,9 @@ final class GCPShotCloudStore implements ShotCloudStore {
     // /google-cloud-examples/src/main/java/com/google/cloud/examples/storage/StorageExample.java#L295
     // Set a cache control header so that client browser caches a downloaded shot.
     BlobInfo blobInfo = BlobInfo.newBuilder(bucket, name)
-        .setContentType(shotProps.getContentType()).setCacheControl("max-age=31536000").build();
+        .setContentType(shotProps.getContentType())
+        .setCacheControl("public, max-age=604800, immutable")
+        .setContentDisposition("attachment").build();
     String blobUploadErrInfo = ", blob " + name;
     
     int reattempts = 0;

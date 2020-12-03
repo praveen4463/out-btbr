@@ -3,6 +3,7 @@ package com.zylitics.btbr.webdriver.session;
 import com.google.common.base.Preconditions;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.runner.provider.BrowserProvider;
 import com.zylitics.btbr.util.CollectionUtil;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
@@ -20,12 +21,14 @@ import java.util.logging.Level;
 public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
   
   public ChromeDriverSessionProvider(APICoreProperties.Webdriver wdProps
-      , BuildCapability buildCapability, Path buildDir) {
-    super(wdProps, buildCapability, buildDir);
+      , BuildCapability buildCapability, Path buildDir, BrowserProvider browserProvider) {
+    super(wdProps, buildCapability, buildDir, browserProvider);
   }
   
   @Override
   public RemoteWebDriver createSession() {
+    setDriverExe();
+    // still check if exe available in case we didn't set for some OS
     Preconditions.checkNotNull(System.getProperty(ChromeDriverService.CHROME_DRIVER_EXE_PROPERTY),
         "chrome driver exe path must be set as system property");
     
@@ -61,5 +64,15 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
     }
     
     return new ChromeDriver(driverService, chrome);
+  }
+  
+  @Override
+  protected String getDriverExeSysProp() {
+    return ChromeDriverService.CHROME_DRIVER_EXE_PROPERTY;
+  }
+  
+  @Override
+  protected String getDriverWinExeName() {
+    return "chromedriver.exe";
   }
 }
