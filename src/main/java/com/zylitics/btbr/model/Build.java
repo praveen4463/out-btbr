@@ -1,5 +1,7 @@
 package com.zylitics.btbr.model;
 
+import java.time.LocalDateTime;
+
 public class Build {
 
   private int buildId;
@@ -9,6 +11,13 @@ public class Build {
   private BuildCapability buildCapability;
   
   private int buildVMId;
+  
+  // The reason why we store date in LocalDateTime rather than OffsetDateTime is, we send a
+  // timestamp to postgres in UTC and it stores it as is. While retrieving, the timestamp is
+  // converted to a particular time zone (for example the zone user is currently in or has selected)
+  // After conversion the timestamp doesn't technically represent a timezone and is converted to a
+  // local date time.
+  private LocalDateTime createDateUTC;
   
   private Boolean isSuccess;
   
@@ -60,6 +69,15 @@ public class Build {
   
   public Build setBuildVMId(int buildVMId) {
     this.buildVMId = buildVMId;
+    return this;
+  }
+  
+  public LocalDateTime getCreateDateUTC() {
+    return createDateUTC;
+  }
+  
+  public Build setCreateDateUTC(LocalDateTime createDateUTC) {
+    this.createDateUTC = createDateUTC;
     return this;
   }
   

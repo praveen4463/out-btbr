@@ -18,6 +18,7 @@ import com.zylitics.btbr.model.TestVersion;
 import com.zylitics.btbr.runner.provider.BuildProvider;
 import com.zylitics.btbr.runner.provider.TestVersionProvider;
 import com.zylitics.btbr.shot.ShotNameProvider;
+import com.zylitics.btbr.util.DateTimeUtil;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -44,9 +45,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
@@ -54,9 +53,9 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -65,7 +64,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * 1. postgres instance (version same as production) must be running on localhost:5432 with updated
  * {@link APICoreProperties.DataSource#getDbName()}
  * 2. esdb instance (version same as production) must be running on localhost:9200 with updated
- * mappings.
+ * mappings, clear all documents if you've dropped existing pg db and spin new to avoid any new pg
+ * ids finding existing docs in esdb.
  * 3. A new buildId must be supplied for each test using unique system properties. Every test
  * requires it's buildId to be created specifically to let the test pass and be able to assert the
  * values it was made for, make sure this requirement is fulfilled. Refer to each test's description
@@ -221,9 +221,15 @@ public class InContainerE2ETest {
     assertLogsUploaded(buildCapability, testsHaveAnyElementShot);
     
     // 6. check build allDoneDate is updated and is greater than endDate
+    LOG.debug("asserting allDoneDate");
     LocalDateTime allDoneDate = getBuildAllDoneDate();
     assertNotNull(allDoneDate);
     assertTrue(allDoneDate.isAfter(buildDetails.getEndDate()));
+    
+    // 7. check minutesConsumed is updated
+    LOG.debug("asserting minutesConsumed");
+    int minutesConsumed = getMinutesConsumed(build.getUserId());
+    assertTrue(minutesConsumed > 0);
     
     // no need to check vm delete date updated cause it's already done in waitUntilBuildCompletes.
   }
@@ -651,7 +657,7 @@ public class InContainerE2ETest {
         " SET session_key = :session_key" +
         " FROM bt_build AS bu" + // FROM can't contain target table so no JOIN clause
         " WHERE bu.bt_build_wd_session_id = bs.bt_build_wd_session_id" +
-        " AND bu.bt_build_id = :bt_build_id";
+        " AND bu.bt_build_id = :bt_build_id;";
     Map<String, SqlParameterValue> updateParams = new HashMap<>();
     updateParams.put("session_key", new SqlParameterValue(Types.VARCHAR, sessionId));
     updateParams.put("bt_build_id", new SqlParameterValue(Types.INTEGER, buildId));
@@ -665,7 +671,7 @@ public class InContainerE2ETest {
                                        int sleepBetweenPollSec) throws Exception {
     Instant startTime = Instant.now();
     while (true) {
-      String sql = "SELECT delete_date FROM bt_build_vm WHERE bt_build_vm_id = :bt_build_vm_id";
+      String sql = "SELECT delete_date FROM bt_build_vm WHERE bt_build_vm_id = :bt_build_vm_id;";
       SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_vm_id",
           new SqlParameterValue(Types.INTEGER, buildVMId));
       // queryForObject throws exception if row doesn't exist, use wisely. 'query' is always safe
@@ -697,28 +703,38 @@ public class InContainerE2ETest {
     SqlRowSet rowSet = jdbc.queryForRowSet(sql, params);
     assertTrue(rowSet.next());
     return new com.zylitics.btbr.test.model.Build()
-        .setStartDate(sqlTimestampToLocal(rowSet.getTimestamp("start_date")))
-        .setEndDate(sqlTimestampToLocal(rowSet.getTimestamp("end_date")))
+        .setStartDate(DateTimeUtil.sqlTimestampToLocal(rowSet.getTimestamp("start_date")))
+        .setEndDate(DateTimeUtil.sqlTimestampToLocal(rowSet.getTimestamp("end_date")))
         .setSuccess(rowSet.getBoolean("is_success"))
         .setError(rowSet.getString("error"));
   }
   
   private LocalDateTime getBuildAllDoneDate() {
     String sql = "SELECT all_done_date AT TIME ZONE :tz AS all_done_date" +
-        " FROM bt_build WHERE bt_build_id = :bt_build_id";
+        " FROM bt_build WHERE bt_build_id = :bt_build_id;";
     Map<String, SqlParameterValue> params = new HashMap<>();
     params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, buildId));
     params.put("tz", new SqlParameterValue(Types.VARCHAR, DESIRED_OFFSET));
     SqlRowSet rowSet = jdbc.queryForRowSet(sql, params);
     assertTrue(rowSet.next());
-    return sqlTimestampToLocal(rowSet.getTimestamp("all_done_date"));
+    return DateTimeUtil.sqlTimestampToLocal(rowSet.getTimestamp("all_done_date"));
+  }
+  
+  private int getMinutesConsumed(int userId) {
+    String sql = "SELECT minutes_consumed FROM quota AS q INNER JOIN zluser AS z" +
+        " ON (q.organization_id = z.organization_id) WHERE z.zluser_id = :zluser_id;";
+    Map<String, SqlParameterValue> params = new HashMap<>();
+    params.put("zluser_id", new SqlParameterValue(Types.INTEGER, userId));
+    SqlRowSet rowSet = jdbc.queryForRowSet(sql, params);
+    assertTrue(rowSet.next());
+    return rowSet.getInt("minutes_consumed");
   }
   
   private com.zylitics.btbr.test.model.BuildStatus getBuildStatusDetails(int testVersionId) {
     String sql = "SELECT status, zwl_executing_line," +
         " start_date AT TIME ZONE :tz AS start_date, end_date AT TIME ZONE :tz AS end_date," +
         " error, error_from_pos, error_to_pos FROM bt_build_status" +
-        " WHERE bt_build_id = :bt_build_id AND bt_test_version_id = :bt_test_version_id";
+        " WHERE bt_build_id = :bt_build_id AND bt_test_version_id = :bt_test_version_id;";
     Map<String, SqlParameterValue> params = new HashMap<>();
     params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, buildId));
     params.put("bt_test_version_id", new SqlParameterValue(Types.INTEGER, testVersionId));
@@ -728,22 +744,11 @@ public class InContainerE2ETest {
     return new com.zylitics.btbr.test.model.BuildStatus()
         .setStatus(TestStatus.valueOf(rowSet.getString("status")))
         .setZwlExecutingLine(rowSet.getInt("zwl_executing_line"))
-        .setStartDate(sqlTimestampToLocal(rowSet.getTimestamp("start_date")))
-        .setEndDate(sqlTimestampToLocal(rowSet.getTimestamp("end_date")))
+        .setStartDate(DateTimeUtil.sqlTimestampToLocal(rowSet.getTimestamp("start_date")))
+        .setEndDate(DateTimeUtil.sqlTimestampToLocal(rowSet.getTimestamp("end_date")))
         .setError(rowSet.getString("error"))
         .setErrorFrom(rowSet.getString("error_from_pos"))
         .setErrorTo(rowSet.getString("error_to_pos"));
-  }
-  
-  /**
-   * Does a safe conversion by checking null
-   * @return null if given timestamp is null, else converted {@link LocalDateTime}
-   */
-  private LocalDateTime sqlTimestampToLocal(@Nullable Timestamp timestamp) {
-    if (timestamp == null) {
-      return null;
-    }
-    return timestamp.toLocalDateTime();
   }
   
   private void setBuildDirName() {

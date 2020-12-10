@@ -41,6 +41,7 @@ public class BuildRunHandler {
   private final BuildProvider buildProvider;
   private final BuildStatusProvider buildStatusProvider;
   private final ImmutableMapProvider immutableMapProvider;
+  private final QuotaProvider quotaProvider;
   
   // esdb providers
   private final ZwlProgramOutputProvider zwlProgramOutputProvider;
@@ -103,6 +104,7 @@ public class BuildRunHandler {
                           BuildStatusProvider buildStatusProvider,
                           BuildVMProvider buildVMProvider,
                           ImmutableMapProvider immutableMapProvider,
+                          QuotaProvider quotaProvider,
                           ShotMetadataProvider shotMetadataProvider,
                           ZwlProgramOutputProvider zwlProgramOutputProvider,
                           Build build,
@@ -116,6 +118,7 @@ public class BuildRunHandler {
         buildProvider,
         buildStatusProvider,
         immutableMapProvider,
+        quotaProvider,
         shotMetadataProvider,
         zwlProgramOutputProvider,
         build,
@@ -137,6 +140,7 @@ public class BuildRunHandler {
                   BuildProvider buildProvider,
                   BuildStatusProvider buildStatusProvider,
                   ImmutableMapProvider immutableMapProvider,
+                  QuotaProvider quotaProvider,
                   ShotMetadataProvider shotMetadataProvider,
                   ZwlProgramOutputProvider zwlProgramOutputProvider,
                   Build build,
@@ -156,6 +160,7 @@ public class BuildRunHandler {
     this.buildProvider = buildProvider;
     this.buildStatusProvider = buildStatusProvider;
     this.immutableMapProvider = immutableMapProvider;
+    this.quotaProvider = quotaProvider;
     this.zwlProgramOutputProvider = zwlProgramOutputProvider;
     this.build = build;
     buildCapability = build.getBuildCapability();
@@ -561,7 +566,7 @@ public class BuildRunHandler {
     localAssetsToCloudHandler.store();
     
     // all done, we can mark all build tasks completed
-    updateBuildOnAllTaskDone();
+    updateOnAllTaskDone();
     
     // mark current build as completed
     buildRunStatus.put(build.getBuildId(), BuildRunStatus.COMPLETED);
@@ -599,11 +604,13 @@ public class BuildRunHandler {
     }
   }
   
-  private void updateBuildOnAllTaskDone() {
+  private void updateOnAllTaskDone() {
     // don't throw an exception from here
     try {
       validateSingleRowDbCommit(buildProvider.updateOnAllTasksDone(build.getBuildId(),
           DateTimeUtil.getCurrent(clock)));
+      validateSingleRowDbCommit(quotaProvider.updateConsumed(build,
+          DateTimeUtil.getCurrentLocal(clock)));
     } catch (Throwable t) {
       LOG.error(t.getMessage(), t);
     }
@@ -702,6 +709,7 @@ public class BuildRunHandler {
                            BuildStatusProvider buildStatusProvider,
                            BuildVMProvider buildVMProvider,
                            ImmutableMapProvider immutableMapProvider,
+                           QuotaProvider quotaProvider,
                            ShotMetadataProvider shotMetadataProvider,
                            ZwlProgramOutputProvider zwlProgramOutputProvider,
                            Build build,
@@ -717,6 +725,7 @@ public class BuildRunHandler {
           buildStatusProvider,
           buildVMProvider,
           immutableMapProvider,
+          quotaProvider,
           shotMetadataProvider,
           zwlProgramOutputProvider,
           build,

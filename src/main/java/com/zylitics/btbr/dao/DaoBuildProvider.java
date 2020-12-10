@@ -6,6 +6,7 @@ import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.runner.provider.BuildProvider;
 import com.zylitics.btbr.runner.provider.BuildUpdateOnComplete;
 import com.zylitics.btbr.util.CollectionUtil;
+import com.zylitics.btbr.util.DateTimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -35,6 +36,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
     String sql = "SELECT" +
         " bu.build_key" +
         ", bu.bt_build_vm_id" +
+        ", bu.create_date AT TIME ZONE 'UTC' AS create_date" +
         ", bu.is_success" +
         ", bu.shot_bucket_session_storage" +
         ", bu.abort_on_failure" +
@@ -81,6 +83,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
             .setBuildId(buildId)
             .setBuildKey(rs.getString("build_key"))
             .setBuildVMId(rs.getInt("bt_build_vm_id"))
+            .setCreateDateUTC(DateTimeUtil.sqlTimestampToLocal(rs.getTimestamp("create_date")))
             // cast rather than getBoolean because this method always returns 'false' as default
             // value whereas we want to see a null if it's null.
             .setSuccess((Boolean) rs.getObject("is_success"))

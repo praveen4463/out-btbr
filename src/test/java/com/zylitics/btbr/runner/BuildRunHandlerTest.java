@@ -26,10 +26,7 @@ import org.openqa.selenium.remote.SessionId;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -220,6 +217,7 @@ public class BuildRunHandlerTest {
     int testVersionId2 = 2;
     Clock clock = Clock.fixed(Instant.now(), ZoneId.of("UTC"));
     OffsetDateTime currentDT = DateTimeUtil.getCurrent(clock);
+    LocalDateTime currentDtLocal = DateTimeUtil.getCurrentLocal(clock);
     TestVersion testVersion1 = new TestVersion().setTestVersionId(testVersionId1).setName("v1")
         .setCode("a = 1")
         .setTest(new com.zylitics.btbr.model.Test().setTestId(1).setName("t1"))
@@ -236,6 +234,7 @@ public class BuildRunHandlerTest {
     
     BuildStatusProvider buildStatusProvider = getBuildStatusProvider();
     BuildProvider buildProvider = getBuildProvider(buildId);
+    QuotaProvider quotaProvider = getQuotaProvider(build);
     ZwlProgramOutputProvider zwlProgramOutputProvider = getZwlProgramOutputProvider();
     CaptureShotHandler captureShotHandler = mock(CaptureShotHandler.class);
     WebdriverLogHandler webdriverLogHandler = getWebdriverLogHandler();
@@ -248,6 +247,7 @@ public class BuildRunHandlerTest {
         .withBuildProvider(buildProvider)
         .withZwlProgramOutputProvider(zwlProgramOutputProvider)
         .withBuild(build)
+        .withQuotaProvider(quotaProvider)
         .withTestVersions(versions)
         .withClock(clock)
         .withCaptureShotHandlerFactory(getCaptureShotHandlerFactory(captureShotHandler))
@@ -260,7 +260,7 @@ public class BuildRunHandlerTest {
     assertEquals(BuildRunStatus.COMPLETED, buildRunStatus.get(buildId));
     
     InOrder inOrder = inOrder(buildStatusProvider, buildProvider, zwlProgramOutputProvider,
-        captureShotHandler, driver, webdriverLogHandler, localAssetsToCloudHandler,
+        quotaProvider, captureShotHandler, driver, webdriverLogHandler, localAssetsToCloudHandler,
         vmUpdateHandler);
     
     inOrder.verify(buildStatusProvider).saveOnStart(new BuildStatusSaveOnStart(buildId,
@@ -295,6 +295,8 @@ public class BuildRunHandlerTest {
     inOrder.verify(webdriverLogHandler).capture();
     inOrder.verify(driver).quit();
     inOrder.verify(localAssetsToCloudHandler).store();
+    inOrder.verify(buildProvider).updateOnAllTasksDone(buildId, currentDT);
+    inOrder.verify(quotaProvider).updateConsumed(build, currentDtLocal);
     inOrder.verify(vmUpdateHandler).update(argThat(b -> b.getBuildId() == buildId));
   }
   
@@ -400,6 +402,12 @@ public class BuildRunHandlerTest {
     return buildStatusProvider;
   }
   
+  private QuotaProvider getQuotaProvider(Build build) {
+    QuotaProvider quotaProvider = mock(QuotaProvider.class);
+    when(quotaProvider.updateConsumed(eq(build), any(LocalDateTime.class))).thenReturn(1);
+    return quotaProvider;
+  }
+  
   private ImmutableMapProvider getImmutableMapProvider() {
     ImmutableMapProvider immutableMapProvider = mock(ImmutableMapProvider.class);
     when(immutableMapProvider.getMapFromTableByBuild(anyInt(), anyString()))
@@ -420,6 +428,7 @@ public class BuildRunHandlerTest {
     build.setUserId(1);
     build.setBuildId(buildId);
     build.setBuildVMId(1);
+    build.setCreateDateUTC(DateTimeUtil.getCurrentLocal(Clock.systemUTC()));
     build.setAetDeleteAllCookies(true);
     build.setAetResetTimeouts(true);
     build.setAetKeepSingleWindow(true);
@@ -516,6 +525,7 @@ public class BuildRunHandlerTest {
     private BuildProvider buildProvider = null;
     private BuildStatusProvider buildStatusProvider = null;
     private ZwlProgramOutputProvider zwlProgramOutputProvider = null;
+    private QuotaProvider quotaProvider = null;
     private Build build = null;
     private RemoteWebDriver driver = null;
     private List<TestVersion> testVersions = null;
@@ -558,6 +568,11 @@ public class BuildRunHandlerTest {
   
     Builder withZwlProgramOutputProvider(ZwlProgramOutputProvider zwlProgramOutputProvider) {
       this.zwlProgramOutputProvider = zwlProgramOutputProvider;
+      return this;
+    }
+  
+    Builder withQuotaProvider(QuotaProvider quotaProvider) {
+      this.quotaProvider = quotaProvider;
       return this;
     }
   
@@ -633,6 +648,9 @@ public class BuildRunHandlerTest {
       if (build == null) {
         build = getBuild(buildId);
       }
+      if (quotaProvider == null) {
+        quotaProvider = getQuotaProvider(build);
+      }
       if (driver == null) {
         driver = getRemoteWebDriver();
       }
@@ -661,8 +679,8 @@ public class BuildRunHandlerTest {
       
       return new BuildRunHandler(getAPICoreProperties(updateLineMillis, captureLogsMillis),
           getStorage(), buildProvider, buildStatusProvider,
-          getImmutableMapProvider(), getShotMetadataProvider(), zwlProgramOutputProvider, build,
-          testVersions, captureShotHandlerFactory, vmUpdateHandler,
+          getImmutableMapProvider(), quotaProvider, getShotMetadataProvider(),
+          zwlProgramOutputProvider, build, testVersions, captureShotHandlerFactory, vmUpdateHandler,
           webdriverLogHandler, localAssetsToCloudHandler, driver, getBuildDir(),
           clock, buildRunStatus, getZwlApiSupplier(zwlApi));
     }

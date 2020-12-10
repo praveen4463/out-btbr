@@ -53,3 +53,12 @@ curl -XGET "localhost:9200/zwl_program_output/_search?pretty" -H 'Content-Type: 
   "size": 1000
 }
 '
+
+# Delete all documents from multiple indices
+curl -XPOST "localhost:9200/zwl_program_output,bt_shot_metadata/_delete_by_query" -H 'Content-Type: application/json' -d '
+{
+  "query": {
+    "match_all": {}
+  }
+}
+'

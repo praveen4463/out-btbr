@@ -11,7 +11,6 @@ import com.zylitics.btbr.model.TestVersion;
 import com.zylitics.btbr.runner.provider.*;
 import com.zylitics.btbr.webdriver.Configuration;
 import com.zylitics.btbr.webdriver.session.AbstractDriverSessionProvider;
-import org.apache.tomcat.jni.Proc;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.openqa.selenium.Platform;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -35,8 +34,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Supports running multiple builds one after another. This could happen when builds are run in
- * debug mode and same VM is used for running multiple builds.
+ * Supports running multiple builds one after another..
  */
 @RestController
 @RequestMapping("${app-short-version}/builds")
@@ -60,6 +58,7 @@ public class RunnerController {
   private final ImmutableMapProvider immutableMapProvider;
   private final TestVersionProvider testVersionProvider;
   private final BrowserProvider browserProvider;
+  private final QuotaProvider quotaProvider;
   
   // factories
   private final CaptureShotHandler.Factory captureShotHandlerFactory;
@@ -84,6 +83,7 @@ public class RunnerController {
                           ImmutableMapProvider immutableMapProvider,
                           TestVersionProvider testVersionProvider,
                           BrowserProvider browserProvider,
+                          QuotaProvider quotaProvider,
                           CaptureShotHandler.Factory captureShotHandlerFactory,
                           ShotMetadataProvider.Factory shotMetadataProviderFactory,
                           ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory) {
@@ -97,6 +97,7 @@ public class RunnerController {
         immutableMapProvider,
         testVersionProvider,
         browserProvider,
+        quotaProvider,
         captureShotHandlerFactory,
         shotMetadataProviderFactory,
         zwlProgramOutputProviderFactory,
@@ -117,6 +118,7 @@ public class RunnerController {
                    ImmutableMapProvider immutableMapProvider,
                    TestVersionProvider testVersionProvider,
                    BrowserProvider browserProvider,
+                   QuotaProvider quotaProvider,
                    CaptureShotHandler.Factory captureShotHandlerFactory,
                    ShotMetadataProvider.Factory shotMetadataProviderFactory,
                    ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory,
@@ -134,6 +136,7 @@ public class RunnerController {
     this.immutableMapProvider = immutableMapProvider;
     this.testVersionProvider = testVersionProvider;
     this.browserProvider = browserProvider;
+    this.quotaProvider = quotaProvider;
     this.captureShotHandlerFactory = captureShotHandlerFactory;
     this.shotMetadataProviderFactory = shotMetadataProviderFactory;
     this.zwlProgramOutputProviderFactory = zwlProgramOutputProviderFactory;
@@ -240,6 +243,7 @@ public class RunnerController {
         buildStatusProvider,
         buildVMProvider,
         immutableMapProvider,
+        quotaProvider,
         shotMetadataProviderFactory.create(apiCoreProperties, restHighLevelClient),
         zwlProgramOutputProviderFactory.create(apiCoreProperties, restHighLevelClient),
         build,
