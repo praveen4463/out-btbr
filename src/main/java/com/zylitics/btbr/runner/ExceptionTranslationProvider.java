@@ -1,8 +1,6 @@
 package com.zylitics.btbr.runner;
 
-import com.zylitics.zwl.antlr4.StoringErrorListener;
 import com.zylitics.zwl.exception.ZwlLangException;
-import org.antlr.v4.runtime.RecognitionException;
 import org.openqa.selenium.WebDriverException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,41 +13,32 @@ class ExceptionTranslationProvider {
   
   private static final Logger LOG = LoggerFactory.getLogger(ExceptionTranslationProvider.class);
   
-  private final StoringErrorListener storingErrorListener;
-  
-  ExceptionTranslationProvider(StoringErrorListener storingErrorListener) {
-    this.storingErrorListener = storingErrorListener;
-  }
-  
   String get(Throwable t) {
     return translateExToUserReadableMsg(t);
   }
   
   private String translateExToUserReadableMsg(Throwable t) {
-    StringBuilder msg = new StringBuilder();
+    String msg;
     if (t instanceof WebDriverException) {
       // This may not be called from anywhere yet but let's keep it.
-      msg.append(composeWebdriverException((WebDriverException) t, null));
+      msg = composeWebdriverException((WebDriverException) t, null);
     } else if (t instanceof ZwlLangException) {
       if (t.getCause() == null) {
         // we can send the exception itself.
-        msg.append(formatExClassAndMsg(t));
-      } else if (t.getCause() instanceof RecognitionException) {
-        // an exception occurred during parsing
-        msg.append("An exception occurred during parsing: ");
-        String parseError = "line " + storingErrorListener.getLine() + ":" +
-            storingErrorListener.getCharPositionInLine() + " " + storingErrorListener.getMsg();
-        msg.append(parseError);
-        // no exception class like InputMismatch is written
+        msg = formatExClassAndMsg(t);
       } else if (t.getCause() instanceof WebDriverException) {
         // when the cause is WebDriverException, it's most likely from our webdriver functions, and
         // the line and column information is the message.
-        msg.append(composeWebdriverException((WebDriverException) t.getCause(), t.getMessage()));
+        msg = composeWebdriverException((WebDriverException) t.getCause(), t.getMessage());
+      } else {
+        LOG.warn("Got unexpected ZwlLangException cause " +
+            t.getCause().getClass().getSimpleName() + ", forced to send a generic failure message");
+        msg = "An unexpected internal exception has occurred.";
       }
     } else {
-      msg.append("An unexpected internal exception has occurred.");
+      msg = "An unexpected internal exception has occurred.";
     }
-    return msg.toString();
+    return msg;
   }
   
   private String composeWebdriverException(WebDriverException wdEx, @Nullable String lineNColumn) {

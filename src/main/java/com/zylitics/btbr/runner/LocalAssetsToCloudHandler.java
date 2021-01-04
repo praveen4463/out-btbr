@@ -9,6 +9,7 @@ import com.zylitics.btbr.config.APICoreProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -54,9 +55,9 @@ public class LocalAssetsToCloudHandler {
         buildDir.resolve(wdProps.getDriverLogsDir()).resolve(wdProps.getDriverLogsFile());
     if (Files.exists(driverLogsFile) && !Files.isDirectory(driverLogsFile)) {
       LOG.debug("Storing driver logs at {}", driverLogsFile);
-      BlobInfo blobInfo = BlobInfo.newBuilder(wdProps.getServerLogsBucket(),
-          getBlobName(wdProps.getDriverLogsDir(), wdProps.getDriverLogsFile()))
-          .setContentType(LOG_FILE_CONTENT_TYPE).build();
+      BlobInfo blobInfo = getBlobInfo(wdProps.getServerLogsBucket(),
+          getBlobName(wdProps.getDriverLogsDir(), wdProps.getDriverLogsFile()),
+          LOG_FILE_CONTENT_TYPE, false);
       storeBySize(blobInfo, driverLogsFile);
     }
     
@@ -66,9 +67,9 @@ public class LocalAssetsToCloudHandler {
         buildDir.resolve(wdProps.getInternalLogsDir()).resolve(wdProps.getClientLogsFile());
     if (Files.exists(clientLogsFile) && !Files.isDirectory(clientLogsFile)) {
       LOG.debug("Storing client logs at {}", clientLogsFile);
-      BlobInfo blobInfo = BlobInfo.newBuilder(wdProps.getServerLogsBucket(),
-          getBlobName(wdProps.getInternalLogsDir(), wdProps.getClientLogsFile()))
-          .setContentType(LOG_FILE_CONTENT_TYPE).build();
+      BlobInfo blobInfo = getBlobInfo(wdProps.getServerLogsBucket(),
+          getBlobName(wdProps.getInternalLogsDir(), wdProps.getClientLogsFile()),
+          LOG_FILE_CONTENT_TYPE, false);
       storeBySize(blobInfo, clientLogsFile);
     }
   
@@ -78,9 +79,9 @@ public class LocalAssetsToCloudHandler {
         buildDir.resolve(wdProps.getInternalLogsDir()).resolve(wdProps.getProfilerLogsFile());
     if (Files.exists(profilerLogsFile) && !Files.isDirectory(profilerLogsFile)) {
       LOG.debug("Storing profiler logs at {}", profilerLogsFile);
-      BlobInfo blobInfo = BlobInfo.newBuilder(wdProps.getServerLogsBucket(),
-          getBlobName(wdProps.getInternalLogsDir(), wdProps.getProfilerLogsFile()))
-          .setContentType(LOG_FILE_CONTENT_TYPE).build();
+      BlobInfo blobInfo = getBlobInfo(wdProps.getServerLogsBucket(),
+          getBlobName(wdProps.getInternalLogsDir(), wdProps.getProfilerLogsFile()),
+          LOG_FILE_CONTENT_TYPE, false);
       storeBySize(blobInfo, profilerLogsFile);
     }
   
@@ -90,9 +91,9 @@ public class LocalAssetsToCloudHandler {
         buildDir.resolve(wdProps.getBrowserPerfLogsDir()).resolve(wdProps.getBrowserPerfLogsFile());
     if (Files.exists(perfLogsFile) && !Files.isDirectory(perfLogsFile)) {
       LOG.debug("Storing performance logs at {}", perfLogsFile);
-      BlobInfo blobInfo = BlobInfo.newBuilder(wdProps.getServerLogsBucket(),
-          getBlobName(wdProps.getBrowserPerfLogsDir(), wdProps.getBrowserPerfLogsFile()))
-          .setContentType(LOG_FILE_CONTENT_TYPE).build();
+      BlobInfo blobInfo = getBlobInfo(wdProps.getServerLogsBucket(),
+          getBlobName(wdProps.getBrowserPerfLogsDir(), wdProps.getBrowserPerfLogsFile()),
+          LOG_FILE_CONTENT_TYPE, false);
       storeBySize(blobInfo, perfLogsFile);
     }
   }
@@ -108,16 +109,23 @@ public class LocalAssetsToCloudHandler {
       for (Path path : pathStream) {
         String name = path.getFileName().toString();
         LOG.debug("Storing element shot {}", name);
-        BlobInfo blobInfo = BlobInfo.newBuilder(wdProps.getElemShotsBucket()
-            , buildDir.getFileName() + "/" + name)
-            .setContentEncoding("image/png")
-            .setCacheControl("public, max-age=604800, immutable")
-            .setContentDisposition("attachment").build();
+        BlobInfo blobInfo = getBlobInfo(wdProps.getElemShotsBucket(),
+            buildDir.getFileName() + "/" + name, "image/png", true);
         storeBySize(blobInfo, path);
       }
     } catch (IOException io) {
       LOG.error("Couldn't list files from dir at " + elemShotDir.toAbsolutePath().toString(), io);
     }
+  }
+  
+  private BlobInfo getBlobInfo(String bucket, String name, String encoding,
+                               boolean contentDisposition) {
+    BlobInfo.Builder builder = BlobInfo.newBuilder(bucket, name).setContentEncoding(encoding)
+        .setCacheControl("public, max-age=604800, immutable");
+    if (contentDisposition) {
+      builder.setContentDisposition("attachment; filename=\"" + name + "\"");
+    }
+    return builder.build();
   }
   
   // The directory structure in cloud store should be like:
@@ -148,17 +156,22 @@ public class LocalAssetsToCloudHandler {
   private void storeLarge(BlobInfo blobInfo, Path file) {
     String blobUploadErrInfo = ", blob " + blobInfo.getName();
     int reattempts = 0;
-    int backOff = 1;
-    try (InputStream stream = Files.newInputStream(file)) {
+    long backOff = 1;
+    try {
+      byte[] bytes = Files.readAllBytes(file);
       while (reattempts < MAX_REATTEMPTS) {
         reattempts += 1;
         try (WriteChannel writer = storage.writer(blobInfo)) {
-          byte[] buffer = new byte[1024];
-          int limit;
           try {
-            while ((limit = stream.read(buffer)) >= 0) {
-              writer.write(ByteBuffer.wrap(buffer, 0, limit));
-            }
+            // https://cloud.google.com/storage/docs/best-practices#uploading
+            // as per recommendation, not doing chunk transfer but entire chunk at once.
+            /*
+            Avoid breaking a transfer into smaller chunks if possible and instead upload the entire content in a single chunk. Avoiding chunking removes added latency costs from committed offset queries for each chunk and improves throughput, as well as reducing QPS against Cloud Storage. However, you should consider uploading in chunks when:
+            Your source data is being generated dynamically and you want to limit how much of it you need to buffer client-side in case the upload fails.
+            Your clients have request size limitations, as is the case for many browsers.
+            If your clients receive an error, they can query the server for the commit offset and resume uploading remaining bytes from that offset.
+            */
+            writer.write(ByteBuffer.wrap(bytes, 0, bytes.length));
             return;
           } catch (Exception ex) {
             LOG.error("Exception during channel write, not reattempting and quitting" +
@@ -193,7 +206,7 @@ public class LocalAssetsToCloudHandler {
         LOG.error("Max reattempt reached while uploading " + blobUploadErrInfo);
       }
     } catch (IOException io) {
-      LOG.error("Couldn't get InputStream from file at " + file.toAbsolutePath().toString());
+      LOG.error("Couldn't read file at " + file.toAbsolutePath().toString());
     }
   }
 }

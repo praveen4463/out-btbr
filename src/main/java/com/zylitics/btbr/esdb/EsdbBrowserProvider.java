@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class EsdbBrowserProvider implements BrowserProvider {
@@ -29,8 +30,7 @@ public class EsdbBrowserProvider implements BrowserProvider {
   }
   
   @Override
-  public String getDriverVersion(String browser, String version) throws RuntimeException {
-    String exMsg = "Couldn't get driver version for browser " + browser;
+  public Optional<String> getDriverVersion(String browser, String version) throws RuntimeException {
     try {
       SearchRequest searchRequest =
           new SearchRequest(apiCoreProperties.getEsdb().getBrowserIndex());
@@ -45,13 +45,13 @@ public class EsdbBrowserProvider implements BrowserProvider {
       SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
       SearchHits searchHits = searchResponse.getHits();
       if (searchHits.getHits().length == 0) {
-        throw new RuntimeException(exMsg);
+        return Optional.empty();
       }
       SearchHit hit = searchHits.getHits()[0];
       Map<String, Object> source = hit.getSourceAsMap();
-      return (String) source.get(BrowserIndexFields.DRIVER_VERSION);
+      return Optional.of((String) source.get(BrowserIndexFields.DRIVER_VERSION));
     } catch (Exception ex) {
-      throw new RuntimeException(exMsg, ex);
+      throw new RuntimeException(ex);
     }
   }
 }

@@ -177,7 +177,7 @@ public class BuildRunHandler {
     this.driver = driver;
     this.buildDir = buildDir;
     printStream = new CallbackOnlyPrintStream(this::sendOutput);
-    exceptionTranslationProvider = new ExceptionTranslationProvider(storingErrorListener);
+    exceptionTranslationProvider = new ExceptionTranslationProvider();
     this.clock = clock;
     // check buildRunStatus has current build
     Preconditions.checkArgument(buildRunStatus.get(build.getBuildId()) != null

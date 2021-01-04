@@ -8,7 +8,6 @@ import com.zylitics.btbr.model.*;
 import com.zylitics.btbr.runner.provider.*;
 import com.zylitics.btbr.util.DateTimeUtil;
 import com.zylitics.btbr.webdriver.logs.WebdriverLogHandler;
-import com.zylitics.zwl.antlr4.StoringErrorListener;
 import com.zylitics.zwl.api.*;
 import com.zylitics.zwl.exception.ZwlLangException;
 import org.junit.jupiter.api.DisplayName;
@@ -332,7 +331,7 @@ public class BuildRunHandlerTest {
     InOrder inOrder = inOrder(buildStatusProvider, buildProvider, zwlProgramOutputProvider);
     inOrder.verify(buildStatusProvider).updateOnEnd(argThat(matchBuildStatusUpdateOnEnd(
         new BuildStatusUpdateOnEnd(buildId, testVersionId, TestStatus.ERROR, currentDT
-            , new ExceptionTranslationProvider(new StoringErrorListener()).get(zwEx), "0:0",
+            , new ExceptionTranslationProvider().get(zwEx), "0:0",
             "0:1"))));
     inOrder.verify(zwlProgramOutputProvider).saveAsync(argThat(matchZwlProgramOutput(
         new ZwlProgramOutput().setBuildId(buildId).setTestVersionId(testVersionId)

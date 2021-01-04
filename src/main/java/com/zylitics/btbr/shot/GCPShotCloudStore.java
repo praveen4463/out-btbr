@@ -54,11 +54,11 @@ final class GCPShotCloudStore implements ShotCloudStore {
     BlobInfo blobInfo = BlobInfo.newBuilder(bucket, name)
         .setContentType(shotProps.getContentType())
         .setCacheControl("public, max-age=604800, immutable")
-        .setContentDisposition("attachment").build();
+        .setContentDisposition("attachment; filename=\"" + name + "\"").build();
     String blobUploadErrInfo = ", blob " + name;
     
     int reattempts = 0;
-    int backOff = 1;
+    long backOff = 1;
     while (reattempts < MAX_REATTEMPTS) {
       reattempts += 1;
       // if try block throws exception together with resource statement, resource statement's

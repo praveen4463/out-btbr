@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 
 /*
@@ -71,11 +72,15 @@ public abstract class AbstractDriverSessionProvider {
     if (Platform.fromString(buildCapability.getWdPlatformName()).is(Platform.MAC)) {
       return;
     }
-    String driverVersion = browserProvider.getDriverVersion(buildCapability.getWdBrowserName(),
+    Optional<String> driverVersion = browserProvider.getDriverVersion(buildCapability.getWdBrowserName(),
         buildCapability.getWdBrowserVersion());
+    if (!driverVersion.isPresent()) {
+      throw new RuntimeException("Couldn't get driver for browser " +
+          buildCapability.getWdBrowserName());
+    }
     System.setProperty(getDriverExeSysProp(), BROWSER_DRIVER_EXE_PATH_TEMPLATE_WIN
         .replace("BROWSER_NAME", buildCapability.getWdBrowserName())
-        .replace("DRIVER_VERSION", driverVersion)
+        .replace("DRIVER_VERSION", driverVersion.get())
         .replace("DRIVER_EXE", getDriverWinExeName()));
   }
   
@@ -162,7 +167,8 @@ public abstract class AbstractDriverSessionProvider {
     if (Platform.fromString(buildCapability.getWdPlatformName()).is(Platform.WINDOWS)) {
       template = BROWSER_BINARY_PATH_TEMPLATE_WIN;
     }
-    
+  
+    //noinspection ConstantConditions
     return Preconditions.checkNotNull(template, "no browser binary template")
         .replace("BROWSER_NAME", buildCapability.getWdBrowserName())
         .replace("BROWSER_VERSION", buildCapability.getWdBrowserVersion());
