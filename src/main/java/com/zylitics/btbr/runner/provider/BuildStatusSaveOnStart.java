@@ -12,14 +12,18 @@ public class BuildStatusSaveOnStart  extends AbstractBuildStatus {
   
   private final OffsetDateTime startDate;
   
+  private final int userId;
+  
   public BuildStatusSaveOnStart(int buildId, int testVersionId, TestStatus status,
-                                OffsetDateTime startDate) {
+                                OffsetDateTime startDate, int userId) {
     super(buildId, testVersionId);
     Preconditions.checkNotNull(status, "status can't be null");
     Preconditions.checkNotNull(startDate, "startDate can't be null");
+    Preconditions.checkArgument(userId > 0, "userId is required");
     
     this.status = status;
     this.startDate = startDate;
+    this.userId = userId;
   }
   
   public TestStatus getStatus() {
@@ -30,11 +34,16 @@ public class BuildStatusSaveOnStart  extends AbstractBuildStatus {
     return startDate;
   }
   
+  public int getUserId() {
+    return userId;
+  }
+  
   @Override
   public String toString() {
     return "BuildStatusSaveOnStart{" +
         "status=" + status +
         ", startDate=" + startDate +
+        ", userId=" + userId +
         "} " + super.toString();
   }
   
@@ -44,12 +53,11 @@ public class BuildStatusSaveOnStart  extends AbstractBuildStatus {
     if (o == null || getClass() != o.getClass()) return false;
     if (!super.equals(o)) return false;
     BuildStatusSaveOnStart that = (BuildStatusSaveOnStart) o;
-    return status == that.status &&
-        Objects.equals(startDate, that.startDate);
+    return userId == that.userId && status == that.status && startDate.equals(that.startDate);
   }
   
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), status, startDate);
+    return Objects.hash(super.hashCode(), status, startDate, userId);
   }
 }

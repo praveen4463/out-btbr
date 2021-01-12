@@ -53,6 +53,7 @@ public class RunnerController {
   
   // db providers
   private final BuildProvider buildProvider;
+  private final BuildRequestProvider buildRequestProvider;
   private final BuildStatusProvider buildStatusProvider;
   private final BuildVMProvider buildVMProvider;
   private final ImmutableMapProvider immutableMapProvider;
@@ -78,6 +79,7 @@ public class RunnerController {
                           Storage storage,
                           RestHighLevelClient restHighLevelClient,
                           BuildProvider buildProvider,
+                          BuildRequestProvider buildRequestProvider,
                           BuildStatusProvider buildStatusProvider,
                           BuildVMProvider buildVMProvider,
                           ImmutableMapProvider immutableMapProvider,
@@ -92,6 +94,7 @@ public class RunnerController {
         storage,
         restHighLevelClient,
         buildProvider,
+        buildRequestProvider,
         buildStatusProvider,
         buildVMProvider,
         immutableMapProvider,
@@ -113,6 +116,7 @@ public class RunnerController {
                    Storage storage,
                    RestHighLevelClient restHighLevelClient,
                    BuildProvider buildProvider,
+                   BuildRequestProvider buildRequestProvider,
                    BuildStatusProvider buildStatusProvider,
                    BuildVMProvider buildVMProvider,
                    ImmutableMapProvider immutableMapProvider,
@@ -131,6 +135,7 @@ public class RunnerController {
     this.storage = storage;
     this.restHighLevelClient = restHighLevelClient;
     this.buildProvider = buildProvider;
+    this.buildRequestProvider = buildRequestProvider;
     this.buildStatusProvider = buildStatusProvider;
     this.buildVMProvider = buildVMProvider;
     this.immutableMapProvider = immutableMapProvider;
@@ -240,6 +245,7 @@ public class RunnerController {
         secretsManager,
         storage,
         buildProvider,
+        buildRequestProvider,
         buildStatusProvider,
         buildVMProvider,
         immutableMapProvider,
@@ -281,6 +287,11 @@ public class RunnerController {
     LOG.info("buildRunStatus after stop is {}", buildRunStatus);
     return ResponseEntity.status(HttpStatus.OK).body(new ResponseCommon()
         .setStatus(ResponseStatus.STOPPING.name()).setHttpStatusCode(HttpStatus.OK.value()));
+  }
+  
+  @GetMapping("/status")
+  public ResponseEntity<Void> status() {
+    return ResponseEntity.ok().build();
   }
   
   /**

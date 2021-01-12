@@ -231,6 +231,10 @@ public class InContainerE2ETest {
     int minutesConsumed = getMinutesConsumed(build.getUserId());
     assertTrue(minutesConsumed > 0);
     
+    // 8. check build request completed
+    LOG.debug("asserting build request completed");
+    assertTrue(didBuildRequestComplete());
+    
     // no need to check vm delete date updated cause it's already done in waitUntilBuildCompletes.
   }
   
@@ -653,11 +657,8 @@ public class InContainerE2ETest {
   
   private void updateSession(String sessionId) {
     // update sessionId
-    String sql = "UPDATE bt_build_wd_session AS bs" +
-        " SET session_key = :session_key" +
-        " FROM bt_build AS bu" + // FROM can't contain target table so no JOIN clause
-        " WHERE bu.bt_build_wd_session_id = bs.bt_build_wd_session_id" +
-        " AND bu.bt_build_id = :bt_build_id;";
+    String sql = "UPDATE bt_build SET session_key = :session_key\n" +
+        "WHERE bt_build_id = :bt_build_id;";
     Map<String, SqlParameterValue> updateParams = new HashMap<>();
     updateParams.put("session_key", new SqlParameterValue(Types.VARCHAR, sessionId));
     updateParams.put("bt_build_id", new SqlParameterValue(Types.INTEGER, buildId));
@@ -707,6 +708,15 @@ public class InContainerE2ETest {
         .setEndDate(DateTimeUtil.sqlTimestampToLocal(rowSet.getTimestamp("end_date")))
         .setSuccess(rowSet.getBoolean("is_success"))
         .setError(rowSet.getString("error"));
+  }
+  
+  private boolean didBuildRequestComplete() {
+    String sql = "SELECT completed FROM bt_build_request br\n" +
+        "INNER JOIN bt_build bu ON (br.bt_build_request_id = bu.bt_build_request_id)\n" +
+        "WHERE bu.bt_build_id = :bt_build_id";
+    Map<String, SqlParameterValue> params = new HashMap<>();
+    params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, buildId));
+    return jdbc.query(sql, params, (rs, rowNum) -> rs.getBoolean(1)).get(0);
   }
   
   private LocalDateTime getBuildAllDoneDate() {

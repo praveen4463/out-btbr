@@ -27,8 +27,8 @@ public class DaoBuildStatusProvider extends AbstractDaoProvider implements Build
     Preconditions.checkNotNull(buildStatusSaveOnStart, "buildStatusSaveOnStart can't be null");
     
     String sql = "INSERT INTO bt_build_status (bt_build_id, bt_test_version_id" +
-        ", status, start_date)" +
-        " VALUES (:bt_build_id, :bt_test_version_id, :status, :start_date)";
+        ", status, start_date, zluser_id)" +
+        " VALUES (:bt_build_id, :bt_test_version_id, :status, :start_date, :zluser_id)";
   
     Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(4));
     
@@ -43,6 +43,9 @@ public class DaoBuildStatusProvider extends AbstractDaoProvider implements Build
   
     params.put("start_date", new SqlParameterValue(Types.TIMESTAMP_WITH_TIMEZONE
         , buildStatusSaveOnStart.getStartDate()));
+    
+    params.put("zluser_id", new SqlParameterValue(Types.INTEGER,
+        buildStatusSaveOnStart.getUserId()));
   
     SqlParameterSource namedParams = new MapSqlParameterSource(params);
   
@@ -53,8 +56,9 @@ public class DaoBuildStatusProvider extends AbstractDaoProvider implements Build
   public int saveWontStart(BuildStatusSaveWontStart buildStatusSaveWontStart) {
     Preconditions.checkNotNull(buildStatusSaveWontStart, "buildStatusSaveWontStart can't be null");
     
-    String sql = "INSERT INTO bt_build_status (bt_build_id, bt_test_version_id, status)" +
-        " VALUES (:bt_build_id, :bt_test_version_id, :status)";
+    String sql = "INSERT INTO bt_build_status (bt_build_id, bt_test_version_id, status,\n" +
+        "zluser_id)\n" +
+        " VALUES (:bt_build_id, :bt_test_version_id, :status, :zluser_id)";
   
     Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(3));
   
@@ -66,6 +70,9 @@ public class DaoBuildStatusProvider extends AbstractDaoProvider implements Build
   
     params.put("status", new SqlParameterValue(Types.OTHER,
         buildStatusSaveWontStart.getStatus()));
+  
+    params.put("zluser_id", new SqlParameterValue(Types.INTEGER,
+        buildStatusSaveWontStart.getUserId()));
   
     SqlParameterSource namedParams = new MapSqlParameterSource(params);
   

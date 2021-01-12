@@ -39,6 +39,7 @@ public class BuildRunHandler {
   
   // db providers
   private final BuildProvider buildProvider;
+  private final BuildRequestProvider buildRequestProvider;
   private final BuildStatusProvider buildStatusProvider;
   private final ImmutableMapProvider immutableMapProvider;
   private final QuotaProvider quotaProvider;
@@ -101,6 +102,7 @@ public class BuildRunHandler {
                           SecretsManager secretsManager,
                           Storage storage,
                           BuildProvider buildProvider,
+                          BuildRequestProvider buildRequestProvider,
                           BuildStatusProvider buildStatusProvider,
                           BuildVMProvider buildVMProvider,
                           ImmutableMapProvider immutableMapProvider,
@@ -116,6 +118,7 @@ public class BuildRunHandler {
     this(apiCoreProperties,
         storage,
         buildProvider,
+        buildRequestProvider,
         buildStatusProvider,
         immutableMapProvider,
         quotaProvider,
@@ -138,6 +141,7 @@ public class BuildRunHandler {
   BuildRunHandler(APICoreProperties apiCoreProperties,
                   Storage storage,
                   BuildProvider buildProvider,
+                  BuildRequestProvider buildRequestProvider,
                   BuildStatusProvider buildStatusProvider,
                   ImmutableMapProvider immutableMapProvider,
                   QuotaProvider quotaProvider,
@@ -158,6 +162,7 @@ public class BuildRunHandler {
     wdProps = apiCoreProperties.getWebdriver();
     this.storage = storage;
     this.buildProvider = buildProvider;
+    this.buildRequestProvider = buildRequestProvider;
     this.buildStatusProvider = buildStatusProvider;
     this.immutableMapProvider = immutableMapProvider;
     this.quotaProvider = quotaProvider;
@@ -386,7 +391,7 @@ public class BuildRunHandler {
     
     validateSingleRowDbCommit(buildStatusProvider.saveOnStart(
         new BuildStatusSaveOnStart(build.getBuildId(), testVersion.getTestVersionId(),
-            TestStatus.RUNNING, DateTimeUtil.getCurrent(clock))));
+            TestStatus.RUNNING, DateTimeUtil.getCurrent(clock), build.getUserId())));
   
     // set the line to 0 when a new version starts, we do this after test is sanitize and just
     // one window is there with blank url, thus it's safe to change the version. It's ok if a few
@@ -432,7 +437,15 @@ public class BuildRunHandler {
     // we do this to make sure the version we're marking error was first marked running and
     // actually had an entry in BuildStatus
     validateTestVersionRunning(testVersion.getTestVersionId());
-    // first push all pending output and wait for it to finish so that once a version completes,
+  
+    // once a version's execution is done, push a message, don't use printStream as we need to send
+    // another argument.
+    String outputMsg = "Exception occurred during execution of test " +
+        getTestVersionIdentifierLong(testVersion);
+    sendOutput(outputMsg, true); // don't add exMessage as that will be pushed in build status,
+    // adding here would show that twice to user.
+    
+    // push all pending output and wait for it to finish so that once a version completes,
     // user has seen all it's output
     zwlProgramOutputProvider.processRemaining();
     
@@ -453,13 +466,6 @@ public class BuildRunHandler {
     updateBuildStatus(testVersion.getTestVersionId(), TestStatus.ERROR, exMessage, fromPos,
         toPos);
     
-    // once a version's execution is done, push a message, don't use printStream as we need to send
-    // another argument.
-    String outputMsg = "Exception occurred during execution of test " +
-        getTestVersionIdentifierLong(testVersion);
-    sendOutput(outputMsg, true); // don't add exMessage as that is already pushed in build status,
-    // adding here would show that twice to user.
-    
     // Now mark this test version as error
     testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.ERROR);
     LOG.debug("current testVersionStatus is {}", testVersionsStatus);
@@ -471,17 +477,18 @@ public class BuildRunHandler {
     // we do this to make sure the version we're marking success was first marked running and
     // actually had an entry in BuildStatus
     validateTestVersionRunning(testVersion.getTestVersionId());
-    // first push all pending output and wait for it to finish so that once a version completes,
+  
+    // once a version's execution is done, push a message, don't use printStream as we need to send
+    // another argument.
+    sendOutput("Completed execution for test " + getTestVersionIdentifierLong(testVersion),
+        true);
+    
+    // push all pending output and wait for it to finish so that once a version completes,
     // user has seen all it's output
     zwlProgramOutputProvider.processRemaining();
     
     // update build status
     updateBuildStatus(testVersion.getTestVersionId(), TestStatus.SUCCESS);
-    
-    // once a version's execution is done, push a message, don't use printStream as we need to send
-    // another argument.
-    sendOutput("Completed execution for test " + getTestVersionIdentifierLong(testVersion),
-        true);
     
     // Now mark this test version as completed
     testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.SUCCESS);
@@ -524,12 +531,17 @@ public class BuildRunHandler {
     // be marked separately just before vm is turned off or marked free.
     updateBuildOnFinish(stopOccurred);
     
-    // flush program output, blocks.
+    // if build source is IDE, we must mark build request record done here so that another IDE build
+    // could start.
+    if (build.getSourceType() == BuildSourceType.IDE) {
+      markBuildRequestCompleted();
+    }
+    
+    
+    // flush program output, this shouldn't have anything to flush as we do it before the end of
+    // each version.
     LOG.debug("pushing program output and waiting");
     zwlProgramOutputProvider.processRemainingAndTearDown();
-    // blocks until all output is pushed, should take lesser time than waiting for shots to process
-    // because we push output in small bulk while shots in larger. Also shots needs to go into
-    // cloud but this is just text.
   
     /*
     Reason why shots are stopped after pushing output and not in beginning:
@@ -567,6 +579,11 @@ public class BuildRunHandler {
     
     // all done, we can mark all build tasks completed
     updateOnAllTaskDone();
+    
+    // if source is other than IDE, complete build request here
+    if (build.getSourceType() != BuildSourceType.IDE) {
+      markBuildRequestCompleted();
+    }
     
     // mark current build as completed
     buildRunStatus.put(build.getBuildId(), BuildRunStatus.COMPLETED);
@@ -617,12 +634,21 @@ public class BuildRunHandler {
   }
   
   private void updateBuildStatusOnStop() {
+    // it won't happen that stop occurs before any version could start because we check stop during
+    // a version run.
     LOG.debug("updateBuildStatusOnStop was invoked");
+    // first do everything we do when a version completes, i.e pushing a final output, waiting for
+    // all output to commit, update build status, marking testVersionStatus.
     int testVersionId = currentTestVersion.getTestVersionId();
     validateTestVersionRunning(testVersionId);
+    sendOutput("Stopping...", true);
+    // push all pending output and wait for it to finish so that once a version completes,
+    // user has seen all it's output
+    zwlProgramOutputProvider.processRemaining();
     updateBuildStatus(testVersionId, TestStatus.STOPPED);
-    sendOutput("Stopping...");
-    
+    testVersionsStatus.put(testVersionId, TestStatus.STOPPED);
+    // Once done, save other versions that are stopped due to current version stopping without
+    // starting.
     saveTestVersionsNotRun(TestStatus.STOPPED);
     // status is not aborted, because when stop was requested, all tests in queue were also forced
     // to stop, this is an explicit request rather than implicit error that causes abort.
@@ -648,7 +674,8 @@ public class BuildRunHandler {
       if (!testVersionsStatus.containsKey(t.getTestVersionId())) {
         LOG.debug("testVersionId {} couldn't be run, saving", t.getTestVersionId());
         validateSingleRowDbCommit(buildStatusProvider.saveWontStart(
-            new BuildStatusSaveWontStart(build.getBuildId(), t.getTestVersionId(), status)));
+            new BuildStatusSaveWontStart(build.getBuildId(), t.getTestVersionId(), status,
+                build.getUserId())));
       }
     });
   }
@@ -700,12 +727,22 @@ public class BuildRunHandler {
         testVersion.getTest().getName(), testVersion.getName());
   }
   
+  private void markBuildRequestCompleted() {
+    try {
+      validateSingleRowDbCommit(buildRequestProvider.markBuildRequestCompleted(
+          build.getBuildRequestId()));
+    } catch (Throwable t) {
+      LOG.error(t.getMessage(), t);
+    }
+  }
+  
   static class Factory {
     
     BuildRunHandler create(APICoreProperties apiCoreProperties,
                            SecretsManager secretsManager,
                            Storage storage,
                            BuildProvider buildProvider,
+                           BuildRequestProvider buildRequestProvider,
                            BuildStatusProvider buildStatusProvider,
                            BuildVMProvider buildVMProvider,
                            ImmutableMapProvider immutableMapProvider,
@@ -722,6 +759,7 @@ public class BuildRunHandler {
           secretsManager,
           storage,
           buildProvider,
+          buildRequestProvider,
           buildStatusProvider,
           buildVMProvider,
           immutableMapProvider,

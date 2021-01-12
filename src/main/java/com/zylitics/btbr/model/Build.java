@@ -33,8 +33,11 @@ public class Build {
   
   private boolean aetDeleteAllCookies;
   
-  
   private int userId;
+  
+  private BuildSourceType sourceType;
+  
+  private long buildRequestId;
   
   public int getBuildId() {
     return buildId;
@@ -153,6 +156,24 @@ public class Build {
     return this;
   }
   
+  public BuildSourceType getSourceType() {
+    return sourceType;
+  }
+  
+  public Build setSourceType(BuildSourceType sourceType) {
+    this.sourceType = sourceType;
+    return this;
+  }
+  
+  public long getBuildRequestId() {
+    return buildRequestId;
+  }
+  
+  public Build setBuildRequestId(long buildRequestId) {
+    this.buildRequestId = buildRequestId;
+    return this;
+  }
+  
   @Override
   public String toString() {
     return "Build{" +
@@ -160,6 +181,7 @@ public class Build {
         ", buildKey='" + buildKey + '\'' +
         ", buildCapability=" + buildCapability +
         ", buildVMId=" + buildVMId +
+        ", createDateUTC=" + createDateUTC +
         ", isSuccess=" + isSuccess +
         ", shotBucketSessionStorage='" + shotBucketSessionStorage + '\'' +
         ", abortOnFailure=" + abortOnFailure +
@@ -168,6 +190,8 @@ public class Build {
         ", aetResetTimeouts=" + aetResetTimeouts +
         ", aetDeleteAllCookies=" + aetDeleteAllCookies +
         ", userId=" + userId +
+        ", sourceType='" + sourceType + '\'' +
+        ", buildRequestId=" + buildRequestId +
         '}';
   }
 }

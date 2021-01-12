@@ -3,6 +3,7 @@ package com.zylitics.btbr.dao;
 import com.google.common.base.Preconditions;
 import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.model.BuildSourceType;
 import com.zylitics.btbr.runner.provider.BuildProvider;
 import com.zylitics.btbr.runner.provider.BuildUpdateOnComplete;
 import com.zylitics.btbr.util.CollectionUtil;
@@ -44,6 +45,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bu.aet_update_url_blank" +
         ", bu.aet_reset_timeouts" +
         ", bu.aet_delete_all_cookies" +
+        ", bu.source_type" +
+        ", bu.bt_build_request_id" +
         ", project.zluser_id" +
         ", bc.shot_take_test_shot" +
         ", bc.wd_browser_name" +
@@ -93,6 +96,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
             .setAetUpdateUrlBlank(rs.getBoolean("aet_update_url_blank"))
             .setAetResetTimeouts(rs.getBoolean("aet_reset_timeouts"))
             .setAetDeleteAllCookies(rs.getBoolean("aet_delete_all_cookies"))
+            .setSourceType(BuildSourceType.valueOf(rs.getString("source_type")))
+            .setBuildRequestId(rs.getLong("bt_build_request_id"))
             .setUserId(rs.getInt("zluser_id"))
             .setBuildCapability(new BuildCapability()
                 .setShotTakeTestShot(rs.getBoolean("shot_take_test_shot"))
