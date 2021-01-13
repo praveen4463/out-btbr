@@ -84,6 +84,9 @@ public class APICoreProperties {
     
     @Min(1)
     private Short minIdleConnPool;
+    
+    @NotBlank
+    private String envVarLocalHost;
   
     public String getDbName() {
       return dbName;
@@ -132,6 +135,16 @@ public class APICoreProperties {
     public void setMinIdleConnPool(Short minIdleConnPool) {
       if (this.minIdleConnPool == null) {
         this.minIdleConnPool = minIdleConnPool;
+      }
+    }
+  
+    public String getEnvVarLocalHost() {
+      return envVarLocalHost;
+    }
+    
+    public void setEnvVarLocalHost(String envVarLocalHost) {
+      if (this.envVarLocalHost == null) {
+        this.envVarLocalHost = envVarLocalHost;
       }
     }
   }

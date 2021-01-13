@@ -104,7 +104,11 @@ public class Launcher {
   DataSource hikariLocalDataSource(APICoreProperties apiCoreProperties) {
     APICoreProperties.DataSource ds = apiCoreProperties.getDataSource();
     HikariConfig config = new HikariConfig();
-    config.setJdbcUrl(String.format("jdbc:postgresql://localhost/%s", ds.getDbName()));
+    String host =  System.getenv(ds.getEnvVarLocalHost());
+    if (Strings.isNullOrEmpty(host)) {
+      host = "localhost";
+    }
+    config.setJdbcUrl(String.format("jdbc:postgresql://%s/%s", host, ds.getDbName()));
     config.setUsername(ds.getUserName());
     config.setMinimumIdle(ds.getMinIdleConnPool());
     return new HikariDataSource(config);

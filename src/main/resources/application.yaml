@@ -24,6 +24,9 @@ api-core:
     # thread will seek synchronous access to pgdb. see
     # https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing
     min-idle-conn-pool: 2
+    env-var-local-host: PGDB_LOCAL_HOST
+    # can be used to configure a different local host than localhost such as a different machine
+    # on network.
   runner:
     program-output-flush-no: 5
     # later we may give it as build caps too for custom values, this is done so that non-webdriver

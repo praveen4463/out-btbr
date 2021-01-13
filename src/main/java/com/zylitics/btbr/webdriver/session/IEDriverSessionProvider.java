@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.runner.provider.BrowserProvider;
-import org.openqa.selenium.firefox.GeckoDriverService;
 import org.openqa.selenium.ie.*;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
