@@ -2,7 +2,6 @@ package com.zylitics.btbr.runner;
 
 import com.google.cloud.storage.Storage;
 import com.google.common.base.Preconditions;
-import com.zylitics.btbr.SecretsManager;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.*;
 import com.zylitics.btbr.runner.provider.*;
@@ -99,16 +98,15 @@ public class BuildRunHandler {
   // -----------program state ends----------------
   
   private BuildRunHandler(APICoreProperties apiCoreProperties,
-                          SecretsManager secretsManager,
                           Storage storage,
                           BuildProvider buildProvider,
                           BuildRequestProvider buildRequestProvider,
                           BuildStatusProvider buildStatusProvider,
-                          BuildVMProvider buildVMProvider,
                           ImmutableMapProvider immutableMapProvider,
                           QuotaProvider quotaProvider,
                           ShotMetadataProvider shotMetadataProvider,
                           ZwlProgramOutputProvider zwlProgramOutputProvider,
+                          VMUpdateHandler vmUpdateHandler,
                           Build build,
                           List<TestVersion> testVersions,
                           CaptureShotHandler.Factory captureShotHandlerFactory,
@@ -127,7 +125,7 @@ public class BuildRunHandler {
         build,
         testVersions,
         captureShotHandlerFactory,
-        new VMUpdateHandler(apiCoreProperties, secretsManager, buildVMProvider),
+        vmUpdateHandler,
         new WebdriverLogHandler(driver, apiCoreProperties.getWebdriver(),
             build.getBuildCapability(), buildDir),
         new LocalAssetsToCloudHandler(apiCoreProperties.getWebdriver(), storage, buildDir),
@@ -236,6 +234,9 @@ public class BuildRunHandler {
             , "bt_build_zwl_globals").orElse(null));
     
     // let's start the build
+    // mark build started date
+    validateSingleRowDbCommit(buildProvider.updateOnStart(build.getBuildId(),
+        DateTimeUtil.getCurrent(clock)));
     boolean firstTest = true;
     for (TestVersion testVersion : testVersions) {
       LOG.debug("Starting testVersion {}", getTestVersionIdentifierShort(testVersion));
@@ -739,16 +740,15 @@ public class BuildRunHandler {
   static class Factory {
     
     BuildRunHandler create(APICoreProperties apiCoreProperties,
-                           SecretsManager secretsManager,
                            Storage storage,
                            BuildProvider buildProvider,
                            BuildRequestProvider buildRequestProvider,
                            BuildStatusProvider buildStatusProvider,
-                           BuildVMProvider buildVMProvider,
                            ImmutableMapProvider immutableMapProvider,
                            QuotaProvider quotaProvider,
                            ShotMetadataProvider shotMetadataProvider,
                            ZwlProgramOutputProvider zwlProgramOutputProvider,
+                           VMUpdateHandler vmUpdateHandler,
                            Build build,
                            List<TestVersion> testVersions,
                            CaptureShotHandler.Factory captureShotHandlerFactory,
@@ -756,16 +756,15 @@ public class BuildRunHandler {
                            Path buildDir,
                            Map<Integer, BuildRunStatus> buildRunStatus) {
       return new BuildRunHandler(apiCoreProperties,
-          secretsManager,
           storage,
           buildProvider,
           buildRequestProvider,
           buildStatusProvider,
-          buildVMProvider,
           immutableMapProvider,
           quotaProvider,
           shotMetadataProvider,
           zwlProgramOutputProvider,
+          vmUpdateHandler,
           build,
           testVersions,
           captureShotHandlerFactory,

@@ -12,6 +12,9 @@ import com.zylitics.btbr.esdb.EsdbZwlProgramOutputProvider;
 import com.zylitics.btbr.runner.CaptureShotHandler;
 import com.zylitics.btbr.runner.provider.ShotMetadataProvider;
 import com.zylitics.btbr.runner.provider.ZwlProgramOutputProvider;
+import com.zylitics.btbr.service.MockVMService;
+import com.zylitics.btbr.service.ProductionVMService;
+import com.zylitics.btbr.service.VMService;
 import com.zylitics.btbr.shot.CaptureShotHandlerImpl;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -104,7 +107,7 @@ public class Launcher {
   DataSource hikariLocalDataSource(APICoreProperties apiCoreProperties) {
     APICoreProperties.DataSource ds = apiCoreProperties.getDataSource();
     HikariConfig config = new HikariConfig();
-    String host =  System.getenv(ds.getEnvVarLocalHost());
+    String host = System.getenv(ds.getEnvVarLocalHost());
     if (Strings.isNullOrEmpty(host)) {
       host = "localhost";
     }
@@ -130,5 +133,18 @@ public class Launcher {
   @Profile({"production", "e2e"})
   ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory() {
     return new EsdbZwlProgramOutputProvider.Factory();
+  }
+  
+  @Bean
+  @Profile("production")
+  VMService productionVMService(APICoreProperties apiCoreProperties,
+                                SecretsManager secretsManager) {
+    return new ProductionVMService(apiCoreProperties, secretsManager);
+  }
+  
+  @Bean
+  @Profile("e2e")
+  VMService mockVMService() {
+    return new MockVMService();
   }
 }

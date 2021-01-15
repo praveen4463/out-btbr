@@ -132,6 +132,23 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
   }
   
   @Override
+  public int updateOnStart(int buildId, OffsetDateTime startDate) {
+    Preconditions.checkArgument(buildId > 0, "buildId is required");
+    
+    String sql = "UPDATE bt_build SET start_date = :start_date WHERE bt_build_id = :bt_build_id";
+  
+    Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(2));
+  
+    params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, buildId));
+  
+    params.put("start_date", new SqlParameterValue(Types.TIMESTAMP_WITH_TIMEZONE, startDate));
+  
+    SqlParameterSource namedParams = new MapSqlParameterSource(params);
+  
+    return jdbc.update(sql, namedParams);
+  }
+  
+  @Override
   public int updateOnComplete(BuildUpdateOnComplete buildUpdateOnComplete) {
     Preconditions.checkNotNull(buildUpdateOnComplete, "buildUpdateOnComplete can't be null");
     

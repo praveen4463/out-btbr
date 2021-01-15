@@ -34,4 +34,13 @@ public class BuildVM {
     this.deleteFromRunner = deleteFromRunner;
     return this;
   }
+  
+  @Override
+  public String toString() {
+    return "BuildVM{" +
+        "name='" + name + '\'' +
+        ", zone='" + zone + '\'' +
+        ", deleteFromRunner=" + deleteFromRunner +
+        '}';
+  }
 }

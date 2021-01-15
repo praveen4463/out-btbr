@@ -55,7 +55,6 @@ public class RunnerController {
   private final BuildProvider buildProvider;
   private final BuildRequestProvider buildRequestProvider;
   private final BuildStatusProvider buildStatusProvider;
-  private final BuildVMProvider buildVMProvider;
   private final ImmutableMapProvider immutableMapProvider;
   private final TestVersionProvider testVersionProvider;
   private final BrowserProvider browserProvider;
@@ -81,14 +80,14 @@ public class RunnerController {
                           BuildProvider buildProvider,
                           BuildRequestProvider buildRequestProvider,
                           BuildStatusProvider buildStatusProvider,
-                          BuildVMProvider buildVMProvider,
                           ImmutableMapProvider immutableMapProvider,
                           TestVersionProvider testVersionProvider,
                           BrowserProvider browserProvider,
                           QuotaProvider quotaProvider,
                           CaptureShotHandler.Factory captureShotHandlerFactory,
                           ShotMetadataProvider.Factory shotMetadataProviderFactory,
-                          ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory) {
+                          ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory,
+                          VMUpdateHandler vmUpdateHandler) {
     this(apiCoreProperties,
         secretsManager,
         storage,
@@ -96,7 +95,6 @@ public class RunnerController {
         buildProvider,
         buildRequestProvider,
         buildStatusProvider,
-        buildVMProvider,
         immutableMapProvider,
         testVersionProvider,
         browserProvider,
@@ -105,7 +103,7 @@ public class RunnerController {
         shotMetadataProviderFactory,
         zwlProgramOutputProviderFactory,
         new BuildRunHandler.Factory(),
-        new VMUpdateHandler(apiCoreProperties, secretsManager, buildVMProvider),
+        vmUpdateHandler,
         new IOWrapper(),
         new Configuration()
         );
@@ -118,7 +116,6 @@ public class RunnerController {
                    BuildProvider buildProvider,
                    BuildRequestProvider buildRequestProvider,
                    BuildStatusProvider buildStatusProvider,
-                   BuildVMProvider buildVMProvider,
                    ImmutableMapProvider immutableMapProvider,
                    TestVersionProvider testVersionProvider,
                    BrowserProvider browserProvider,
@@ -137,7 +134,6 @@ public class RunnerController {
     this.buildProvider = buildProvider;
     this.buildRequestProvider = buildRequestProvider;
     this.buildStatusProvider = buildStatusProvider;
-    this.buildVMProvider = buildVMProvider;
     this.immutableMapProvider = immutableMapProvider;
     this.testVersionProvider = testVersionProvider;
     this.browserProvider = browserProvider;
@@ -242,16 +238,15 @@ public class RunnerController {
     // start a new thread to run the build asynchronously because the current request will now
     // return.
     BuildRunHandler buildRunHandler = buildRunHandlerFactory.create(apiCoreProperties,
-        secretsManager,
         storage,
         buildProvider,
         buildRequestProvider,
         buildStatusProvider,
-        buildVMProvider,
         immutableMapProvider,
         quotaProvider,
         shotMetadataProviderFactory.create(apiCoreProperties, restHighLevelClient),
         zwlProgramOutputProviderFactory.create(apiCoreProperties, restHighLevelClient),
+        vmUpdateHandler,
         build,
         testVersions.get(),
         captureShotHandlerFactory,
@@ -287,11 +282,6 @@ public class RunnerController {
     LOG.info("buildRunStatus after stop is {}", buildRunStatus);
     return ResponseEntity.status(HttpStatus.OK).body(new ResponseCommon()
         .setStatus(ResponseStatus.STOPPING.name()).setHttpStatusCode(HttpStatus.OK.value()));
-  }
-  
-  @GetMapping("/status")
-  public ResponseEntity<Void> status() {
-    return ResponseEntity.ok().build();
   }
   
   /**
