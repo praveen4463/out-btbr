@@ -42,9 +42,7 @@ public class BuildRunHandler {
   private final BuildStatusProvider buildStatusProvider;
   private final ImmutableMapProvider immutableMapProvider;
   private final QuotaProvider quotaProvider;
-  
-  // esdb providers
-  private final ZwlProgramOutputProvider zwlProgramOutputProvider;
+  private final BuildOutputProvider buildOutputProvider;
   
   // retrieved data
   private final Build build;
@@ -104,8 +102,8 @@ public class BuildRunHandler {
                           BuildStatusProvider buildStatusProvider,
                           ImmutableMapProvider immutableMapProvider,
                           QuotaProvider quotaProvider,
+                          BuildOutputProvider buildOutputProvider,
                           ShotMetadataProvider shotMetadataProvider,
-                          ZwlProgramOutputProvider zwlProgramOutputProvider,
                           VMUpdateHandler vmUpdateHandler,
                           Build build,
                           List<TestVersion> testVersions,
@@ -120,8 +118,8 @@ public class BuildRunHandler {
         buildStatusProvider,
         immutableMapProvider,
         quotaProvider,
+        buildOutputProvider,
         shotMetadataProvider,
-        zwlProgramOutputProvider,
         build,
         testVersions,
         captureShotHandlerFactory,
@@ -143,8 +141,8 @@ public class BuildRunHandler {
                   BuildStatusProvider buildStatusProvider,
                   ImmutableMapProvider immutableMapProvider,
                   QuotaProvider quotaProvider,
+                  BuildOutputProvider buildOutputProvider,
                   ShotMetadataProvider shotMetadataProvider,
-                  ZwlProgramOutputProvider zwlProgramOutputProvider,
                   Build build,
                   List<TestVersion> testVersions,
                   CaptureShotHandler.Factory captureShotHandlerFactory,
@@ -164,7 +162,7 @@ public class BuildRunHandler {
     this.buildStatusProvider = buildStatusProvider;
     this.immutableMapProvider = immutableMapProvider;
     this.quotaProvider = quotaProvider;
-    this.zwlProgramOutputProvider = zwlProgramOutputProvider;
+    this.buildOutputProvider = buildOutputProvider;
     this.build = build;
     buildCapability = build.getBuildCapability();
     this.testVersions = testVersions;
@@ -446,10 +444,6 @@ public class BuildRunHandler {
     sendOutput(outputMsg, true); // don't add exMessage as that will be pushed in build status,
     // adding here would show that twice to user.
     
-    // push all pending output and wait for it to finish so that once a version completes,
-    // user has seen all it's output
-    zwlProgramOutputProvider.processRemaining();
-    
     String exMessage = exceptionTranslationProvider.get(t);
     LOG.debug("Translated error message is {}", exMessage);
     String fromPos = null;
@@ -483,10 +477,6 @@ public class BuildRunHandler {
     // another argument.
     sendOutput("Completed execution for test " + getTestVersionIdentifierLong(testVersion),
         true);
-    
-    // push all pending output and wait for it to finish so that once a version completes,
-    // user has seen all it's output
-    zwlProgramOutputProvider.processRemaining();
     
     // update build status
     updateBuildStatus(testVersion.getTestVersionId(), TestStatus.SUCCESS);
@@ -538,26 +528,6 @@ public class BuildRunHandler {
       markBuildRequestCompleted();
     }
     
-    
-    // flush program output, this shouldn't have anything to flush as we do it before the end of
-    // each version.
-    LOG.debug("pushing program output and waiting");
-    zwlProgramOutputProvider.processRemainingAndTearDown();
-  
-    /*
-    Reason why shots are stopped after pushing output and not in beginning:
-    Sometimes when last test version finishes, it's very last commands might not have resulted
-    in browser render yet, for example code tries to change something on page, webdriver detects the
-    change but hasn't rendered the change yet. Post last version, if shots are stopped immediately,
-    the final render may have left from capturing. I feel we need to wait for sometime before
-    stopping the shots so that any unrendered change has rendered and captured for user's eyes.
-    This may be a perfect place to do so, without having to put a raw wait, while program output is
-    being saved into ESDB, shots may continue to capture the opened browser window. This may
-    result in some redundant shots when program output saving takes more time than expected and
-    shots continue to come of the same browser state due to everything already loaded. I am
-    expecting ESDB output save to be quick thus preventing lot of redundant shots.
-    TODO: Keep an eye here
-     */
     // stop shots
     LOG.debug("Shots are going to stop");
     captureShotHandler.stopShot(); // takes no time
@@ -638,14 +608,11 @@ public class BuildRunHandler {
     // it won't happen that stop occurs before any version could start because we check stop during
     // a version run.
     LOG.debug("updateBuildStatusOnStop was invoked");
-    // first do everything we do when a version completes, i.e pushing a final output, waiting for
-    // all output to commit, update build status, marking testVersionStatus.
+    // first do everything we do when a version completes, i.e pushing a final output,
+    // update build status, marking testVersionStatus.
     int testVersionId = currentTestVersion.getTestVersionId();
     validateTestVersionRunning(testVersionId);
     sendOutput("Stopping...", true);
-    // push all pending output and wait for it to finish so that once a version completes,
-    // user has seen all it's output
-    zwlProgramOutputProvider.processRemaining();
     updateBuildStatus(testVersionId, TestStatus.STOPPED);
     testVersionsStatus.put(testVersionId, TestStatus.STOPPED);
     // Once done, save other versions that are stopped due to current version stopping without
@@ -703,13 +670,13 @@ public class BuildRunHandler {
   private void sendOutput(String message, boolean versionEndedMessage) {
     LOG.debug("Sending output message {}, last message for version? {}", message,
         versionEndedMessage);
-    ZwlProgramOutput zwlProgramOutput = new ZwlProgramOutput()
+    BuildOutput buildOutput = new BuildOutput()
         .setBuildId(build.getBuildId())
         .setTestVersionId(currentTestVersion.getTestVersionId())
         .setOutput(message)
         .setCreateDate(DateTimeUtil.getCurrent(clock))
         .setEnded(versionEndedMessage);
-    zwlProgramOutputProvider.saveAsync(zwlProgramOutput);
+    validateSingleRowDbCommit(buildOutputProvider.newBuildOutput(buildOutput));
   }
   
   private void validateSingleRowDbCommit(int result) {
@@ -746,8 +713,8 @@ public class BuildRunHandler {
                            BuildStatusProvider buildStatusProvider,
                            ImmutableMapProvider immutableMapProvider,
                            QuotaProvider quotaProvider,
+                           BuildOutputProvider buildOutputProvider,
                            ShotMetadataProvider shotMetadataProvider,
-                           ZwlProgramOutputProvider zwlProgramOutputProvider,
                            VMUpdateHandler vmUpdateHandler,
                            Build build,
                            List<TestVersion> testVersions,
@@ -762,8 +729,8 @@ public class BuildRunHandler {
           buildStatusProvider,
           immutableMapProvider,
           quotaProvider,
+          buildOutputProvider,
           shotMetadataProvider,
-          zwlProgramOutputProvider,
           vmUpdateHandler,
           build,
           testVersions,

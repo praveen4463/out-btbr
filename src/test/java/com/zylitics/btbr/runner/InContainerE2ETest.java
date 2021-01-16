@@ -6,14 +6,15 @@ import com.google.cloud.storage.Storage;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.zylitics.btbr.config.APICoreProperties;
+import com.zylitics.btbr.dao.SqlParamsBuilder;
 import com.zylitics.btbr.esdb.ShotMetadataIndexFields;
-import com.zylitics.btbr.esdb.ZwlProgramOutputIndexFields;
 import com.zylitics.btbr.http.RequestBuildRun;
 import com.zylitics.btbr.http.ResponseBuildRun;
 import com.zylitics.btbr.http.ResponseCommon;
 import com.zylitics.btbr.http.ResponseStatus;
 import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.model.BuildOutput;
 import com.zylitics.btbr.model.TestVersion;
 import com.zylitics.btbr.runner.provider.BuildProvider;
 import com.zylitics.btbr.runner.provider.TestVersionProvider;
@@ -144,7 +145,8 @@ public class InContainerE2ETest {
   -   All browser/performance logs at build caps level
   -   All internal logs using system properties
   - It must have valid tests that have no bugs, preferably already tested. At least two tests
-  - are required
+    are required
+  - buildVm must be set on delete_from_runner=true so that we can track build finish
    */
   @Test
   void straightBuildRunTest() throws Exception {
@@ -155,7 +157,7 @@ public class InContainerE2ETest {
     
     int timeoutSec = 120;
     int sleepBetweenPollSec = 2;
-    int maxExpectedProgramOutput = 1000;
+    int maxExpectedBuildOutput = 1000;
     boolean testsHaveAnyElementShot = false;
   
     Build build = buildProvider.getBuild(buildId).orElseThrow(RuntimeException::new);
@@ -207,14 +209,14 @@ public class InContainerE2ETest {
     
     // 3. check we pushed some shots to cloud and esdb
     LOG.debug("asserting shots in cloud and esdb");
-    int maxExpectedShots = buildRunTimeSec * 10; // every second 10 shots
-    int minExpectedShots = buildRunTimeSec; // every second 1 shot
+    int maxExpectedShots = buildRunTimeSec * 3; // every second 3 shots
+    int minExpectedShots = buildRunTimeSec / 2; // 1 shot every 2 seconds
     LOG.debug("Expecting minimum {} and maximum {} shots", minExpectedShots, maxExpectedShots);
     assertShotsProcessed(sessionId, build, testVersions, maxExpectedShots, minExpectedShots);
     
-    // 4. check some program output was saved in esdb
-    LOG.debug("asserting program output");
-    assertProgramOutput(build, testVersions, maxExpectedProgramOutput);
+    // 4. check some build output was saved
+    LOG.debug("asserting build output");
+    assertBuildOutput(build, testVersions, maxExpectedBuildOutput);
     
     // 5. check logs and element screenshots were uploaded to cloud
     LOG.debug("asserting logs in cloud");
@@ -357,40 +359,26 @@ public class InContainerE2ETest {
     assertTrue(derivedShots.containsAll(shotsFromEsdb));
   }
   
-  private void assertProgramOutput(Build build,
-                                   List<TestVersion> testVersions,
-                                   int maxExpectedProgramOutput) throws IOException {
-    
+  private void assertBuildOutput(Build build,
+                                 List<TestVersion> testVersions,
+                                 int maxExpectedBuildOutput) {
+    String sql = "SELECT output, ended FROM bt_build_output\n" +
+        "WHERE bt_build_id = :bt_build_id AND bt_test_version_id = :bt_test_version_id\n" +
+        "ORDER BY bt_build_output_id LIMIT :limit";
     for (TestVersion testVersion : testVersions) {
-      SearchRequest searchRequest =
-          new SearchRequest(apiCoreProps.getEsdb().getZwlProgramOutputIndex());
-      SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-      sourceBuilder
-          .query(QueryBuilders.boolQuery()
-              .must(QueryBuilders.termQuery(ZwlProgramOutputIndexFields.BUILD_ID,
-                  build.getBuildId()))
-              .must(QueryBuilders.termQuery(ZwlProgramOutputIndexFields.TEST_VERSION_ID,
-                  testVersion.getTestVersionId())))
-          .sort(ZwlProgramOutputIndexFields.CREATE_DATE, SortOrder.ASC)
-          .size(maxExpectedProgramOutput);
-      searchRequest.source(sourceBuilder);
-      SearchHits hits = getSearchHits(searchRequest);
-      int totalHits = hits.getHits().length;
-      assertTrue(totalHits > 0); // this version has some output
-      LOG.debug("total program output for testVersion {} is {}", testVersion.getTestVersionId(),
-          totalHits);
-      // iterate thru all the hits
-      for (int i = 0; i < totalHits; i++) {
-        SearchHit hit = hits.getHits()[i];
-        Map<String, Object> source = hit.getSourceAsMap();
-        String output = (String) source.get(ZwlProgramOutputIndexFields.OUTPUT);
-        assertFalse(Strings.isNullOrEmpty(output)); // output is not empty
-        // the last output should contain ended = true for each version
-        if (i == totalHits - 1) {
-          assertTrue((Boolean) source.get(ZwlProgramOutputIndexFields.ENDED));
-          LOG.debug("ended field found in testVersion {}", testVersion.getTestVersionId());
-        }
-      }
+      List<BuildOutput> buildOutputs = jdbc.query(sql, new SqlParamsBuilder()
+      .withInteger("bt_build_id", build.getBuildId())
+      .withInteger("bt_test_version_id", testVersion.getTestVersionId())
+      .withInteger("limit", maxExpectedBuildOutput).build(), (rs, rowNum) ->
+          new BuildOutput().setOutput(rs.getString("output")).setEnded(rs.getBoolean("ended")));
+      int total = buildOutputs.size();
+      assertTrue(total > 0); // this version has some output
+      LOG.debug("total build output for testVersion {} is {}", testVersion.getTestVersionId(),
+          total);
+      // no output is empty
+      assertFalse(buildOutputs.stream().anyMatch(b -> Strings.isNullOrEmpty(b.getOutput())));
+      // the last output must contain ended = true for each version
+      assertTrue(buildOutputs.get(total - 1).isEnded());
     }
   }
   

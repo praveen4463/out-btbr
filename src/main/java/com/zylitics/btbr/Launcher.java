@@ -15,7 +15,7 @@ import com.zylitics.btbr.runner.provider.ZwlProgramOutputProvider;
 import com.zylitics.btbr.service.MockVMService;
 import com.zylitics.btbr.service.ProductionVMService;
 import com.zylitics.btbr.service.VMService;
-import com.zylitics.btbr.shot.CaptureShotHandlerImpl;
+import com.zylitics.btbr.shot.CaptureShotHandlerImplV1;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -120,7 +120,7 @@ public class Launcher {
   @Bean
   @Profile({"production", "e2e"})
   CaptureShotHandler.Factory captureShotHandlerFactory() {
-    return new CaptureShotHandlerImpl.Factory();
+    return new CaptureShotHandlerImplV1.Factory();
   }
   
   @Bean

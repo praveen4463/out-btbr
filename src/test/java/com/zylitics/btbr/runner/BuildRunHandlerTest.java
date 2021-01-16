@@ -235,7 +235,7 @@ public class BuildRunHandlerTest {
     BuildProvider buildProvider = getBuildProvider(buildId);
     BuildRequestProvider buildRequestProvider = getBuildRequestProvider(build.getBuildRequestId());
     QuotaProvider quotaProvider = getQuotaProvider(build);
-    ZwlProgramOutputProvider zwlProgramOutputProvider = getZwlProgramOutputProvider();
+    BuildOutputProvider buildOutputProvider = getBuildOutputProvider();
     CaptureShotHandler captureShotHandler = mock(CaptureShotHandler.class);
     WebdriverLogHandler webdriverLogHandler = getWebdriverLogHandler();
     LocalAssetsToCloudHandler localAssetsToCloudHandler = getLocalAssetsToCloudHandler();
@@ -246,9 +246,9 @@ public class BuildRunHandlerTest {
         .withBuildStatusProvider(buildStatusProvider)
         .withBuildProvider(buildProvider)
         .withBuildRequestProvider(buildRequestProvider)
-        .withZwlProgramOutputProvider(zwlProgramOutputProvider)
         .withBuild(build)
         .withQuotaProvider(quotaProvider)
+        .withBuildOutputProvider(buildOutputProvider)
         .withTestVersions(versions)
         .withClock(clock)
         .withCaptureShotHandlerFactory(getCaptureShotHandlerFactory(captureShotHandler))
@@ -261,18 +261,18 @@ public class BuildRunHandlerTest {
     assertEquals(BuildRunStatus.COMPLETED, buildRunStatus.get(buildId));
     
     InOrder inOrder = inOrder(buildStatusProvider, buildProvider,
-        buildRequestProvider, zwlProgramOutputProvider,
-        quotaProvider, captureShotHandler, driver, webdriverLogHandler, localAssetsToCloudHandler,
+        buildRequestProvider, quotaProvider, buildOutputProvider,
+        captureShotHandler, driver, webdriverLogHandler, localAssetsToCloudHandler,
         vmUpdateHandler);
     
     inOrder.verify(buildStatusProvider).saveOnStart(new BuildStatusSaveOnStart(buildId,
         testVersionId1, TestStatus.RUNNING, currentDT, build.getUserId()));
-    inOrder.verify(zwlProgramOutputProvider).saveAsync(argThat(matchZwlProgramOutput(
-        new ZwlProgramOutput().setBuildId(buildId).setTestVersionId(testVersionId1)
+    inOrder.verify(buildOutputProvider).newBuildOutput(argThat(matchBuildOutput(
+        new BuildOutput().setBuildId(buildId).setTestVersionId(testVersionId1)
             .setOutput("Executing").setEnded(false).setCreateDate(currentDT))));
     inOrder.verify(captureShotHandler).startShot();
-    inOrder.verify(zwlProgramOutputProvider).saveAsync(argThat(matchZwlProgramOutput(
-        new ZwlProgramOutput().setBuildId(buildId).setTestVersionId(testVersionId1)
+    inOrder.verify(buildOutputProvider).newBuildOutput(argThat(matchBuildOutput(
+        new BuildOutput().setBuildId(buildId).setTestVersionId(testVersionId1)
             .setOutput("Completed").setEnded(true).setCreateDate(currentDT))));
     inOrder.verify(buildStatusProvider).updateOnEnd(new BuildStatusUpdateOnEnd(buildId,
         testVersionId1, TestStatus.SUCCESS, currentDT));
@@ -280,11 +280,11 @@ public class BuildRunHandlerTest {
     inOrder.verify(driver).getWindowHandles();
     inOrder.verify(buildStatusProvider).saveOnStart(new BuildStatusSaveOnStart(buildId,
         testVersionId2, TestStatus.RUNNING, currentDT, build.getUserId()));
-    inOrder.verify(zwlProgramOutputProvider).saveAsync(argThat(matchZwlProgramOutput(
-        new ZwlProgramOutput().setBuildId(buildId).setTestVersionId(testVersionId2)
+    inOrder.verify(buildOutputProvider).newBuildOutput(argThat(matchBuildOutput(
+        new BuildOutput().setBuildId(buildId).setTestVersionId(testVersionId2)
             .setOutput("Executing").setEnded(false).setCreateDate(currentDT))));
-    inOrder.verify(zwlProgramOutputProvider).saveAsync(argThat(matchZwlProgramOutput(
-        new ZwlProgramOutput().setBuildId(buildId).setTestVersionId(testVersionId2)
+    inOrder.verify(buildOutputProvider).newBuildOutput(argThat(matchBuildOutput(
+        new BuildOutput().setBuildId(buildId).setTestVersionId(testVersionId2)
             .setOutput("Completed").setEnded(true).setCreateDate(currentDT))));
     inOrder.verify(buildStatusProvider).updateOnEnd(new BuildStatusUpdateOnEnd(buildId,
         testVersionId2, TestStatus.SUCCESS, currentDT));
@@ -293,7 +293,6 @@ public class BuildRunHandlerTest {
         true, null));
     // as we've given source IDE
     inOrder.verify(buildRequestProvider).markBuildRequestCompleted(build.getBuildRequestId());
-    inOrder.verify(zwlProgramOutputProvider).processRemainingAndTearDown();
     inOrder.verify(captureShotHandler).stopShot();
     inOrder.verify(captureShotHandler).blockUntilFinish();
     inOrder.verify(webdriverLogHandler).capture();
@@ -312,8 +311,8 @@ public class BuildRunHandlerTest {
     BuildStatusProvider buildStatusProvider = getBuildStatusProvider();
     Clock clock = Clock.fixed(Instant.now(), ZoneId.of("UTC"));
     BuildProvider buildProvider = getBuildProvider(buildId);
+    BuildOutputProvider buildOutputProvider = getBuildOutputProvider();
     OffsetDateTime currentDT = DateTimeUtil.getCurrent(clock);
-    ZwlProgramOutputProvider zwlProgramOutputProvider = getZwlProgramOutputProvider();
     ZwlLangException zwEx = new ZwlLangException(null, null, error);
     // when single version is run
     TestVersion testVersion1 = new TestVersion().setTestVersionId(testVersionId).setName("v1")
@@ -329,13 +328,13 @@ public class BuildRunHandlerTest {
         .withBuildStatusProvider(buildStatusProvider)
         .withClock(clock)
         .withBuildProvider(buildProvider)
-        .withZwlProgramOutputProvider(zwlProgramOutputProvider)
+        .withBuildOutputProvider(buildOutputProvider)
         .withTestVersions(ImmutableList.of(testVersion1))
         .withZwlApi(zwlApi).build().handle();
     
-    InOrder inOrder = inOrder(buildStatusProvider, buildProvider, zwlProgramOutputProvider);
-    inOrder.verify(zwlProgramOutputProvider).saveAsync(argThat(matchZwlProgramOutput(
-        new ZwlProgramOutput().setBuildId(buildId).setTestVersionId(testVersionId)
+    InOrder inOrder = inOrder(buildStatusProvider, buildProvider, buildOutputProvider);
+    inOrder.verify(buildOutputProvider).newBuildOutput(argThat(matchBuildOutput(
+        new BuildOutput().setBuildId(buildId).setTestVersionId(testVersionId)
             .setOutput("Exception").setEnded(true).setCreateDate(currentDT))));
     inOrder.verify(buildStatusProvider).updateOnEnd(argThat(matchBuildStatusUpdateOnEnd(
         new BuildStatusUpdateOnEnd(buildId, testVersionId, TestStatus.ERROR, currentDT
@@ -348,10 +347,10 @@ public class BuildRunHandlerTest {
   
   // TODO: Write more tests later on, for now this much including the E2E should be enough
   
-  // the 'output' field of ZwlProgramOutput is what causes this matcher to be created because I
+  // the 'output' field of BuildOutput is what causes this matcher to be created because I
   // don't want to match on exact term but partial, I didn't want to create an 'equals' in
-  // ZwlProgramOutput that matches on partial 'output' string as it's a test requirement only.
-  private ArgumentMatcher<ZwlProgramOutput> matchZwlProgramOutput(ZwlProgramOutput expected) {
+  // BuildOutput that matches on partial 'output' string as it's a test requirement only.
+  private ArgumentMatcher<BuildOutput> matchBuildOutput(BuildOutput expected) {
     return z -> z.getBuildId() == expected.getBuildId()
         && z.getTestVersionId() == expected.getTestVersionId()
         && z.getOutput().startsWith(expected.getOutput())
@@ -394,6 +393,7 @@ public class BuildRunHandlerTest {
   
   private BuildProvider getBuildProvider(int buildId) {
     BuildProvider buildProvider = mock(BuildProvider.class);
+    when(buildProvider.updateOnStart(eq(buildId), any(OffsetDateTime.class))).thenReturn(1);
     when(buildProvider.updateOnComplete(any(BuildUpdateOnComplete.class))).thenReturn(1);
     when(buildProvider.updateOnAllTasksDone(eq(buildId), any(OffsetDateTime.class))).thenReturn(1);
     return buildProvider;
@@ -418,6 +418,12 @@ public class BuildRunHandlerTest {
     return quotaProvider;
   }
   
+  private BuildOutputProvider getBuildOutputProvider() {
+    BuildOutputProvider buildOutputProvider = mock(BuildOutputProvider.class);
+    when(buildOutputProvider.newBuildOutput(any(BuildOutput.class))).thenReturn(1);
+    return buildOutputProvider;
+  }
+  
   private ImmutableMapProvider getImmutableMapProvider() {
     ImmutableMapProvider immutableMapProvider = mock(ImmutableMapProvider.class);
     when(immutableMapProvider.getMapFromTableByBuild(anyInt(), anyString()))
@@ -427,10 +433,6 @@ public class BuildRunHandlerTest {
   
   private ShotMetadataProvider getShotMetadataProvider() {
     return mock(ShotMetadataProvider.class);
-  }
-  
-  private ZwlProgramOutputProvider getZwlProgramOutputProvider() {
-    return mock(ZwlProgramOutputProvider.class);
   }
   
   private Build getBuild(int buildId, BuildSourceType buildSourceType) {
@@ -537,8 +539,8 @@ public class BuildRunHandlerTest {
     private BuildProvider buildProvider = null;
     private BuildRequestProvider buildRequestProvider = null;
     private BuildStatusProvider buildStatusProvider = null;
-    private ZwlProgramOutputProvider zwlProgramOutputProvider = null;
     private QuotaProvider quotaProvider = null;
+    private BuildOutputProvider buildOutputProvider = null;
     private Build build = null;
     private RemoteWebDriver driver = null;
     private List<TestVersion> testVersions = null;
@@ -584,13 +586,13 @@ public class BuildRunHandlerTest {
       return this;
     }
   
-    Builder withZwlProgramOutputProvider(ZwlProgramOutputProvider zwlProgramOutputProvider) {
-      this.zwlProgramOutputProvider = zwlProgramOutputProvider;
-      return this;
-    }
-  
     Builder withQuotaProvider(QuotaProvider quotaProvider) {
       this.quotaProvider = quotaProvider;
+      return this;
+    }
+    
+    Builder withBuildOutputProvider(BuildOutputProvider buildOutputProvider) {
+      this.buildOutputProvider = buildOutputProvider;
       return this;
     }
   
@@ -666,11 +668,11 @@ public class BuildRunHandlerTest {
       if (buildStatusProvider == null) {
         buildStatusProvider = getBuildStatusProvider();
       }
-      if (zwlProgramOutputProvider == null) {
-        zwlProgramOutputProvider = getZwlProgramOutputProvider();
-      }
       if (quotaProvider == null) {
         quotaProvider = getQuotaProvider(build);
+      }
+      if (buildOutputProvider == null) {
+        buildOutputProvider = getBuildOutputProvider();
       }
       if (driver == null) {
         driver = getRemoteWebDriver();
@@ -700,8 +702,8 @@ public class BuildRunHandlerTest {
       
       return new BuildRunHandler(getAPICoreProperties(updateLineMillis, captureLogsMillis),
           getStorage(), buildProvider, buildRequestProvider, buildStatusProvider,
-          getImmutableMapProvider(), quotaProvider, getShotMetadataProvider(),
-          zwlProgramOutputProvider, build, testVersions, captureShotHandlerFactory, vmUpdateHandler,
+          getImmutableMapProvider(), quotaProvider, buildOutputProvider,
+          getShotMetadataProvider(), build, testVersions, captureShotHandlerFactory, vmUpdateHandler,
           webdriverLogHandler, localAssetsToCloudHandler, driver, getBuildDir(),
           clock, buildRunStatus, getZwlApiSupplier(zwlApi));
     }

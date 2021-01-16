@@ -59,11 +59,11 @@ public class RunnerController {
   private final TestVersionProvider testVersionProvider;
   private final BrowserProvider browserProvider;
   private final QuotaProvider quotaProvider;
+  private final BuildOutputProvider buildOutputProvider;
   
   // factories
   private final CaptureShotHandler.Factory captureShotHandlerFactory;
   private final ShotMetadataProvider.Factory shotMetadataProviderFactory;
-  private final ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory;
   private final BuildRunHandler.Factory buildRunHandlerFactory;
   
   // handlers
@@ -84,6 +84,7 @@ public class RunnerController {
                           TestVersionProvider testVersionProvider,
                           BrowserProvider browserProvider,
                           QuotaProvider quotaProvider,
+                          BuildOutputProvider buildOutputProvider,
                           CaptureShotHandler.Factory captureShotHandlerFactory,
                           ShotMetadataProvider.Factory shotMetadataProviderFactory,
                           ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory,
@@ -99,9 +100,9 @@ public class RunnerController {
         testVersionProvider,
         browserProvider,
         quotaProvider,
+        buildOutputProvider,
         captureShotHandlerFactory,
         shotMetadataProviderFactory,
-        zwlProgramOutputProviderFactory,
         new BuildRunHandler.Factory(),
         vmUpdateHandler,
         new IOWrapper(),
@@ -120,9 +121,9 @@ public class RunnerController {
                    TestVersionProvider testVersionProvider,
                    BrowserProvider browserProvider,
                    QuotaProvider quotaProvider,
+                   BuildOutputProvider buildOutputProvider,
                    CaptureShotHandler.Factory captureShotHandlerFactory,
                    ShotMetadataProvider.Factory shotMetadataProviderFactory,
-                   ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory,
                    BuildRunHandler.Factory buildRunHandlerFactory,
                    VMUpdateHandler vmUpdateHandler,
                    IOWrapper ioWrapper,
@@ -138,9 +139,9 @@ public class RunnerController {
     this.testVersionProvider = testVersionProvider;
     this.browserProvider = browserProvider;
     this.quotaProvider = quotaProvider;
+    this.buildOutputProvider = buildOutputProvider;
     this.captureShotHandlerFactory = captureShotHandlerFactory;
     this.shotMetadataProviderFactory = shotMetadataProviderFactory;
-    this.zwlProgramOutputProviderFactory = zwlProgramOutputProviderFactory;
     this.buildRunHandlerFactory = buildRunHandlerFactory;
     this.vmUpdateHandler = vmUpdateHandler;
     this.ioWrapper = ioWrapper;
@@ -244,8 +245,8 @@ public class RunnerController {
         buildStatusProvider,
         immutableMapProvider,
         quotaProvider,
+        buildOutputProvider,
         shotMetadataProviderFactory.create(apiCoreProperties, restHighLevelClient),
-        zwlProgramOutputProviderFactory.create(apiCoreProperties, restHighLevelClient),
         vmUpdateHandler,
         build,
         testVersions.get(),
