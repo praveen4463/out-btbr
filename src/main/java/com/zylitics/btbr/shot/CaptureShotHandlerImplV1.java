@@ -3,6 +3,7 @@ package com.zylitics.btbr.shot;
 import com.google.cloud.storage.Storage;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.io.Resources;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.ShotMetadata;
@@ -14,7 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.time.OffsetDateTime;
 import java.util.concurrent.CountDownLatch;
 
@@ -48,12 +51,15 @@ public final class CaptureShotHandlerImplV1 implements CaptureShotHandler {
   
   private final CountDownLatch shotCaptureThreadLatch = new CountDownLatch(1);
   
+  private final ByteArrayInputStream eosImageBytes;
+  
   private CaptureShotHandlerImplV1(APICoreProperties.Shot shotProps,
                                  ShotMetadataProvider shotMetadataProvider,
                                  Storage storage,
                                  Build build,
                                  String sessionKey,
-                                 CurrentTestVersion currentTestVersion) {
+                                 CurrentTestVersion currentTestVersion,
+                                 ByteArrayInputStream eosImageBytes) {
     this(shotProps,
         shotMetadataProvider,
         build,
@@ -61,7 +67,8 @@ public final class CaptureShotHandlerImplV1 implements CaptureShotHandler {
         currentTestVersion,
         CaptureDevice.Factory.getDefault().create(shotProps.getExt()),
         ShotCloudStore.Factory.getDefault().create(build.getShotBucketSessionStorage(), shotProps,
-            storage));
+            storage),
+        eosImageBytes);
   }
   
   CaptureShotHandlerImplV1(APICoreProperties.Shot shotProps,
@@ -70,7 +77,8 @@ public final class CaptureShotHandlerImplV1 implements CaptureShotHandler {
                          String sessionKey,
                          CurrentTestVersion currentTestVersion,
                          CaptureDevice captureDevice,
-                         ShotCloudStore shotCloudStore) {
+                         ShotCloudStore shotCloudStore,
+                         ByteArrayInputStream eosImageBytes) {
     this.shotProps = shotProps;
     this.shotMetadataProvider = shotMetadataProvider;
     this.build = build;
@@ -83,6 +91,7 @@ public final class CaptureShotHandlerImplV1 implements CaptureShotHandler {
     shotCaptureThread = new Thread(new ShotCaptureThread(), "shot_capture_thread_" +
         build.getBuildId());
     shotCaptureThread.setUncaughtExceptionHandler((t, e) -> LOG.error(e.getMessage(), e));
+    this.eosImageBytes = eosImageBytes;
   }
   
   @Override
@@ -145,7 +154,7 @@ public final class CaptureShotHandlerImplV1 implements CaptureShotHandler {
   // accessed by just one thread
   private void saveEOSShot() {
     ShotMetadata metadata = getShotMetadata(shotProps.getEosShot(), DateTimeUtil.getCurrentUTC());
-    processShot(new ByteArrayInputStream(new byte[1]), metadata);
+    processShot(eosImageBytes, metadata);
   }
   
   private void processShot(InputStream stream, ShotMetadata metadata) {
@@ -202,6 +211,25 @@ public final class CaptureShotHandlerImplV1 implements CaptureShotHandler {
   }
   
   public static class Factory implements CaptureShotHandler.Factory {
+  
+    // Taken here rather than in Impl's constructor cause we instantiate it once per application
+    // run while impl gets instantiated per request.
+    private final ByteArrayInputStream eosImageBytes;
+    
+    public Factory() {
+      eosImageBytes = new ByteArrayInputStream(readEOSImage());
+    }
+  
+    private byte[] readEOSImage() {
+      try {
+        String path = "/EOS.png";
+        URL url = getClass().getResource(path);
+        //noinspection UnstableApiUsage
+        return Resources.toByteArray(url);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
     
     @Override
     public CaptureShotHandler create(APICoreProperties.Shot shotProps,
@@ -216,7 +244,7 @@ public final class CaptureShotHandlerImplV1 implements CaptureShotHandler {
       Preconditions.checkNotNull(currentTestVersion, "currentTestVersion can't be null");
       
       return new CaptureShotHandlerImplV1(shotProps, shotMetadataProvider, storage, build,
-          sessionKey, currentTestVersion);
+          sessionKey, currentTestVersion, eosImageBytes);
     }
   }
 }
