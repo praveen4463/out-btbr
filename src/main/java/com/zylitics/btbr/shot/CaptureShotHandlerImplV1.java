@@ -154,6 +154,9 @@ public final class CaptureShotHandlerImplV1 implements CaptureShotHandler {
   // accessed by just one thread
   private void saveEOSShot() {
     ShotMetadata metadata = getShotMetadata(shotProps.getEosShot(), DateTimeUtil.getCurrentUTC());
+    if (eosImageBytes.available() == 0) {
+      eosImageBytes.reset();
+    }
     processShot(eosImageBytes, metadata);
   }
   
