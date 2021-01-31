@@ -34,6 +34,8 @@ api-core:
     update-line-build-status-after: 1000
     label-key-availability-status: availability-status
     label-value-availability-status: FREE
+    btbr-auth-user: root
+    btbr-auth-secret-cloud-file: btbr-api-key.encrypted
     wzgp-endpoint: https://wzgp.api.zylitics.io
     wzgp-version: beta
     wzgp-auth-user: prod-test

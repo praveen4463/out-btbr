@@ -20,9 +20,7 @@ class CloudKMSSecretsManager implements SecretsManager {
   private final APICoreProperties apiCoreProperties;
   private final Storage storage;
   
-  private KeyManagementServiceClient client;
-  
-  private boolean isClosed = false;
+  private final KeyManagementServiceClient client;
   
   @SuppressWarnings("unused")
   @Autowired
@@ -56,16 +54,7 @@ class CloudKMSSecretsManager implements SecretsManager {
   }
   
   @Override
-  public void reAcquireClientAfterClose() throws IOException {
-    if (isClosed) {
-      client = KeyManagementServiceClient.create();
-      isClosed = false;
-    }
-  }
-  
-  @Override
   public void close() {
     client.close();
-    isClosed = true;
   }
 }

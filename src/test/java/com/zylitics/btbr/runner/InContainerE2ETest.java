@@ -84,6 +84,8 @@ public class InContainerE2ETest {
   
   private static final Logger LOG = LoggerFactory.getLogger(InContainerE2ETest.class);
   
+  private static final String AUTHORIZATION = "Authorization";
+  
   private static final String ERROR_REGEX = "(?i).*(exception|error).*";
   
   private static final String STOP_ERROR_REGEX = "(?i).*(stop|stopped).*";
@@ -136,7 +138,9 @@ public class InContainerE2ETest {
   @BeforeEach
   void setup() {
     apiVersion = env.getProperty(APP_VER_KEY);
-    client = client.mutate().responseTimeout(Duration.ofSeconds(60)).build();
+    // put any value to auth header, System property must be set to skip auth for test
+    client = client.mutate().responseTimeout(Duration.ofSeconds(60))
+        .defaultHeader(AUTHORIZATION, "a:b").build();
   }
   
   /*

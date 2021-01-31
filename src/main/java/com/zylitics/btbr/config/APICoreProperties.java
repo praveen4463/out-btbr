@@ -300,6 +300,12 @@ public class APICoreProperties {
     private String labelValueAvailabilityStatus;
   
     @NotBlank
+    private String btbrAuthUser;
+  
+    @NotBlank
+    private String btbrAuthSecretCloudFile;
+  
+    @NotBlank
     private String wzgpEndpoint;
   
     @NotBlank
@@ -351,6 +357,26 @@ public class APICoreProperties {
     public void setLabelValueAvailabilityStatus(String labelValueAvailabilityStatus) {
       if (this.labelValueAvailabilityStatus == null) {
         this.labelValueAvailabilityStatus = labelValueAvailabilityStatus;
+      }
+    }
+  
+    public String getBtbrAuthUser() {
+      return btbrAuthUser;
+    }
+  
+    public void setBtbrAuthUser(String btbrAuthUser) {
+      if (this.btbrAuthUser == null) {
+        this.btbrAuthUser = btbrAuthUser;
+      }
+    }
+  
+    public String getBtbrAuthSecretCloudFile() {
+      return btbrAuthSecretCloudFile;
+    }
+  
+    public void setBtbrAuthSecretCloudFile(String btbrAuthSecretCloudFile) {
+      if (this.btbrAuthSecretCloudFile == null) {
+        this.btbrAuthSecretCloudFile = btbrAuthSecretCloudFile;
       }
     }
   

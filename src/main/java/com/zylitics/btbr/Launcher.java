@@ -12,9 +12,7 @@ import com.zylitics.btbr.esdb.EsdbZwlProgramOutputProvider;
 import com.zylitics.btbr.runner.CaptureShotHandler;
 import com.zylitics.btbr.runner.provider.ShotMetadataProvider;
 import com.zylitics.btbr.runner.provider.ZwlProgramOutputProvider;
-import com.zylitics.btbr.service.MockVMService;
-import com.zylitics.btbr.service.ProductionVMService;
-import com.zylitics.btbr.service.VMService;
+import com.zylitics.btbr.service.*;
 import com.zylitics.btbr.shot.CaptureShotHandlerImplV1;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -146,5 +144,19 @@ public class Launcher {
   @Profile("e2e")
   VMService mockVMService() {
     return new MockVMService();
+  }
+  
+  @Bean
+  @Profile("production")
+  AuthService productionAuthService(APICoreProperties apiCoreProperties,
+                                    SecretsManager secretsManager) {
+    return new ProductionAuthService(apiCoreProperties, secretsManager);
+  }
+  
+  @Bean
+  @Profile("e2e")
+  AuthService localAuthService(APICoreProperties apiCoreProperties,
+                               SecretsManager secretsManager) {
+    return new LocalAuthService(apiCoreProperties, secretsManager);
   }
 }

@@ -9,6 +9,7 @@ import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.model.TestVersion;
 import com.zylitics.btbr.runner.provider.*;
+import com.zylitics.btbr.service.AuthService;
 import com.zylitics.btbr.webdriver.Configuration;
 import com.zylitics.btbr.webdriver.session.AbstractDriverSessionProvider;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -42,6 +43,7 @@ public class RunnerController {
   
   private static final Logger LOG = LoggerFactory.getLogger(RunnerController.class);
   private static final String BUILD_MAIN_THREAD_STARTS_WITH = "build_main_thread_";
+  private static final String AUTHORIZATION = "Authorization";
   
   // a map is used rather than directly assigning current build's main thread.
   private final Map<Integer, BuildRunStatus> buildRunStatus = new ConcurrentHashMap<>();
@@ -69,6 +71,9 @@ public class RunnerController {
   // handlers
   private final VMUpdateHandler vmUpdateHandler;
   
+  // services
+  private final AuthService authService;
+  
   private final IOWrapper ioWrapper;
   private final Configuration configuration;
   
@@ -88,7 +93,8 @@ public class RunnerController {
                           CaptureShotHandler.Factory captureShotHandlerFactory,
                           ShotMetadataProvider.Factory shotMetadataProviderFactory,
                           ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory,
-                          VMUpdateHandler vmUpdateHandler) {
+                          VMUpdateHandler vmUpdateHandler,
+                          AuthService authService) {
     this(apiCoreProperties,
         secretsManager,
         storage,
@@ -106,8 +112,8 @@ public class RunnerController {
         new BuildRunHandler.Factory(),
         vmUpdateHandler,
         new IOWrapper(),
-        new Configuration()
-        );
+        new Configuration(),
+        authService);
   }
   
   RunnerController(APICoreProperties apiCoreProperties,
@@ -127,7 +133,8 @@ public class RunnerController {
                    BuildRunHandler.Factory buildRunHandlerFactory,
                    VMUpdateHandler vmUpdateHandler,
                    IOWrapper ioWrapper,
-                   Configuration configuration) {
+                   Configuration configuration,
+                   AuthService authService) {
     this.apiCoreProperties = apiCoreProperties;
     this.secretsManager = secretsManager;
     this.storage = storage;
@@ -146,12 +153,17 @@ public class RunnerController {
     this.vmUpdateHandler = vmUpdateHandler;
     this.ioWrapper = ioWrapper;
     this.configuration = configuration;
+    this.authService = authService;
   }
   
   @PostMapping
   public ResponseEntity<AbstractResponse> run(
-      @Validated @RequestBody RequestBuildRun requestBuildRun) throws Exception {
+      @Validated @RequestBody RequestBuildRun requestBuildRun,
+      @RequestHeader(AUTHORIZATION) String authHeader) throws Exception {
     LOG.info("received request to run: {}", requestBuildRun.toString());
+    if (!authService.isAuthorized(authHeader)) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
     // validate no build is currently running
     if (buildRunStatus.values().stream().anyMatch(b -> b == BuildRunStatus.RUNNING)) {
       return processErrResponse(new IllegalArgumentException("Can't run a new build here because" +
@@ -266,8 +278,13 @@ public class RunnerController {
         .setStatus(ResponseStatus.RUNNING.name()).setHttpStatusCode(HttpStatus.OK.value()));
   }
   
+  // TODO: this should change to patch
   @DeleteMapping("/{buildId}")
-  public ResponseEntity<AbstractResponse> stop(@PathVariable int buildId) {
+  public ResponseEntity<AbstractResponse> stop(@PathVariable int buildId,
+                                               @RequestHeader(AUTHORIZATION) String authHeader) {
+    if (!authService.isAuthorized(authHeader)) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
     LOG.info("Getting a stop for build {}", buildId);
     LOG.info("buildRunStatus before stop is {}", buildRunStatus);
     BuildRunStatus runningStatus = buildRunStatus.get(buildId);

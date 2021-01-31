@@ -32,13 +32,15 @@ public class ProductionVMService implements VMService {
   private static final Json JSON = new Json();
   
   private final APICoreProperties.Runner runner;
-  private final SecretsManager secretsManager;
+  private final String wzgpUserAuthHeader;
   private final HttpClient.Factory httpClientFactory;
   
   public ProductionVMService(APICoreProperties apiCoreProperties,
                              SecretsManager secretsManager) {
     this.runner = apiCoreProperties.getRunner();
-    this.secretsManager = secretsManager;
+    String secret = secretsManager.getSecretAsPlainText(runner.getWzgpAuthSecretCloudFile());
+    wzgpUserAuthHeader = Base64.getEncoder().encodeToString((runner.getWzgpAuthUser() + ":" +
+        secret).getBytes());
     this.httpClientFactory = HttpClient.Factory.createDefault();
   }
   
@@ -79,22 +81,12 @@ public class ProductionVMService implements VMService {
   }
   
   private void execute(HttpClient client, HttpRequest request) throws Exception {
-    try {
-      secretsManager.reAcquireClientAfterClose(); // the client got closed in Launcher itself.
-      String secret = secretsManager.getSecretAsPlainText(runner.getWzgpAuthSecretCloudFile());
-      String authHeader = Base64.getEncoder().encodeToString((runner.getWzgpAuthUser() + ":" +
-          secret).getBytes());
-      request.setHeader(AUTHORIZATION, authHeader);
-      HttpResponse response = client.execute(request);
-      if (response.getStatus() != 200) {
-        Map<String, Object> responseBody = getBodyFromResponse(response);
-        throw new RuntimeException("Response status: " + responseBody.get("status") + ", code: " +
-            responseBody.get("httpStatusCode") +  "error:" + responseBody.get("error"));
-      }
-    } finally {
-      try {
-        secretsManager.close();
-      } catch (IOException ignore) {}
+    request.setHeader(AUTHORIZATION, wzgpUserAuthHeader);
+    HttpResponse response = client.execute(request);
+    if (response.getStatus() != 200) {
+      Map<String, Object> responseBody = getBodyFromResponse(response);
+      throw new RuntimeException("Response status: " + responseBody.get("status") + ", code: " +
+          responseBody.get("httpStatusCode") +  "error:" + responseBody.get("error"));
     }
   }
   
