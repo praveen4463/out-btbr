@@ -290,7 +290,7 @@ public class BuildRunHandlerTest {
         testVersionId2, TestStatus.SUCCESS, currentDT));
     // second version done, build complete steps will follow
     inOrder.verify(buildProvider).updateOnComplete(new BuildUpdateOnComplete(buildId, currentDT,
-        true, null));
+        TestStatus.SUCCESS, null));
     // as we've given source IDE
     inOrder.verify(buildRequestProvider).markBuildRequestCompleted(build.getBuildRequestId());
     inOrder.verify(captureShotHandler).stopShot();
@@ -341,7 +341,7 @@ public class BuildRunHandlerTest {
             , new ExceptionTranslationProvider().get(zwEx), "0:0",
             "0:1"))));
     inOrder.verify(buildProvider).updateOnComplete(argThat(matchBuildUpdateOnComplete(
-        new BuildUpdateOnComplete(buildId, currentDT, false, "An exception"))));
+        new BuildUpdateOnComplete(buildId, currentDT, TestStatus.ERROR, "An exception"))));
     // when multiple version is run
   }
   
@@ -370,7 +370,7 @@ public class BuildRunHandlerTest {
   private ArgumentMatcher<BuildUpdateOnComplete> matchBuildUpdateOnComplete(
       BuildUpdateOnComplete expected) {
     return z -> z.getBuildId() == expected.getBuildId()
-        && z.isSuccess() == expected.isSuccess()
+        && z.getFinalStatus() == expected.getFinalStatus()
         && z.getError().startsWith(expected.getError())
         && z.getEndDate().equals(expected.getEndDate());
   }

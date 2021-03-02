@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.model.BuildSourceType;
+import com.zylitics.btbr.runner.TestStatus;
 import com.zylitics.btbr.runner.provider.BuildProvider;
 import com.zylitics.btbr.runner.provider.BuildUpdateOnComplete;
 import com.zylitics.btbr.util.CollectionUtil;
@@ -38,7 +39,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         " bu.build_key" +
         ", bu.bt_build_vm_id" +
         ", bu.create_date AT TIME ZONE 'UTC' AS create_date" +
-        ", bu.is_success" +
+        ", bu.final_status" +
         ", bu.shot_bucket_session_storage" +
         ", bu.abort_on_failure" +
         ", bu.aet_keep_single_window" +
@@ -89,7 +90,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
             .setCreateDateUTC(DateTimeUtil.sqlTimestampToLocal(rs.getTimestamp("create_date")))
             // cast rather than getBoolean because this method always returns 'false' as default
             // value whereas we want to see a null if it's null.
-            .setSuccess((Boolean) rs.getObject("is_success"))
+            .setFinalStatus(rs.getString("final_status") != null
+                ? TestStatus.valueOf(rs.getString("final_status")) : null)
             .setShotBucketSessionStorage(rs.getString("shot_bucket_session_storage"))
             .setAbortOnFailure(rs.getBoolean("abort_on_failure"))
             .setAetKeepSingleWindow(rs.getBoolean("aet_keep_single_window"))
@@ -152,7 +154,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
   public int updateOnComplete(BuildUpdateOnComplete buildUpdateOnComplete) {
     Preconditions.checkNotNull(buildUpdateOnComplete, "buildUpdateOnComplete can't be null");
     
-    String sql = "UPDATE bt_build SET end_date = :end_date, is_success = :is_success" +
+    String sql = "UPDATE bt_build SET end_date = :end_date, final_status = :final_status" +
         ", error = :error WHERE bt_build_id = :bt_build_id";
   
     Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(4));
@@ -163,8 +165,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
     params.put("end_date", new SqlParameterValue(Types.TIMESTAMP_WITH_TIMEZONE
         , buildUpdateOnComplete.getEndDate()));
   
-    params.put("is_success", new SqlParameterValue(Types.BOOLEAN,
-        buildUpdateOnComplete.isSuccess()));
+    params.put("final_status", new SqlParameterValue(Types.OTHER,
+        buildUpdateOnComplete.getFinalStatus()));
   
     params.put("error", new SqlParameterValue(Types.OTHER, buildUpdateOnComplete.getError()));
   

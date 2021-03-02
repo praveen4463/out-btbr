@@ -179,7 +179,7 @@ public class RunnerController {
             requestBuildRun.getBuildId() + " doesn't exists"), HttpStatus.BAD_REQUEST);
       }
       build = b.get();
-      if (build.isSuccess() != null) {
+      if (build.getFinalStatus() != null) {
         return processErrResponse(new IllegalArgumentException("The given buildId " +
             requestBuildRun.getBuildId() + " has already completed it's execution and can't run" +
             " again."), HttpStatus.BAD_REQUEST);

@@ -1,5 +1,7 @@
 package com.zylitics.btbr.model;
 
+import com.zylitics.btbr.runner.TestStatus;
+
 import java.time.LocalDateTime;
 
 public class Build {
@@ -19,7 +21,7 @@ public class Build {
   // local date time.
   private LocalDateTime createDateUTC;
   
-  private Boolean isSuccess;
+  private TestStatus finalStatus;
   
   private String shotBucketSessionStorage;
   
@@ -84,12 +86,12 @@ public class Build {
     return this;
   }
   
-  public Boolean isSuccess() {
-    return isSuccess;
+  public TestStatus getFinalStatus() {
+    return finalStatus;
   }
   
-  public Build setSuccess(Boolean success) {
-    isSuccess = success;
+  public Build setFinalStatus(TestStatus finalStatus) {
+    this.finalStatus = finalStatus;
     return this;
   }
   
@@ -182,7 +184,7 @@ public class Build {
         ", buildCapability=" + buildCapability +
         ", buildVMId=" + buildVMId +
         ", createDateUTC=" + createDateUTC +
-        ", isSuccess=" + isSuccess +
+        ", finalStatus=" + finalStatus +
         ", shotBucketSessionStorage='" + shotBucketSessionStorage + '\'' +
         ", abortOnFailure=" + abortOnFailure +
         ", aetKeepSingleWindow=" + aetKeepSingleWindow +
@@ -190,7 +192,7 @@ public class Build {
         ", aetResetTimeouts=" + aetResetTimeouts +
         ", aetDeleteAllCookies=" + aetDeleteAllCookies +
         ", userId=" + userId +
-        ", sourceType='" + sourceType + '\'' +
+        ", sourceType=" + sourceType +
         ", buildRequestId=" + buildRequestId +
         '}';
   }

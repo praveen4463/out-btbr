@@ -566,14 +566,30 @@ public class BuildRunHandler {
   
   private void updateBuildOnFinish(boolean stopOccurred) {
     LOG.debug("updateBuildOnFinish was invoked");
-    boolean isSuccess = false;
-    String exMsg = null;
     boolean allSuccess = testVersionsStatus.values().stream()
         .allMatch(e -> e == TestStatus.SUCCESS);
-    if (allSuccess && testVersionsStatus.keySet().containsAll(testVersions.stream()
-        .map(TestVersion::getTestVersionId).collect(Collectors.toList()))) {
-      isSuccess = true;
+    boolean allVersionsRan = testVersionsStatus.keySet().containsAll(testVersions.stream()
+        .map(TestVersion::getTestVersionId).collect(Collectors.toList()));
+    TestStatus finalStatus;
+    if (allSuccess) {
+      if (!allVersionsRan) {
+        throw new RuntimeException("When all version didn't run, there must be some non success" +
+            " status available such as Error or Stopped");
+      }
+      finalStatus = TestStatus.SUCCESS;
+    } else if (stopOccurred) {
+      finalStatus = TestStatus.STOPPED;
+    } else if (testVersionsStatus.values().stream().anyMatch(e -> e == TestStatus.ERROR)) {
+      if (allVersionsRan) {
+        finalStatus = TestStatus.ERROR;
+      } else {
+        finalStatus = TestStatus.ABORTED;
+      }
     } else {
+      throw new RuntimeException("Couldn't deduce a final status for build");
+    }
+    String exMsg = null;
+    if (!allSuccess) {
       if (stopOccurred) {
         exMsg = "A STOP request was issued";
       } else if (currentTestVersion.getTestVersionId() == 0) {
@@ -582,11 +598,11 @@ public class BuildRunHandler {
         exMsg = "An exception occurred, check test version(s) of this build for details";
       }
     }
-    LOG.debug("was the build succeeded? {}, if no, the derived error is {}", isSuccess, exMsg);
+    LOG.debug("was the build succeeded? {}, if no, the derived error is {}", allSuccess, exMsg);
     // don't throw an exception from here
     try {
       validateSingleRowDbCommit(buildProvider.updateOnComplete(new BuildUpdateOnComplete(
-          build.getBuildId(), DateTimeUtil.getCurrent(clock), isSuccess, exMsg)));
+          build.getBuildId(), DateTimeUtil.getCurrent(clock), finalStatus, exMsg)));
     } catch (Throwable t) {
       LOG.error(t.getMessage(), t);
     }

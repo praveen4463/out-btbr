@@ -1,5 +1,7 @@
 package com.zylitics.btbr.test.model;
 
+import com.zylitics.btbr.runner.TestStatus;
+
 import java.time.LocalDateTime;
 
 public class Build {
@@ -13,7 +15,7 @@ public class Build {
   
   private LocalDateTime endDate;
   
-  private boolean isSuccess;
+  private TestStatus finalStatus;
   
   private String error;
   
@@ -35,12 +37,12 @@ public class Build {
     return this;
   }
   
-  public boolean isSuccess() {
-    return isSuccess;
+  public TestStatus getFinalStatus() {
+    return finalStatus;
   }
   
-  public Build setSuccess(boolean success) {
-    isSuccess = success;
+  public Build setFinalStatus(TestStatus finalStatus) {
+    this.finalStatus = finalStatus;
     return this;
   }
   
@@ -58,7 +60,7 @@ public class Build {
     return "Build{" +
         "startDate=" + startDate +
         ", endDate=" + endDate +
-        ", isSuccess=" + isSuccess +
+        ", finalStatus=" + finalStatus +
         ", error='" + error + '\'' +
         '}';
   }

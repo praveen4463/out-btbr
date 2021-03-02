@@ -54,11 +54,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Requirements:
@@ -177,7 +173,7 @@ public class InContainerE2ETest {
     com.zylitics.btbr.test.model.Build buildDetails = getBuildDetails();
     assertNotNull(buildDetails.getEndDate());
     assertTrue(buildDetails.getEndDate().isAfter(buildDetails.getStartDate()));
-    assertTrue(buildDetails.isSuccess());
+    assertEquals(TestStatus.SUCCESS, buildDetails.getFinalStatus());
     assertNull(buildDetails.getError());
     LOG.debug("build success assert done");
     
@@ -635,7 +631,7 @@ public class InContainerE2ETest {
     com.zylitics.btbr.test.model.Build buildDetails = getBuildDetails();
     assertNotNull(buildDetails.getEndDate());
     assertTrue(buildDetails.getEndDate().isAfter(buildDetails.getStartDate()));
-    assertFalse(buildDetails.isSuccess());
+    assertNotEquals(TestStatus.SUCCESS, buildDetails.getFinalStatus());
     assertNotNull(buildDetails.getError());
     assertTrue(buildDetails.getError().matches(errorMsgRegex));
     LOG.debug("build failure on stop assert done");
@@ -688,7 +684,7 @@ public class InContainerE2ETest {
   
   private com.zylitics.btbr.test.model.Build getBuildDetails() {
     String sql = "SELECT start_date AT TIME ZONE :tz AS start_date," +
-        " end_date AT TIME ZONE :tz AS end_date, is_success, error" +
+        " end_date AT TIME ZONE :tz AS end_date, final_status, error" +
         " FROM bt_build WHERE bt_build_id = :bt_build_id";
     Map<String, SqlParameterValue> params = new HashMap<>();
     params.put("bt_build_id", new SqlParameterValue(Types.INTEGER, buildId));
@@ -698,7 +694,8 @@ public class InContainerE2ETest {
     return new com.zylitics.btbr.test.model.Build()
         .setStartDate(DateTimeUtil.sqlTimestampToLocal(rowSet.getTimestamp("start_date")))
         .setEndDate(DateTimeUtil.sqlTimestampToLocal(rowSet.getTimestamp("end_date")))
-        .setSuccess(rowSet.getBoolean("is_success"))
+        // won't be null as we run post completion in tests
+        .setFinalStatus(TestStatus.valueOf(rowSet.getString("final_status")))
         .setError(rowSet.getString("error"));
   }
   
