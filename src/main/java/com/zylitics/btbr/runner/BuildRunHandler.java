@@ -707,7 +707,7 @@ public class BuildRunHandler {
   }
   
   private String getTestVersionIdentifierLong(TestVersion testVersion) {
-    return String.format("%s>%s>%s", testVersion.getFile().getName(),
+    return String.format("%s > %s > %s", testVersion.getFile().getName(),
         testVersion.getTest().getName(), testVersion.getName());
   }
   
