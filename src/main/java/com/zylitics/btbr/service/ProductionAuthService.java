@@ -8,18 +8,18 @@ import java.util.Base64;
 
 public class ProductionAuthService implements AuthService {
   
-  private final byte[] rootUserAuthHeader;
+  private final String rootUserAuthHeader;
   
   public ProductionAuthService(APICoreProperties apiCoreProperties,
-                                SecretsManager secretsManager) {
+                               SecretsManager secretsManager) {
     APICoreProperties.Runner runner = apiCoreProperties.getRunner();
     String secret = secretsManager.getSecretAsPlainText(runner.getBtbrAuthSecretCloudFile());
-    rootUserAuthHeader = Base64.getEncoder().encode((runner.getBtbrAuthUser() + ":" +
+    rootUserAuthHeader = Base64.getEncoder().encodeToString((runner.getBtbrAuthUser() + ":" +
         secret).getBytes());
   }
   
   @Override
   public boolean isAuthorized(String authHeader) {
-    return Arrays.equals(rootUserAuthHeader, Base64.getDecoder().decode(authHeader));
+    return rootUserAuthHeader.equals(authHeader);
   }
 }
