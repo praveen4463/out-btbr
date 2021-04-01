@@ -1,7 +1,5 @@
 package com.zylitics.btbr.shot;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -74,7 +72,7 @@ class JavaRobotCaptureDevice implements CaptureDevice {
      * image and also can calculate the screen size to get the only visible part and not the
      * CHROME of the OS or browser.
      */
-    throw new NotImplementedException("");
+    throw new RuntimeException("Not implemented");
   }
   
   /**

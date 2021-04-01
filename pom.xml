@@ -5,16 +5,16 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.zylitics</groupId>
   <artifactId>zl-btbr</artifactId>
-  <version>0.2.1-SNAPSHOT</version>
+  <version>0.2.2</version>
   <name>zl-btbr</name>
   <url>http://maven.apache.org</url>
   <properties>
     <elasticsearch.version>7.10.0</elasticsearch.version>
-    <google-cloud-kms.version>1.40.2</google-cloud-kms.version>
-    <google-cloud-storage.version>1.113.4</google-cloud-storage.version>
+    <google-cloud-kms.version>1.41.1</google-cloud-kms.version>
+    <google-cloud-storage.version>1.113.14</google-cloud-storage.version>
     <selenium.version>4.0.0-alpha-5</selenium.version>
-    <stackdriver-logback.version>0.118.7-alpha</stackdriver-logback.version>
-    <zwl.version>0.4.1-SNAPSHOT</zwl.version>
+    <stackdriver-logback.version>0.120.4-alpha</stackdriver-logback.version>
+    <zwl.version>0.4.1</zwl.version>
 
     <skipTest>false</skipTest>
   </properties>
