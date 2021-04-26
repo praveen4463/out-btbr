@@ -21,8 +21,7 @@ public class Configuration {
       APICoreProperties.Webdriver wdProps, BuildCapability buildCapability, Path buildDir,
       BrowserProvider browserProvider) {
     AbstractDriverSessionProvider provider = null;
-    // compare with lower cases browser name
-    switch (buildCapability.getWdBrowserName().toLowerCase()) {
+    switch (buildCapability.getWdBrowserName()) {
       case BrowserType.CHROME:
         provider = new ChromeDriverSessionProvider(wdProps, buildCapability, buildDir,
             browserProvider);
@@ -31,8 +30,7 @@ public class Configuration {
         provider = new FirefoxDriverSessionProvider(wdProps, buildCapability, buildDir,
             browserProvider);
         break;
-      case BrowserType.IE:
-      case "ie":
+      case "IE": // our value for IE in db is IE
         provider = new IEDriverSessionProvider(wdProps, buildCapability, buildDir, browserProvider);
         break;
     }

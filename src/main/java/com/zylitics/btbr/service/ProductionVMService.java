@@ -3,7 +3,6 @@ package com.zylitics.btbr.service;
 import com.google.common.io.CharStreams;
 import com.zylitics.btbr.SecretsManager;
 import com.zylitics.btbr.config.APICoreProperties;
-import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildVM;
 import org.openqa.selenium.json.Json;
 import org.openqa.selenium.remote.http.HttpClient;
@@ -12,18 +11,13 @@ import org.openqa.selenium.remote.http.HttpRequest;
 import org.openqa.selenium.remote.http.HttpResponse;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 
-import static com.google.common.net.HttpHeaders.CONTENT_LENGTH;
-import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
-import static com.google.common.net.MediaType.JSON_UTF_8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class ProductionVMService implements VMService {
@@ -44,22 +38,12 @@ public class ProductionVMService implements VMService {
     this.httpClientFactory = HttpClient.Factory.createDefault();
   }
   
-  @SuppressWarnings("UnstableApiUsage")
   @Override
-  public void setVMAsAvailable(BuildVM buildVM, Build build) {
+  public void setVMAsAvailable(BuildVM buildVM) {
     try {
-      HttpRequest request = new HttpRequest(HttpMethod.POST, "/setLabels");
-      Map<String, Object> requestBody = new HashMap<>();
-      Map<String, Object> labels = new HashMap<>();
-      Map<String, Object> buildProperties = new HashMap<>();
-      labels.put(runner.getLabelKeyAvailabilityStatus(), runner.getLabelValueAvailabilityStatus());
-      buildProperties.put("buildId", build.getBuildId());
-      requestBody.put("labels", labels);
-      requestBody.put("buildProperties", buildProperties);
-      byte[] payload = JSON.toJson(requestBody).getBytes(UTF_8);
-      request.setHeader(CONTENT_TYPE, JSON_UTF_8.toString());
-      request.setHeader(CONTENT_LENGTH, String.valueOf(payload.length));
-      request.setContent(() -> new ByteArrayInputStream(payload));
+      HttpRequest request = new HttpRequest(HttpMethod.DELETE, "");
+      request.addQueryParameter("requireRunningVM", "true");
+      // sending this will tell api to keep it running but mark as available.
       execute(getClient(buildVM), request);
     } catch (Throwable t) {
       throw new RuntimeException(t);

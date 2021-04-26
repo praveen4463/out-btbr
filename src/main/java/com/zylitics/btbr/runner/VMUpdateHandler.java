@@ -32,7 +32,7 @@ class VMUpdateHandler {
       BuildVM buildVM = buildVMProvider.getBuildVM(buildVMId)
           .orElseThrow(() -> new RuntimeException("Couldn't get buildVM for " + buildVMId));
       if (!buildVM.isDeleteFromRunner()) {
-        vmService.setVMAsAvailable(buildVM, build);
+        vmService.setVMAsAvailable(buildVM);
         return;
       }
       LOG.debug("updating vm deleteDate for buildVMId {}", buildVMId);

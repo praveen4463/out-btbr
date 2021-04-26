@@ -7,8 +7,6 @@
     <!-- Note that to run stackdriver logging, agent should be installed on server. -->
     <appender name="STACKDRIVER" class="com.google.cloud.logging.logback.LoggingAppender">
       <log>app-zl-btbr.log</log>
-      <!-- If not given, logs appear under k8s container logs under type "container" -->
-      <resourceType>global</resourceType>
       <flushLevel>INFO</flushLevel>
       <loggingEventEnhancer>com.zylitics.btbr.logging.DefaultEnhancer</loggingEventEnhancer>
     </appender>

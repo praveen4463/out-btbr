@@ -38,6 +38,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
     String sql = "SELECT" +
         " bu.build_key" +
         ", bu.bt_build_vm_id" +
+        ", bu.server_screen_size" +
+        ", bu.server_timezone_with_dst" +
         ", bu.create_date AT TIME ZONE 'UTC' AS create_date" +
         ", bu.final_status" +
         ", bu.shot_bucket_session_storage" +
@@ -87,6 +89,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
             .setBuildId(buildId)
             .setBuildKey(rs.getString("build_key"))
             .setBuildVMId(rs.getInt("bt_build_vm_id"))
+            .setServerScreenSize(rs.getString("server_screen_size"))
+            .setServerTimezone(rs.getString("server_timezone_with_dst"))
             .setCreateDateUTC(DateTimeUtil.sqlTimestampToLocal(rs.getTimestamp("create_date")))
             // cast rather than getBoolean because this method always returns 'false' as default
             // value whereas we want to see a null if it's null.

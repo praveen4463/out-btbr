@@ -32,8 +32,6 @@ api-core:
     # later we may give it as build caps too for custom values, this is done so that non-webdriver
     # code (which executes in microseconds) wouldn't put lot of load on db.
     update-line-build-status-after: 1000
-    label-key-availability-status: availability-status
-    label-value-availability-status: FREE
     btbr-auth-user: root
     btbr-auth-secret-cloud-file: btbr-api-key.encrypted
     wzgp-endpoint: https://wzgp.api.zylitics.io
@@ -59,7 +57,7 @@ api-core:
     supported-browsers:
       - chrome
       - firefox
-      - internet explorer
+      - IE
     supported-platforms:
       - windows
     default-page-load-strategy: eager

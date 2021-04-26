@@ -6,3 +6,9 @@ v0.1.0
 v0.2.2
 **********
 * Added auth and other refactoring
+**********
+v0.2.2
+**********
+* To mark VM as available when a test done, just send a flag rather than adding labels
+* In browser session config, mention exact browser names to be consistent
+* sending extra params to build script such as timezone

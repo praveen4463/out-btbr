@@ -14,6 +14,10 @@ public class Build {
   
   private int buildVMId;
   
+  private String serverScreenSize;
+  
+  private String serverTimezone;
+  
   // The reason why we store date in LocalDateTime rather than OffsetDateTime is, we send a
   // timestamp to postgres in UTC and it stores it as is. While retrieving, the timestamp is
   // converted to a particular time zone (for example the zone user is currently in or has selected)
@@ -74,6 +78,24 @@ public class Build {
   
   public Build setBuildVMId(int buildVMId) {
     this.buildVMId = buildVMId;
+    return this;
+  }
+  
+  public String getServerScreenSize() {
+    return serverScreenSize;
+  }
+  
+  public Build setServerScreenSize(String serverScreenSize) {
+    this.serverScreenSize = serverScreenSize;
+    return this;
+  }
+  
+  public String getServerTimezone() {
+    return serverTimezone;
+  }
+  
+  public Build setServerTimezone(String serverTimezone) {
+    this.serverTimezone = serverTimezone;
     return this;
   }
   

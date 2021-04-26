@@ -74,6 +74,16 @@ import static org.junit.jupiter.api.Assertions.*;
  *    Runner is used for all request, this asserts that the api works when same vm is used for multiple
  *    tests, such as IDE tests.
  */
+
+/**
+ * TODO: To test in production, see below:
+ *   To test btbr in producttion, we can copy the current InContainer test and make a production
+ *   test that uses producttion dbs. We will manually create builds and supply to it in the same way
+ *   we are currently doing. We will start new servers using wzgp and assign them custom metadata
+ *   so they know they have to download a specific btbr version. Once test done we can delete those
+ *   server. We will do it after the launch and for  now just rely on InContainer test and test on
+ *   our own windows machine.
+ */
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("e2e")
 public class InContainerE2ETest {

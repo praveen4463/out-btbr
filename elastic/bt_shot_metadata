@@ -33,12 +33,13 @@ curl -X PUT "localhost:9200/bt_shot_metadata?pretty" -H 'Content-Type: applicati
     }
   },
   "settings": {
-    "number_of_shards": 3,
+    "number_of_shards": 2,
     "number_of_replicas": 1
   }
 }
 '
 # TODO: we might need to setup more things into the index for production
+# https://stackoverflow.com/questions/15694724/shards-and-replicas-in-elasticsearch
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html
 
 # Example document indexing

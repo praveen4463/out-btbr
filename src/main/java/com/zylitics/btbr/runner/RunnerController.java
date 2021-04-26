@@ -227,7 +227,9 @@ public class RunnerController {
       // see https://stackoverflow.com/questions/15199119/runtime-exec-waitfor-doesnt-wait-until-process-is-done
       Process buildStartupProcess =
           new ProcessBuilder(apiCoreProperties.getRunner().getWinServerBuildStartupScriptPath(),
-              buildCapability.getWdBrowserName(), buildCapability.getWdBrowserVersion()).start();
+              buildCapability.getWdBrowserName(),
+              buildCapability.getWdBrowserVersion(),
+              "\"" + build.getServerTimezone() + "\"").start(); // put timezone is quotes as it has spaces
       buildStartupProcess.waitFor(); // just wait until process completes, don't check for success or
       // failure and just assume everything is setup, any error within script will be logged internally.
     }

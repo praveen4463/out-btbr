@@ -294,12 +294,6 @@ public class APICoreProperties {
     private Integer updateLineBuildStatusAfter;
   
     @NotBlank
-    private String labelKeyAvailabilityStatus;
-  
-    @NotBlank
-    private String labelValueAvailabilityStatus;
-  
-    @NotBlank
     private String btbrAuthUser;
   
     @NotBlank
@@ -337,26 +331,6 @@ public class APICoreProperties {
     public void setUpdateLineBuildStatusAfter(Integer updateLineBuildStatusAfter) {
       if (this.updateLineBuildStatusAfter == null) {
         this.updateLineBuildStatusAfter = updateLineBuildStatusAfter;
-      }
-    }
-  
-    public String getLabelKeyAvailabilityStatus() {
-      return labelKeyAvailabilityStatus;
-    }
-  
-    public void setLabelKeyAvailabilityStatus(String labelKeyAvailabilityStatus) {
-      if (this.labelKeyAvailabilityStatus == null) {
-        this.labelKeyAvailabilityStatus = labelKeyAvailabilityStatus;
-      }
-    }
-  
-    public String getLabelValueAvailabilityStatus() {
-      return labelValueAvailabilityStatus;
-    }
-  
-    public void setLabelValueAvailabilityStatus(String labelValueAvailabilityStatus) {
-      if (this.labelValueAvailabilityStatus == null) {
-        this.labelValueAvailabilityStatus = labelValueAvailabilityStatus;
       }
     }
   
