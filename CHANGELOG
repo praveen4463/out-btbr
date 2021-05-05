@@ -12,3 +12,9 @@ v0.2.3
 * To mark VM as available when a test done, just send a flag rather than adding labels
 * In browser session config, mention exact browser names to be consistent
 * sending extra params to build script such as timezone
+**********
+v0.2.4
+**********
+* waiting until pre-build script has downloaded the driver should it is unavailable
+* fixed logback config to be able to debug app
+* fix in process builder

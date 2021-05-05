@@ -92,7 +92,6 @@ public class RunnerController {
                           BuildOutputProvider buildOutputProvider,
                           CaptureShotHandler.Factory captureShotHandlerFactory,
                           ShotMetadataProvider.Factory shotMetadataProviderFactory,
-                          ZwlProgramOutputProvider.Factory zwlProgramOutputProviderFactory,
                           VMUpdateHandler vmUpdateHandler,
                           AuthService authService) {
     this(apiCoreProperties,
@@ -225,13 +224,20 @@ public class RunnerController {
       // script shouldn't require any specific environment, pass browser and version and any other
       // argument it may need. Note that script should call exit in the end
       // see https://stackoverflow.com/questions/15199119/runtime-exec-waitfor-doesnt-wait-until-process-is-done
-      Process buildStartupProcess =
-          new ProcessBuilder(apiCoreProperties.getRunner().getWinServerBuildStartupScriptPath(),
+      new ProcessBuilder(apiCoreProperties.getRunner().getWinServerBuildStartupScriptPath(),
+              String.valueOf(build.getBuildId()),
               buildCapability.getWdBrowserName(),
               buildCapability.getWdBrowserVersion(),
               "\"" + build.getServerTimezone() + "\"").start(); // put timezone is quotes as it has spaces
-      buildStartupProcess.waitFor(); // just wait until process completes, don't check for success or
-      // failure and just assume everything is setup, any error within script will be logged internally.
+      // I tried using .waitFor but it wasn't working and freezing the control behind it forever.
+      // The following link couldn't help either. For now from the script, the timezone and
+      // resolution set calls don't take any time and they're both needed only when session has started
+      // therefore we don't have to wait as starting session take sometime and by then they both
+      // would be ready.
+      // Only problem is driver download when a new is available, for that the code that requires
+      // the driver waits until it is available when unavailable.
+      // TODO: keep a watch on script for changes.
+      // https://stackoverflow.com/a/5483953/1624454
     }
     
     // start driver session
