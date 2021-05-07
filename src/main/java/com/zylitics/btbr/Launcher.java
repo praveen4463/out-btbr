@@ -25,6 +25,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import javax.sql.DataSource;
 
@@ -136,8 +137,9 @@ public class Launcher {
   @Bean
   @Profile("production")
   VMService productionVMService(APICoreProperties apiCoreProperties,
+                                WebClient.Builder webClientBuilder,
                                 SecretsManager secretsManager) {
-    return new ProductionVMService(apiCoreProperties, secretsManager);
+    return new ProductionVMService(webClientBuilder, apiCoreProperties, secretsManager);
   }
   
   @Bean

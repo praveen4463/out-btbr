@@ -18,3 +18,7 @@ v0.2.4
 * waiting until pre-build script has downloaded the driver should it is unavailable
 * fixed logback config to be able to debug app
 * fix in process builder
+**********
+v0.2.5
+**********
+* fixed problem in ProductionVmService, it wasn't able to contact wzgp, using WebClient now

@@ -18,7 +18,8 @@ jar_ver=#VERSION# && app=zl-btbr && jar=$app-$jar_ver.jar \
 && gsutil cp $app-$jar_ver.zip gs://zl-release-artifact
 3.2:
 Update project level metadata to mark the current btbr version
-gcloud compute project-info add-metadata --metadata zl-btbr-latest-version=#VERSION#
+gcloud compute project-info add-metadata \
+--metadata zl-btbr-latest-version=#VERSION# --project=zl-infra-main
 3.3:
 When new version comes, we can just delete running instances so that when we create new and they
 start, they download the new version. Terminated instances won't need to be deleted as when they
