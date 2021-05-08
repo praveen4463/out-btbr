@@ -1,8 +1,10 @@
 package com.zylitics.btbr.service;
 
+import com.google.common.base.Charsets;
 import com.zylitics.btbr.SecretsManager;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.BuildVM;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -11,15 +13,12 @@ import org.springframework.web.util.UriBuilder;
 
 import java.net.URI;
 import java.time.Duration;
-import java.util.Base64;
 import java.util.Objects;
 import java.util.function.Function;
 
 public class ProductionVMService implements VMService {
   
   private static final int RESPONSE_TIMEOUT_MIN = 2;
-  
-  private static final String AUTHORIZATION = "Authorization";
   
   private final WebClient webClient;
   
@@ -33,8 +32,9 @@ public class ProductionVMService implements VMService {
         .responseTimeout(Duration.ofMinutes(RESPONSE_TIMEOUT_MIN));
     this.webClient = webClientBuilder
         .baseUrl(runner.getWzgpEndpoint() + "/" + runner.getWzgpVersion())
-        .defaultHeader(AUTHORIZATION, Base64.getEncoder()
-            .encodeToString((runner.getWzgpAuthUser() + ":" + secret).getBytes()))
+        .defaultHeaders(httpHeaders ->
+            httpHeaders.setBasicAuth(HttpHeaders.encodeBasicAuth(runner.getWzgpAuthUser(),
+                secret, Charsets.UTF_8)))
         .clientConnector(new ReactorClientHttpConnector(httpClient)).build();
   }
   
