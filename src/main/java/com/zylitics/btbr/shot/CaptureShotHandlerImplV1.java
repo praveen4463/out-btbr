@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.OffsetDateTime;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 public final class CaptureShotHandlerImplV1 implements CaptureShotHandler {
@@ -227,6 +228,7 @@ public final class CaptureShotHandlerImplV1 implements CaptureShotHandler {
       try {
         String path = "/EOS.png";
         URL url = getClass().getResource(path);
+        Objects.requireNonNull(url);
         //noinspection UnstableApiUsage
         return Resources.toByteArray(url);
       } catch (IOException e) {

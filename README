@@ -21,13 +21,11 @@ Update project level metadata to mark the current btbr version
 gcloud compute project-info add-metadata \
 --metadata zl-btbr-latest-version=#VERSION# --project=zl-win-nodes
 3.3:
-When new version comes, we can just delete running instances so that when we create new and they
-start, they download the new version. Terminated instances won't need to be deleted as when they
-start, they download new.
-If some instances are running, we will take down all running servers (irrespective to whether they're
-always running or on demand instance), and label is-deleting=true those are currently running
-some test. Once done we will maintain number of always running and on-demand instances by starting
-new once (Just like our deployer script does). A script will need to be created for this.
+When new version comes, we can just restart running instances (unlocked ones only) so that when we
+create new and they start, they download the new version. Terminated instances won't need to be
+deleted as when they start, they download new.
+Locked instances will have to be marked is-deleting=true and we will count how many they are. We will
+then create same number of instances for always-running to be available for tests.
 
 Running:
 1. Local run (replace #VERSION#):

@@ -53,6 +53,8 @@ public class Launcher {
   // because many requests may come one after another and creating/closing is not efficient. It is
   // hoped that it will delete idle connections from pool after a certain time.
   // TODO: see if there is something to set that idle timeout for connections in pool.
+  // This can be same for both prod and e2e because we take esdb endpoint form env var and diff env
+  // can have diff endpoints
   @Bean
   @Profile({"production", "e2e"})
   RestHighLevelClient restHighLevelClient(APICoreProperties apiCoreProperties,
