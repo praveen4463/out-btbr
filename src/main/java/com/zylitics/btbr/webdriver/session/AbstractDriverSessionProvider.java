@@ -15,13 +15,10 @@ import org.openqa.selenium.logging.LogType;
 import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -33,8 +30,6 @@ TODO: We should send browser specific switches so that whenever browser starts, 
  should be done from here before a session is created.
  */
 public abstract class AbstractDriverSessionProvider {
-  
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractDriverSessionProvider.class);
   
   private static final String BROWSER_BINARY_PATH_TEMPLATE_WIN =
       "C:\\ProgramData\\browsers\\BROWSER_NAME\\BROWSER_VERSION\\BROWSER_NAME.exe";
@@ -83,21 +78,6 @@ public abstract class AbstractDriverSessionProvider {
     if (!driverVersion.isPresent()) {
       throw new RuntimeException("Couldn't get driver for browser " +
           buildCapability.getWdBrowserName());
-    }
-    String driverPath = BROWSER_DRIVER_EXE_PATH_TEMPLATE_WIN
-        .replace("BROWSER_NAME", buildCapability.getWdBrowserName())
-        .replace("DRIVER_VERSION", driverVersion.get())
-        .replace("DRIVER_EXE", getDriverWinExeName());
-    if (!Files.exists(Paths.get(driverPath))) {
-      // Looks like our script is currently downloading the driver, for now just put a raw wait here
-      // and let driver to download. Later:
-      // TODO: see https://stackoverflow.com/a/28233325/1624454 and implement WatchService to wait
-      //  properly until the file is downloaded
-      LOG.info("waiting for driver to download at {}", driverPath);
-      try {
-        Thread.sleep(5 * 1000); // should be more than enough and ok for now as new driver updates
-        // are occasional
-      } catch (InterruptedException ignore) {}
     }
     System.setProperty(getDriverExeSysProp(), BROWSER_DRIVER_EXE_PATH_TEMPLATE_WIN
         .replace("BROWSER_NAME", buildCapability.getWdBrowserName())

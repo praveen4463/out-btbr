@@ -27,3 +27,8 @@ v0.2.6
 **********
 * There was still problem in contacting wzgp unexpectedly, fixed that now
 * Runner wasn't able to a ps1 file, now using a bat as before as a bridge to the ps1
+**********
+v0.2.7
+**********
+* Reverted the manual wait while downloading driver, the wait for build prepare script works
+  and is tested.
