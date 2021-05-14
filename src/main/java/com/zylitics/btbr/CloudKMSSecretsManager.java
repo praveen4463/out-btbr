@@ -9,12 +9,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.protobuf.ByteString;
 import com.zylitics.btbr.config.APICoreProperties;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
-@Service
 class CloudKMSSecretsManager implements SecretsManager {
   
   private final APICoreProperties apiCoreProperties;
@@ -22,8 +19,6 @@ class CloudKMSSecretsManager implements SecretsManager {
   
   private final KeyManagementServiceClient client;
   
-  @SuppressWarnings("unused")
-  @Autowired
   CloudKMSSecretsManager(APICoreProperties apiCoreProperties, Storage storage)
       throws IOException {
     this(apiCoreProperties, storage, KeyManagementServiceClient.create());

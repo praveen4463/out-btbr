@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import javax.sql.DataSource;
+import java.io.IOException;
 
 // TODO: I am not too sure what DataAccessExceptions should be re-tried, let's first watch logs and
 //  decide if retry can help recovering from them. Hikari automatically retries until connection
@@ -165,6 +166,28 @@ public class Launcher {
   AuthService productionAuthService(APICoreProperties apiCoreProperties,
                                     SecretsManager secretsManager) {
     return new ProductionAuthService(apiCoreProperties, secretsManager);
+  }
+
+  @Bean
+  @Profile("production")
+  SecretsManager productionSecretManager(APICoreProperties apiCoreProperties, Storage storage) throws IOException {
+    return new CloudKMSSecretsManager(apiCoreProperties, storage);
+  }
+
+  @Bean
+  @Profile("e2e")
+  SecretsManager localSecretManager() {
+    return new SecretsManager() {
+      @Override
+      public String getSecretAsPlainText(String secretCloudFileName) {
+        throw new RuntimeException("We shouldn't require to decrypt secrets on local");
+      }
+
+      @Override
+      public void close() {
+        // nothing here
+      }
+    };
   }
   
   @Bean

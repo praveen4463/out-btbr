@@ -24,20 +24,9 @@ public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
         System.getProperty(InternetExplorerDriverService.IE_DRIVER_EXE_PROPERTY),
             "ie driver exe path must be set as system property");
   
-    InternetExplorerDriverService driverService = new InternetExplorerDriverService.Builder()
+    InternetExplorerDriverService.Builder driverServiceBuilder = new InternetExplorerDriverService.Builder()
         .usingAnyFreePort()
-        .withLogFile(getDriverLogFile())
-        .build();
-  
-    // IE driver has lot of custom capabilities available as ie options, their description could
-    // be found from the changelog
-    // https://raw.githubusercontent.com/SeleniumHQ/selenium/master/cpp/iedriverserver/CHANGELOG
-    // Also read the known issues and details of some workarounds from
-    // https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver
-    // Three files are important, InternetExplorerOptions, InternetExplorerDriver and
-    // InternetExplorerDriverService
-    InternetExplorerOptions ie = new InternetExplorerOptions();
-    ie.merge(commonCapabilities);
+        .withLogFile(getDriverLogFile());
     InternetExplorerDriverLogLevel logLevel = null;
     if (buildCapability.getWdIeLogLevel() != null) {
       for (InternetExplorerDriverLogLevel b : InternetExplorerDriverLogLevel.values()) {
@@ -47,11 +36,17 @@ public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
         }
       }
     }
-    if (logLevel != null) {
-      ie.addCommandSwitches(String.format("--log-level=%s", logLevel.name())); // use name()
-      // method rather than toString(), cause IE driver requires exact name as enum identifier.
-    }
-    
+    driverServiceBuilder.withLogLevel(logLevel);
+
+    // IE driver has lot of custom capabilities available as ie options, their description could
+    // be found from the changelog
+    // https://raw.githubusercontent.com/SeleniumHQ/selenium/master/cpp/iedriverserver/CHANGELOG
+    // Also read the known issues and details of some workarounds from
+    // https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver
+    // Three files are important, InternetExplorerOptions, InternetExplorerDriver and
+    // InternetExplorerDriverService
+    InternetExplorerOptions ie = new InternetExplorerOptions();
+    ie.merge(commonCapabilities);
     ie.withAttachTimeout(Duration.ofMillis(wdProps.getIeDefaultBrowserAttachTimeout()));
     ie.waitForUploadDialogUpTo(Duration.ofMillis(wdProps.getIeDefaultFileUploadDialogTimeout()));
     ElementScrollBehavior scrollBehavior =
@@ -83,15 +78,15 @@ public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
       ie.disableNativeEvents();
     }
     if (buildCapability.isWdIeDestructivelyEnsureCleanSession()) {
-      // users may want to enable this when build is running in debug mode.
+      // holds up browser start and shows dialog that
+      // 'browser history being cleaned". We can do this on shutdown, so let's not use it.
+      // enable if one machine runs multiple builds
       ie.destructivelyEnsureCleanSession();
     }
-    // ie.destructivelyEnsureCleanSession(); // holds up browser start and shows dialog that
-    // 'browser history being cleaned". We can do this on shutdown, so let's not use it.
     // useCreateProcessApiToLaunchIe, useShellWindowsApiToAttachToIe not using for now until
     // we get some problem in launch.
     
-    return new InternetExplorerDriver(driverService, ie);
+    return new InternetExplorerDriver(driverServiceBuilder.build(), ie);
   }
   
   @Override
