@@ -56,9 +56,9 @@ public class Launcher {
   // This can be same for both prod and e2e because we take esdb endpoint form env var and diff env
   // can have diff endpoints
   @Bean
-  @Profile({"production", "e2e"})
-  RestHighLevelClient restHighLevelClient(APICoreProperties apiCoreProperties,
-                                          SecretsManager secretsManager) {
+  @Profile({"production"})
+  RestHighLevelClient restHighLevelClientProduction(APICoreProperties apiCoreProperties,
+                                                    SecretsManager secretsManager) {
     APICoreProperties.Esdb esdb = apiCoreProperties.getEsdb();
     
     // TODO (optional): Should've in secret store but it's in env since I wrote infra scripts that
@@ -78,6 +78,16 @@ public class Launcher {
     return new RestHighLevelClient(RestClient.builder(HttpHost.create(esDBHostFromEnv))
         .setHttpClientConfigCallback(httpClientBuilder ->
             httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)));
+  }
+  
+  @Bean
+  @Profile({"e2e"})
+  RestHighLevelClient restHighLevelClientLocal(APICoreProperties apiCoreProperties) {
+    APICoreProperties.Esdb esdb = apiCoreProperties.getEsdb();
+    String esDBHostFromEnv = System.getenv(esdb.getEnvVarHost());
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(esDBHostFromEnv),
+        esdb.getEnvVarHost() + " env. variable is not set.");
+    return new RestHighLevelClient(RestClient.builder(HttpHost.create(esDBHostFromEnv)));
   }
   
   // https://github.com/brettwooldridge/HikariCP
@@ -159,8 +169,7 @@ public class Launcher {
   
   @Bean
   @Profile("e2e")
-  AuthService localAuthService(APICoreProperties apiCoreProperties,
-                               SecretsManager secretsManager) {
-    return new LocalAuthService(apiCoreProperties, secretsManager);
+  AuthService localAuthService() {
+    return new LocalAuthService();
   }
 }
