@@ -580,6 +580,7 @@ public class BuildRunHandler {
     } else if (stopOccurred) {
       finalStatus = TestStatus.STOPPED;
     } else if (testVersionsStatus.values().stream().anyMatch(e -> e == TestStatus.ERROR)) {
+      // an abort can occur only when there is an error
       if (allVersionsRan) {
         finalStatus = TestStatus.ERROR;
       } else {

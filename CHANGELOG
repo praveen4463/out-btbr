@@ -32,3 +32,9 @@ v0.2.7
 **********
 * Reverted the manual wait while downloading driver, the wait for build prepare script works
   and is tested.
+**********
+v0.2.8
+**********
+* local resources like esdb, auth of local clients shouldn't require to use production secrets as it
+  compromises secret's security when transmitting in local network.
+* fixed issue in ID driver as it wasn't storing driver logs
