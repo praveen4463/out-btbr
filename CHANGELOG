@@ -38,3 +38,7 @@ v0.2.8
 * local resources like esdb, auth of local clients shouldn't require to use production secrets as it
   compromises secret's security when transmitting in local network.
 * fixed issue in ID driver as it wasn't storing driver logs
+**********
+v0.2.9
+**********
+* Upgraded zwl to 0.4.2
