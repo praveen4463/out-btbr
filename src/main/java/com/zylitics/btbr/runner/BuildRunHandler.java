@@ -14,6 +14,7 @@ import com.zylitics.zwl.antlr4.StoringErrorListener;
 import com.zylitics.zwl.api.ZwlApi;
 import com.zylitics.zwl.api.ZwlWdTestProperties;
 import com.zylitics.zwl.exception.ZwlLangException;
+import org.openqa.selenium.html5.WebStorage;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -539,6 +540,14 @@ public class BuildRunHandler {
     // capture logs final time before quit
     LOG.debug("capturing logs one last time");
     webdriverLogHandler.capture();
+    
+    // cleanup everything before quit
+    driver.manage().deleteAllCookies();
+    if (driver instanceof WebStorage) {
+      WebStorage storage = (WebStorage) driver;
+      storage.getLocalStorage().clear();
+      storage.getSessionStorage().clear();
+    }
     
     // quit the driver.
     LOG.debug("Quitting the driver");
