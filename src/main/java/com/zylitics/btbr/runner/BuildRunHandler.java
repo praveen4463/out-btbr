@@ -542,6 +542,7 @@ public class BuildRunHandler {
     webdriverLogHandler.capture();
     
     // cleanup everything before quit
+    LOG.debug("browser cleanup before quit");
     driver.manage().deleteAllCookies();
     if (driver instanceof WebStorage) {
       WebStorage storage = (WebStorage) driver;

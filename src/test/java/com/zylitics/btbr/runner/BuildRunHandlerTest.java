@@ -20,6 +20,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.html5.LocalStorage;
+import org.openqa.selenium.html5.SessionStorage;
+import org.openqa.selenium.html5.WebStorage;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.SessionId;
 
@@ -158,7 +162,7 @@ public class BuildRunHandlerTest {
     verify(driver, never()).close();
     verify(driver.manage().window(), times(3)).maximize();
     verify(driver, times(2)).get("about:blank");
-    verify(driver.manage(), times(2)).deleteAllCookies();
+    verify(driver.manage(), times(3)).deleteAllCookies();
     verify(driver.manage().timeouts(), times(2)).pageLoadTimeout(anyLong(),
         eq(TimeUnit.MILLISECONDS));
     verify(driver.manage().timeouts(), times(2)).setScriptTimeout(anyLong(),
@@ -185,7 +189,8 @@ public class BuildRunHandlerTest {
     verify(driver, never()).close();
     verify(driver.manage().window(), times(1)).maximize();
     verify(driver, never()).get("about:blank");
-    verify(driver.manage(), never()).deleteAllCookies();
+    // we delete all cookies once after all tests done before close.
+    verify(driver.manage(), times(1)).deleteAllCookies();
     verify(driver.manage().timeouts(), never()).pageLoadTimeout(anyLong(),
         eq(TimeUnit.MILLISECONDS));
     verify(driver.manage().timeouts(), never()).setScriptTimeout(anyLong(),
@@ -227,9 +232,13 @@ public class BuildRunHandlerTest {
         .setFile(new File().setFileId(1).setName("UT"));
     List<TestVersion> versions = ImmutableList.of(testVersion1, testVersion2);
     Build build = getBuild(buildId, BuildSourceType.IDE);
-    RemoteWebDriver driver = getRemoteWebDriver();
+    RemoteWebDriver driver = getWebStorageEnabledWebDriver();
     addTimeoutMock(driver);
     addDefaultWinHandle(driver);
+    WebDriver.Options options = driver.manage();
+    WebStorage storage = (WebStorage) driver;
+    LocalStorage localStorage = storage.getLocalStorage();
+    SessionStorage sessionStorage = storage.getSessionStorage();
     
     BuildStatusProvider buildStatusProvider = getBuildStatusProvider();
     BuildProvider buildProvider = getBuildProvider(buildId);
@@ -262,8 +271,8 @@ public class BuildRunHandlerTest {
     
     InOrder inOrder = inOrder(buildStatusProvider, buildProvider,
         buildRequestProvider, quotaProvider, buildOutputProvider,
-        captureShotHandler, driver, webdriverLogHandler, localAssetsToCloudHandler,
-        vmUpdateHandler);
+        captureShotHandler, driver, options, localStorage, sessionStorage, webdriverLogHandler,
+        localAssetsToCloudHandler, vmUpdateHandler);
     
     inOrder.verify(buildStatusProvider).saveOnStart(new BuildStatusSaveOnStart(buildId,
         testVersionId1, TestStatus.RUNNING, currentDT, build.getUserId()));
@@ -296,6 +305,9 @@ public class BuildRunHandlerTest {
     inOrder.verify(captureShotHandler).stopShot();
     inOrder.verify(captureShotHandler).blockUntilFinish();
     inOrder.verify(webdriverLogHandler).capture();
+    inOrder.verify(options).deleteAllCookies();
+    inOrder.verify(localStorage).clear();
+    inOrder.verify(sessionStorage).clear();
     inOrder.verify(driver).quit();
     inOrder.verify(localAssetsToCloudHandler).store();
     inOrder.verify(buildProvider).updateOnAllTasksDone(buildId, currentDT);
@@ -497,6 +509,24 @@ public class BuildRunHandlerTest {
   
   private RemoteWebDriver getRemoteWebDriver() {
     RemoteWebDriver driver = mock(RemoteWebDriver.class);
+    WebDriver.Options options = mock(WebDriver.Options.class);
+    WebDriver.Window window = mock(WebDriver.Window.class);
+    
+    when(driver.manage()).thenReturn(options);
+    when(options.window()).thenReturn(window);
+    when(driver.getSessionId()).thenReturn(new SessionId("some-session"));
+    return driver;
+  }
+  
+  private RemoteWebDriver getWebStorageEnabledWebDriver() {
+    ChromeDriver driver = mock(ChromeDriver.class);
+    
+    LocalStorage localStorage = mock(LocalStorage.class);
+    SessionStorage sessionStorage = mock(SessionStorage.class);
+    
+    when(driver.getLocalStorage()).thenReturn(localStorage);
+    when(driver.getSessionStorage()).thenReturn(sessionStorage);
+    
     WebDriver.Options options = mock(WebDriver.Options.class);
     WebDriver.Window window = mock(WebDriver.Window.class);
     

@@ -50,3 +50,11 @@ Minor enhancements
 
 1. Cleaning up a finished test before driver quit.
 2. Upgraded `zwl` to 0.4.3.
+
+## v0.2.11
+
+Tests
+
+### Missed tests
+
+1. Wrote and fixed tests for `v0.2.10` that I missed in last release. Was a mistake.

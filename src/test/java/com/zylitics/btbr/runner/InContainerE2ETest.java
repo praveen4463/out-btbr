@@ -146,7 +146,7 @@ public class InContainerE2ETest {
     apiVersion = env.getProperty(APP_VER_KEY);
     // put any value to auth header, System property must be set to skip auth for test
     client = client.mutate().responseTimeout(Duration.ofSeconds(60))
-        .defaultHeader(AUTHORIZATION, "a:b").build();
+        .defaultHeader(AUTHORIZATION, "local").build();
   }
   
   /*
