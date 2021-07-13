@@ -58,3 +58,11 @@ Tests
 ### Missed tests
 
 1. Wrote and fixed tests for `v0.2.10` that I missed in last release. Was a mistake.
+
+## v0.2.12
+
+Minor enhancements
+
+### Enhancements
+
+1. Upgraded `zwl` to 0.4.4.
