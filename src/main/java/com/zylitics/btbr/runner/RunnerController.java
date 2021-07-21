@@ -160,7 +160,7 @@ public class RunnerController {
       @Validated @RequestBody RequestBuildRun requestBuildRun,
       @RequestHeader(AUTHORIZATION) String authHeader) throws Exception {
     LOG.info("received request to run: {}", requestBuildRun.toString());
-    long startTime = System.nanoTime();
+    // long startTime = System.nanoTime();
     if (!authService.isAuthorized(authHeader)) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }

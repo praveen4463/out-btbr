@@ -199,14 +199,14 @@ public class BuildRunHandler {
     try {
       run();
     } catch(Throwable t) {
-      LOG.debug("An exception was thrown while running the build {}.{}",
-          t.getClass().getSimpleName(), t.getMessage());
-      LOG.error(t.getMessage(), t);
       if (t instanceof StopRequestException) {
         stopOccurred = true;
         // a stop has arrived while the build was running
         updateBuildStatusOnStop();
       } else {
+        LOG.debug("An exception was thrown while running the build {}.{}",
+            t.getClass().getSimpleName(), t.getMessage());
+        LOG.error(t.getMessage(), t);
         updateBuildStatusOnError();
       }
     } finally {
@@ -543,11 +543,17 @@ public class BuildRunHandler {
     
     // cleanup everything before quit
     LOG.debug("browser cleanup before quit");
-    driver.manage().deleteAllCookies();
-    if (driver instanceof WebStorage) {
-      WebStorage storage = (WebStorage) driver;
-      storage.getLocalStorage().clear();
-      storage.getSessionStorage().clear();
+    try {
+      driver.manage().deleteAllCookies();
+      if (driver instanceof WebStorage) {
+        WebStorage storage = (WebStorage) driver;
+        storage.getLocalStorage().clear();
+        storage.getSessionStorage().clear();
+      }
+    } catch (Throwable t) {
+      // an error may occur when a stop arrives before anything is opened in browser
+      // https://stackoverflow.com/a/65374046/1624454
+      LOG.error(t.getMessage(), t);
     }
     
     // quit the driver.
