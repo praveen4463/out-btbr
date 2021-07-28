@@ -76,3 +76,11 @@ Bug fixes
 1. Don't log exception when stop has occurred
 2. Put cleanup on build finish code in try-catch so that if it fails for some reason, we still can
    finish the process.
+
+## v0.2.14
+
+Minor enhancements
+
+### Enhancements
+
+1. Upgraded `zwl` to 0.4.5.
