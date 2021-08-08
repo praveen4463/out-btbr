@@ -84,3 +84,11 @@ Minor enhancements
 ### Enhancements
 
 1. Upgraded `zwl` to 0.4.5.
+
+## v0.2.15
+
+Minor enhancements
+
+### Enhancements
+
+1. Upgraded `zwl` to 0.6.0.
