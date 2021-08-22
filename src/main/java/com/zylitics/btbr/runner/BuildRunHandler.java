@@ -523,12 +523,6 @@ public class BuildRunHandler {
     // be marked separately just before vm is turned off or marked free.
     updateBuildOnFinish(stopOccurred);
     
-    // if build source is IDE, we must mark build request record done here so that another IDE build
-    // could start.
-    if (build.getSourceType() == BuildSourceType.IDE) {
-      markBuildRequestCompleted();
-    }
-    
     // stop shots
     LOG.debug("Shots are going to stop");
     captureShotHandler.stopShot(); // takes no time
@@ -558,7 +552,11 @@ public class BuildRunHandler {
     
     // quit the driver.
     LOG.debug("Quitting the driver");
-    driver.quit();
+    try {
+      driver.quit();
+    } catch (Throwable t) {
+      LOG.error(t.getMessage(), t);
+    }
     
     // store logs
     LOG.debug("storing capture logs to cloud");
@@ -566,11 +564,8 @@ public class BuildRunHandler {
     
     // all done, we can mark all build tasks completed
     updateOnAllTaskDone();
-    
-    // if source is other than IDE, complete build request here
-    if (build.getSourceType() != BuildSourceType.IDE) {
-      markBuildRequestCompleted();
-    }
+  
+    markBuildRequestCompleted();
     
     // mark current build as completed
     buildRunStatus.put(build.getBuildId(), BuildRunStatus.COMPLETED);

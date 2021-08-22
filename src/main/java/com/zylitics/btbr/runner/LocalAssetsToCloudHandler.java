@@ -9,9 +9,7 @@ import com.zylitics.btbr.config.APICoreProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.*;
 
@@ -114,7 +112,7 @@ public class LocalAssetsToCloudHandler {
         storeBySize(blobInfo, path);
       }
     } catch (IOException io) {
-      LOG.error("Couldn't list files from dir at " + elemShotDir.toAbsolutePath().toString(), io);
+      LOG.error("Couldn't list files from dir at " + elemShotDir.toAbsolutePath(), io);
     }
   }
   
@@ -140,7 +138,7 @@ public class LocalAssetsToCloudHandler {
       else { storeSmall(blobInfo, file); }
       LOG.debug("Stored blob " + blobInfo + " from " + file);
     } catch (IOException io) {
-      LOG.error("couldn't get size of file at " + file.toAbsolutePath().toString());
+      LOG.error("couldn't get size of file at " + file.toAbsolutePath());
     }
   }
   
@@ -148,7 +146,7 @@ public class LocalAssetsToCloudHandler {
     try {
       storage.create(blobInfo, Files.readAllBytes(file));
     } catch (Exception e) {
-      LOG.error("File at " + file.toAbsolutePath().toString() + " couldn't be stored.", e);
+      LOG.error("File at " + file.toAbsolutePath() + " couldn't be stored.", e);
     }
   }
   
@@ -206,7 +204,7 @@ public class LocalAssetsToCloudHandler {
         LOG.error("Max reattempt reached while uploading " + blobUploadErrInfo);
       }
     } catch (IOException io) {
-      LOG.error("Couldn't read file at " + file.toAbsolutePath().toString());
+      LOG.error("Couldn't read file at " + file.toAbsolutePath());
     }
   }
 }

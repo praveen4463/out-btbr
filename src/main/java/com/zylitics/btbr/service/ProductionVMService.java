@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriBuilder;
+import reactor.util.retry.Retry;
 
 import java.net.URI;
 import java.time.Duration;
@@ -62,6 +63,7 @@ public class ProductionVMService implements VMService {
         .uri(uriFunction)
         .retrieve()
         .toBodilessEntity()
+        .retryWhen(Retry.backoff(5, Duration.ofMillis(500)))
         .block();
     Objects.requireNonNull(response);
     if (response.getStatusCode() != HttpStatus.OK) {

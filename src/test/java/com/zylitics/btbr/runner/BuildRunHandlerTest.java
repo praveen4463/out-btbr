@@ -301,7 +301,6 @@ public class BuildRunHandlerTest {
     inOrder.verify(buildProvider).updateOnComplete(new BuildUpdateOnComplete(buildId, currentDT,
         TestStatus.SUCCESS, null));
     // as we've given source IDE
-    inOrder.verify(buildRequestProvider).markBuildRequestCompleted(build.getBuildRequestId());
     inOrder.verify(captureShotHandler).stopShot();
     inOrder.verify(captureShotHandler).blockUntilFinish();
     inOrder.verify(webdriverLogHandler).capture();
@@ -312,6 +311,7 @@ public class BuildRunHandlerTest {
     inOrder.verify(localAssetsToCloudHandler).store();
     inOrder.verify(buildProvider).updateOnAllTasksDone(buildId, currentDT);
     inOrder.verify(quotaProvider).updateConsumed(build, currentDtLocal);
+    inOrder.verify(buildRequestProvider).markBuildRequestCompleted(build.getBuildRequestId());
     inOrder.verify(vmUpdateHandler).update(argThat(b -> b.getBuildId() == buildId));
   }
   

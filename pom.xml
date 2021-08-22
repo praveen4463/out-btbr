@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.zylitics</groupId>
   <artifactId>zl-btbr</artifactId>
-  <version>0.2.15</version>
+  <version>0.2.16</version>
   <name>zl-btbr</name>
   <url>http://maven.apache.org</url>
   <properties>
@@ -14,7 +14,8 @@
     <google-cloud-storage.version>1.113.14</google-cloud-storage.version>
     <selenium.version>4.0.0-alpha-5</selenium.version>
     <stackdriver-logback.version>0.120.4-alpha</stackdriver-logback.version>
-    <zwl.version>0.6.0</zwl.version>
+    <zwl.version>0.6.1</zwl.version>
+    <reactor-extra.version>3.4.4</reactor-extra.version>
 
     <skipTest>false</skipTest>
   </properties>
@@ -35,6 +36,11 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.projectreactor.addons</groupId>
+      <artifactId>reactor-extra</artifactId>
+      <version>${reactor-extra.version}</version>
     </dependency>
     <dependency>
       <groupId>com.zylitics</groupId>

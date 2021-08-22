@@ -92,3 +92,20 @@ Minor enhancements
 ### Enhancements
 
 1. Upgraded `zwl` to 0.6.0.
+
+## v0.2.16
+
+Minor enhancements and bug fixed
+
+### Enhancements
+
+1. Upgraded `zwl` to 0.6.1.
+2. Refactored some redundant code
+3. Even when it's IDE request, marking build request completed once all done. The reason
+   is, sometimes ppl re-start very fast leading to new server start that will take
+   2+ mins leading to more frustration that waiting for 2-3 seconds more for assets to
+   upload.
+
+## BugFixes
+
+1. Retrying on errors when contacting grid provisioner service.
