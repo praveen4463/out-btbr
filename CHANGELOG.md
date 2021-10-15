@@ -109,3 +109,16 @@ Minor enhancements and bug fixed
 ## BugFixes
 
 1. Retrying on errors when contacting grid provisioner service.
+
+## v0.2.16
+
+Minor enhancements and bug fixed
+
+### Enhancements
+
+1. Upgraded `zwl` to 0.6.2.
+2. Added support for `callTest` function
+
+## BugFixes
+
+1. Driver quit isn't attempted when there is error in interacting with browser
