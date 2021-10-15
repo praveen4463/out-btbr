@@ -436,6 +436,10 @@ public class BuildRunHandlerTest {
     return buildOutputProvider;
   }
   
+  private TestVersionProvider getTestVersionProvider() {
+    return mock(TestVersionProvider.class);
+  }
+  
   private ImmutableMapProvider getImmutableMapProvider() {
     ImmutableMapProvider immutableMapProvider = mock(ImmutableMapProvider.class);
     when(immutableMapProvider.getMapFromTableByBuild(anyInt(), anyString()))
@@ -571,6 +575,7 @@ public class BuildRunHandlerTest {
     private BuildStatusProvider buildStatusProvider = null;
     private QuotaProvider quotaProvider = null;
     private BuildOutputProvider buildOutputProvider = null;
+    private TestVersionProvider testVersionProvider = null;
     private Build build = null;
     private RemoteWebDriver driver = null;
     private List<TestVersion> testVersions = null;
@@ -704,6 +709,9 @@ public class BuildRunHandlerTest {
       if (buildOutputProvider == null) {
         buildOutputProvider = getBuildOutputProvider();
       }
+      if (testVersionProvider == null) {
+        testVersionProvider = getTestVersionProvider();
+      }
       if (driver == null) {
         driver = getRemoteWebDriver();
       }
@@ -732,7 +740,7 @@ public class BuildRunHandlerTest {
       
       return new BuildRunHandler(getAPICoreProperties(updateLineMillis, captureLogsMillis),
           getStorage(), buildProvider, buildRequestProvider, buildStatusProvider,
-          getImmutableMapProvider(), quotaProvider, buildOutputProvider,
+          getImmutableMapProvider(), quotaProvider, buildOutputProvider, testVersionProvider,
           getShotMetadataProvider(), build, testVersions, captureShotHandlerFactory, vmUpdateHandler,
           webdriverLogHandler, localAssetsToCloudHandler, driver, getBuildDir(),
           clock, buildRunStatus, getZwlApiSupplier(zwlApi));

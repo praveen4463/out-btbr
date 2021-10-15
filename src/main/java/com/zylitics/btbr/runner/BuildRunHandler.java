@@ -2,6 +2,8 @@ package com.zylitics.btbr.runner;
 
 import com.google.cloud.storage.Storage;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.*;
 import com.zylitics.btbr.runner.provider.*;
@@ -27,6 +29,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class BuildRunHandler {
@@ -35,15 +38,14 @@ public class BuildRunHandler {
   
   private final APICoreProperties apiCoreProperties;
   private final APICoreProperties.Webdriver wdProps;
-  private final Storage storage;
   
   // db providers
   private final BuildProvider buildProvider;
   private final BuildRequestProvider buildRequestProvider;
   private final BuildStatusProvider buildStatusProvider;
-  private final ImmutableMapProvider immutableMapProvider;
   private final QuotaProvider quotaProvider;
   private final BuildOutputProvider buildOutputProvider;
+  private final TestVersionProvider testVersionProvider;
   
   // retrieved data
   private final Build build;
@@ -58,8 +60,6 @@ public class BuildRunHandler {
   
   // started webdriver
   private final RemoteWebDriver driver;
-  
-  private final Path buildDir;
   
   private final PrintStream printStream;
   
@@ -94,6 +94,12 @@ public class BuildRunHandler {
   
   // referenced from RunnerController
   private final Map<Integer, BuildRunStatus> buildRunStatus;
+  
+  // one time objects
+  private final ZwlWdTestProperties zwlWdTestProperties;
+  
+  // cache
+  private final Map<String, TestVersion> explicitlyLoadedTests = new HashMap<>();
   // -----------program state ends----------------
   
   private BuildRunHandler(APICoreProperties apiCoreProperties,
@@ -104,6 +110,7 @@ public class BuildRunHandler {
                           ImmutableMapProvider immutableMapProvider,
                           QuotaProvider quotaProvider,
                           BuildOutputProvider buildOutputProvider,
+                          TestVersionProvider testVersionProvider,
                           ShotMetadataProvider shotMetadataProvider,
                           VMUpdateHandler vmUpdateHandler,
                           Build build,
@@ -120,6 +127,7 @@ public class BuildRunHandler {
         immutableMapProvider,
         quotaProvider,
         buildOutputProvider,
+        testVersionProvider,
         shotMetadataProvider,
         build,
         testVersions,
@@ -143,6 +151,7 @@ public class BuildRunHandler {
                   ImmutableMapProvider immutableMapProvider,
                   QuotaProvider quotaProvider,
                   BuildOutputProvider buildOutputProvider,
+                  TestVersionProvider testVersionProvider,
                   ShotMetadataProvider shotMetadataProvider,
                   Build build,
                   List<TestVersion> testVersions,
@@ -157,13 +166,12 @@ public class BuildRunHandler {
                   ZwlApiSupplier zwlApiSupplier) {
     this.apiCoreProperties = apiCoreProperties;
     wdProps = apiCoreProperties.getWebdriver();
-    this.storage = storage;
     this.buildProvider = buildProvider;
     this.buildRequestProvider = buildRequestProvider;
     this.buildStatusProvider = buildStatusProvider;
-    this.immutableMapProvider = immutableMapProvider;
     this.quotaProvider = quotaProvider;
     this.buildOutputProvider = buildOutputProvider;
+    this.testVersionProvider = testVersionProvider;
     this.build = build;
     buildCapability = build.getBuildCapability();
     this.testVersions = testVersions;
@@ -177,7 +185,6 @@ public class BuildRunHandler {
     this.webdriverLogHandler = webdriverLogHandler;
     this.localAssetsToCloudHandler = localAssetsToCloudHandler;
     this.driver = driver;
-    this.buildDir = buildDir;
     printStream = new CallbackOnlyPrintStream(this::sendOutput);
     exceptionTranslationProvider = new ExceptionTranslationProvider();
     this.clock = clock;
@@ -190,6 +197,44 @@ public class BuildRunHandler {
     storedScriptTimeout = buildCapability.getWdTimeoutsScript();
     storedElementAccessTimeout = buildCapability.getWdTimeoutsElementAccess();
     this.zwlApiSupplier = zwlApiSupplier;
+  
+    // get ZwlWdTestProperties
+    zwlWdTestProperties = new ZwlWdTestPropertiesImpl(
+        wdProps,
+        storage,
+        build,
+        driver,
+        printStream,
+        getCallTestHandler(),
+        immutableMapProvider.getMapFromTableByBuild(build.getBuildId()
+            , "bt_build_zwl_build_variables").orElse(null),
+        immutableMapProvider.getMapFromTableByBuild(build.getBuildId()
+            , "bt_build_zwl_preferences").orElse(null),
+        buildDir,
+        immutableMapProvider.getMapFromTableByBuild(build.getBuildId()
+            , "bt_build_zwl_globals").orElse(null));
+  }
+  
+  private Consumer<String> getCallTestHandler() {
+    return (testPath) -> {
+      Preconditions.checkArgument(!Strings.isNullOrEmpty(testPath));
+      TestVersion testVersion;
+      if (explicitlyLoadedTests.containsKey(testPath)) {
+        testVersion = explicitlyLoadedTests.get(testPath);
+      } else {
+        List<String> path = Splitter.on('/').omitEmptyStrings().trimResults().splitToList(testPath);
+        if (path.size() != 3) {
+          throw new IllegalArgumentException("Invalid file path given");
+        }
+        testVersion = testVersionProvider.getTestVersion(path.get(0), path.get(1), path.get(2))
+            .orElseThrow(() -> new IllegalArgumentException("Given file doesn't exists"));
+        explicitlyLoadedTests.put(testPath, testVersion);
+      }
+      ZwlApi zwlApi = zwlApiSupplier.get(testVersion.getCode(),
+          Collections.singletonList(storingErrorListener));
+      zwlApi.interpret(zwlWdTestProperties,
+          z -> z.setLineChangeListener((cl) -> onZwlProgramLineChanged(cl, true)));
+    };
   }
   
   void handle() {
@@ -217,20 +262,6 @@ public class BuildRunHandler {
   
   private void run() {
     LOG.debug("Initializing ZwlWdTestProperties");
-    // get ZwlWdTestProperties
-    ZwlWdTestProperties zwlWdTestProperties = new ZwlWdTestPropertiesImpl(
-        wdProps,
-        storage,
-        build,
-        driver,
-        printStream,
-        immutableMapProvider.getMapFromTableByBuild(build.getBuildId()
-            , "bt_build_zwl_build_variables").orElse(null),
-        immutableMapProvider.getMapFromTableByBuild(build.getBuildId()
-            , "bt_build_zwl_preferences").orElse(null),
-        buildDir,
-        immutableMapProvider.getMapFromTableByBuild(build.getBuildId()
-            , "bt_build_zwl_globals").orElse(null));
     
     // let's start the build
     // mark build started date
@@ -263,12 +294,14 @@ public class BuildRunHandler {
         // handle exceptions only while reading the code, other exceptions will be relayed to
         // handle()
         zwlApi.interpret(zwlWdTestProperties,
-            z -> z.setLineChangeListener(this::onZwlProgramLineChanged));
+            z -> z.setLineChangeListener((cl) -> onZwlProgramLineChanged(cl, false)));
       } catch (StopRequestException s) {
         throw s;
       } catch (Throwable t) {
         LOG.debug("An exception occurred while running testVersion {}: {}.{}",
-            getTestVersionIdentifierShort(testVersion), t.getClass().getSimpleName(), t.getMessage());
+            getTestVersionIdentifierShort(testVersion),
+            t.getClass().getSimpleName(),
+            t.getMessage());
         onTestVersionFailed(testVersion, t);
         // try to run other versions only when the exception is a ZwlLangException, cause it's very
         // unlikely any other test will pass when there is a problem in our application that caused
@@ -290,29 +323,31 @@ public class BuildRunHandler {
   }
   
   // order of actions matter, they are in priority
-  private void onZwlProgramLineChanged(int currentLine) {
+  private void onZwlProgramLineChanged(int currentLine, boolean isInnerCall) {
     LOG.debug("onZwlProgramLineChanged invoked for testVersion {}, line {}",
         currentTestVersion.getTestVersionId(), currentLine);
     
-    // set line to currentTestVersion so that shots process can take it.
-    currentTestVersion.setControlAtLineInProgram(currentLine);
+    if (!isInnerCall) {
+      // set line to currentTestVersion so that shots process can take it.
+      currentTestVersion.setControlAtLineInProgram(currentLine);
+    }
+  
+    // check if we can't move forward
+    // Note: We don't want build to be halted once webdriver tests are completed and we're
+    // on post completion tasks like saving shots/logs, therefore this is checked only here.
+    if (buildRunStatus.get(build.getBuildId()) == BuildRunStatus.STOPPED) {
+      LOG.debug("A stop request has arrived while running testVersion {}",
+          currentTestVersion.getTestVersionId());
+      // a stop request arrived, handle() will catch the thrown exception.
+      throw new StopRequestException("A STOP was requested");
+    }
     
     // I've use this for two things, checking arrival of a STOP and line update. Checking the
     // arrival doesn't have to be done on every line change, and don't want to keep another timer
     // for simplicity, just use this for now.
     // push build status line update after a delay
-    if (ChronoUnit.MILLIS.between(lastBuildStatusLineUpdateAt, clock.instant()) >=
+    if (!isInnerCall && ChronoUnit.MILLIS.between(lastBuildStatusLineUpdateAt, clock.instant()) >=
         apiCoreProperties.getRunner().getUpdateLineBuildStatusAfter()) {
-      // check if we can't move forward
-      // Note: We don't want build to be halted once webdriver tests are completed and we're
-      // on post completion tasks like saving shots/logs, thus this is checked only here.
-      if (buildRunStatus.get(build.getBuildId()) == BuildRunStatus.STOPPED) {
-        LOG.debug("A stop request has arrived while running testVersion {}",
-            currentTestVersion.getTestVersionId());
-        // a stop request arrived, handle() will catch the thrown exception.
-        throw new StopRequestException("A STOP was requested");
-      }
-      
       LOG.debug("Pushing a line update for testVersion {}, line {}",
           currentTestVersion.getTestVersionId(), currentLine);
       int result = buildStatusProvider.updateLine(new BuildStatusUpdateLine(build.getBuildId(),
@@ -536,7 +571,7 @@ public class BuildRunHandler {
     webdriverLogHandler.capture();
     
     // cleanup everything before quit
-    LOG.debug("browser cleanup before quit");
+    LOG.debug("browser cleanup and quit");
     try {
       driver.manage().deleteAllCookies();
       if (driver instanceof WebStorage) {
@@ -544,17 +579,10 @@ public class BuildRunHandler {
         storage.getLocalStorage().clear();
         storage.getSessionStorage().clear();
       }
+      driver.quit();
     } catch (Throwable t) {
       // an error may occur when a stop arrives before anything is opened in browser
       // https://stackoverflow.com/a/65374046/1624454
-      LOG.error(t.getMessage(), t);
-    }
-    
-    // quit the driver.
-    LOG.debug("Quitting the driver");
-    try {
-      driver.quit();
-    } catch (Throwable t) {
       LOG.error(t.getMessage(), t);
     }
     
@@ -742,6 +770,7 @@ public class BuildRunHandler {
                            ImmutableMapProvider immutableMapProvider,
                            QuotaProvider quotaProvider,
                            BuildOutputProvider buildOutputProvider,
+                           TestVersionProvider testVersionProvider,
                            ShotMetadataProvider shotMetadataProvider,
                            VMUpdateHandler vmUpdateHandler,
                            Build build,
@@ -758,6 +787,7 @@ public class BuildRunHandler {
           immutableMapProvider,
           quotaProvider,
           buildOutputProvider,
+          testVersionProvider,
           shotMetadataProvider,
           vmUpdateHandler,
           build,

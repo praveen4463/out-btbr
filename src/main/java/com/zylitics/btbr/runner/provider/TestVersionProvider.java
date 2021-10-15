@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface TestVersionProvider {
   
   Optional<List<TestVersion>> getTestVersions(int buildId);
+  
+  Optional<TestVersion> getTestVersion(String fileName, String testName, String versionName);
 }

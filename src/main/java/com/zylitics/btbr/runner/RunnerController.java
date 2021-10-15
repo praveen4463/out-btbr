@@ -261,6 +261,7 @@ public class RunnerController {
         immutableMapProvider,
         quotaProvider,
         buildOutputProvider,
+        testVersionProvider,
         shotMetadataProviderFactory.create(apiCoreProperties, restHighLevelClient),
         vmUpdateHandler,
         build,

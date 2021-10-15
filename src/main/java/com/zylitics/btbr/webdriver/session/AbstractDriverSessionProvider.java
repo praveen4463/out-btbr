@@ -147,7 +147,7 @@ public abstract class AbstractDriverSessionProvider {
   
   File getDriverLogFile() {
     if (!Files.isDirectory(buildDir)) {
-      throw new RuntimeException(buildDir.toAbsolutePath().toString() + " isn't a directory");
+      throw new RuntimeException(buildDir.toAbsolutePath() + " isn't a directory");
     }
     Path driverLogsDir = buildDir.resolve(wdProps.getDriverLogsDir());
     IOUtil.createDir(driverLogsDir);

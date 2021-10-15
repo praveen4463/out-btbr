@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
   
@@ -19,6 +20,7 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
   private final Build build;
   private final RemoteWebDriver driver;
   private final PrintStream printStream;
+  private final Consumer<String> callTestHandler;
   private final Map<String, String> buildVariables;
   private final Map<String, String> zwlPreferences;
   private final Path buildDir;
@@ -29,6 +31,7 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
                                  Build build,
                                  RemoteWebDriver driver,
                                  PrintStream printStream,
+                                 Consumer<String> callTestHandler,
                                  @Nullable Map<String, String> buildVariables,
                                  @Nullable Map<String, String> zwlPreferences,
                                  Path buildDir,
@@ -38,6 +41,7 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
     this.build = build;
     this.driver = driver;
     this.printStream = printStream;
+    this.callTestHandler = callTestHandler;
     this.buildVariables = buildVariables;
     this.zwlPreferences = zwlPreferences;
     this.buildDir = buildDir;
@@ -52,6 +56,11 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
   @Override
   public PrintStream getPrintStream() {
     return printStream;
+  }
+  
+  @Override
+  public Consumer<String> getCallTestHandler() {
+    return callTestHandler;
   }
   
   @Override
