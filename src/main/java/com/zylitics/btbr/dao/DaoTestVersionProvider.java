@@ -27,21 +27,24 @@ public class DaoTestVersionProvider extends AbstractDaoProvider implements TestV
     super(jdbc);
   }
   
-  private Optional<List<TestVersion>> getTestVersions(String sqlWhere,
-                                                      SqlParameterSource namedParams) {
-    
-    String sql = "SELECT\n" +
-        "bt_test_version_id\n" +
-        ", bt_test_version_name\n" +
-        ", bt_test_version_code\n" +
-        ", bt_test_id\n" +
-        ", bt_test_name\n" +
-        ", bt_file_id\n" +
-        ", bt_file_name\n" +
-        "FROM bt_build_tests\n";
-    sql += sqlWhere + "\n";
-    sql += "ORDER BY bt_build_tests_id;";
-    
+  @Override
+  public Optional<List<TestVersion>> getTestVersions(int buildId) {
+    Preconditions.checkArgument(buildId > 0, "buildId is required");
+
+    String sql = "SELECT" +
+        " bt_test_version_id" +
+        ", bt_test_version_name" +
+        ", bt_test_version_code" +
+        ", bt_test_id" +
+        ", bt_test_name" +
+        ", bt_file_id" +
+        ", bt_file_name" +
+        " FROM bt_build_tests" +
+        " WHERE bt_build_id = :bt_build_id ORDER BY bt_build_tests_id;";
+
+    SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_id",
+        new SqlParameterValue(Types.INTEGER, buildId));
+
     List<TestVersion> versions = jdbc.query(sql, namedParams, (rs, rowNum) ->
         new TestVersion()
             .setTestVersionId(rs.getInt("bt_test_version_id"))
@@ -53,37 +56,45 @@ public class DaoTestVersionProvider extends AbstractDaoProvider implements TestV
             .setFile(new File()
                 .setFileId(rs.getInt("bt_file_id"))
                 .setName(rs.getString("bt_file_name"))));
-    
+
     if (versions.size() == 0) {
       return Optional.empty();
     }
     return Optional.of(versions);
   }
-  
-  @Override
-  public Optional<List<TestVersion>> getTestVersions(int buildId) {
-    Preconditions.checkArgument(buildId > 0, "buildId is required");
-    
-    String sqlWhere = "WHERE bt_build_id = :bt_build_id";
-  
-    SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_id",
-        new SqlParameterValue(Types.INTEGER, buildId));
-    return getTestVersions(sqlWhere, namedParams);
-  }
-  
+
   @Override
   public Optional<TestVersion> getTestVersion(String fileName, String testName,
                                               String versionName) {
-    String sqlWhere = "WHERE bt_file_name = :bt_file_name and bt_test_name = :bt_test_name\n" +
-        "and bt_test_version_name = :bt_test_version_name";
+    String sql = "SELECT v.bt_test_version_id vid, v.name vn, v.code vc, t.bt_test_id tid, t.name tn\n" +
+        ", f.bt_file_id fid, f.name fn\n" +
+        "FROM bt_file AS f\n" +
+        "INNER JOIN bt_test AS t ON (f.bt_file_id = t.bt_file_id)\n" +
+        "INNER JOIN bt_test_version AS v ON (t.bt_test_id = v.bt_test_id)\n" +
+        "WHERE f.name = :fn and t.name = :tn and v.name = :vn";
   
     Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(3));
-    params.put("bt_file_name", new SqlParameterValue(Types.VARCHAR, fileName));
-    params.put("bt_test_name", new SqlParameterValue(Types.VARCHAR, testName));
-    params.put("bt_test_version_name", new SqlParameterValue(Types.VARCHAR, versionName));
+    params.put("fn", new SqlParameterValue(Types.VARCHAR, fileName));
+    params.put("tn", new SqlParameterValue(Types.VARCHAR, testName));
+    params.put("vn", new SqlParameterValue(Types.VARCHAR, versionName));
   
     SqlParameterSource namedParams = new MapSqlParameterSource(params);
-    
-    return getTestVersions(sqlWhere, namedParams).map(r -> r.get(0));
+
+    List<TestVersion> versions = jdbc.query(sql, namedParams, (rs, rowNum) ->
+        new TestVersion()
+            .setTestVersionId(rs.getInt("vid"))
+            .setName(rs.getString("vn"))
+            .setCode(rs.getString("vc"))
+            .setTest(new Test()
+                .setTestId(rs.getInt("tid"))
+                .setName(rs.getString("tn")))
+            .setFile(new File()
+                .setFileId(rs.getInt("fid"))
+                .setName(rs.getString("fn"))));
+
+    if (versions.size() != 1) {
+      return Optional.empty();
+    }
+    return Optional.of(versions.get(0));
   }
 }
