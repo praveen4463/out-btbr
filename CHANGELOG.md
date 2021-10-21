@@ -110,7 +110,7 @@ Minor enhancements and bug fixed
 
 1. Retrying on errors when contacting grid provisioner service.
 
-## v0.2.16
+## v0.2.17
 
 Minor enhancements and bug fixed
 
@@ -122,3 +122,16 @@ Minor enhancements and bug fixed
 ## BugFixes
 
 1. Driver quit isn't attempted when there is error in interacting with browser
+
+## v0.2.18
+
+Minor enhancements and bug fixed
+
+### Enhancements
+
+1. Upgraded `zwl` to 0.6.3.
+
+## BugFixes
+
+1. In callTest, error should say 'test' rather than file.
+2. storage clearing shouldn't throw error as it leads to no driver close.

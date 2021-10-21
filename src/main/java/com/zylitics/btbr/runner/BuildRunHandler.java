@@ -215,6 +215,8 @@ public class BuildRunHandler {
             , "bt_build_zwl_globals").orElse(null));
   }
   
+  // !! Make sure any exceptions thrown from here are handled in zwl, should you with to send them
+  // to use and not intend to throw a runtime exception.
   private Consumer<String> getCallTestHandler() {
     return (testPath) -> {
       Preconditions.checkArgument(!Strings.isNullOrEmpty(testPath));
@@ -224,10 +226,10 @@ public class BuildRunHandler {
       } else {
         List<String> path = Splitter.on('/').omitEmptyStrings().trimResults().splitToList(testPath);
         if (path.size() != 3) {
-          throw new IllegalArgumentException("Invalid file path given");
+          throw new IllegalArgumentException("Invalid test path given");
         }
         testVersion = testVersionProvider.getTestVersion(path.get(0), path.get(1), path.get(2))
-            .orElseThrow(() -> new IllegalArgumentException("Given file doesn't exists"));
+            .orElseThrow(() -> new IllegalArgumentException("Given test doesn't exists"));
         explicitlyLoadedTests.put(testPath, testVersion);
       }
       ZwlApi zwlApi = zwlApiSupplier.get(testVersion.getCode(),
@@ -576,8 +578,12 @@ public class BuildRunHandler {
       driver.manage().deleteAllCookies();
       if (driver instanceof WebStorage) {
         WebStorage storage = (WebStorage) driver;
-        storage.getLocalStorage().clear();
-        storage.getSessionStorage().clear();
+        try {
+          storage.getLocalStorage().clear();
+          storage.getSessionStorage().clear();
+        } catch (Throwable t) {
+          // ignore. Sometimes when no site is started, clearing storage raise error.
+        }
       }
       driver.quit();
     } catch (Throwable t) {
