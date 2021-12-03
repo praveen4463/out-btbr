@@ -135,3 +135,11 @@ Minor enhancements and bug fixed
 
 1. In callTest, error should say 'test' rather than file.
 2. storage clearing shouldn't throw error as it leads to no driver close.
+
+## v0.2.19
+
+Minor enhancements
+
+### Enhancements
+
+1. Added up team sharing. Changed queries accordingly.

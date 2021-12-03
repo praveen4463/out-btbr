@@ -3,6 +3,7 @@ package com.zylitics.btbr.dao;
 import com.google.common.base.Preconditions;
 import com.zylitics.btbr.runner.provider.*;
 import com.zylitics.btbr.util.CollectionUtil;
+import com.zylitics.btbr.util.CommonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -22,15 +23,22 @@ public class DaoBuildStatusProvider extends AbstractDaoProvider implements Build
     super(jdbc);
   }
   
+  public int getUserOrganizationId(int userId) {
+    String sql = "SELECT organization_id FROM zluser WHERE zluser_id = :zluser_id";
+    return jdbc.query(sql, new SqlParamsBuilder(userId).build(),
+        CommonUtil.getSingleInt()).get(0);
+  }
+  
   @Override
   public int saveOnStart(BuildStatusSaveOnStart buildStatusSaveOnStart) {
     Preconditions.checkNotNull(buildStatusSaveOnStart, "buildStatusSaveOnStart can't be null");
     
     String sql = "INSERT INTO bt_build_status (bt_build_id, bt_test_version_id" +
-        ", status, start_date, zluser_id)" +
-        " VALUES (:bt_build_id, :bt_test_version_id, :status, :start_date, :zluser_id)";
+        ", status, start_date, zluser_id, organization_id)" +
+        " VALUES (:bt_build_id, :bt_test_version_id, :status, :start_date, :zluser_id\n" +
+        ", :organization_id)";
   
-    Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(4));
+    Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(5));
     
     params.put("bt_build_id", new SqlParameterValue(Types.INTEGER,
         buildStatusSaveOnStart.getBuildId()));
@@ -47,6 +55,9 @@ public class DaoBuildStatusProvider extends AbstractDaoProvider implements Build
     params.put("zluser_id", new SqlParameterValue(Types.INTEGER,
         buildStatusSaveOnStart.getUserId()));
   
+    params.put("organization_id", new SqlParameterValue(Types.INTEGER,
+        getUserOrganizationId(buildStatusSaveOnStart.getUserId())));
+  
     SqlParameterSource namedParams = new MapSqlParameterSource(params);
   
     return jdbc.update(sql, namedParams);
@@ -57,10 +68,10 @@ public class DaoBuildStatusProvider extends AbstractDaoProvider implements Build
     Preconditions.checkNotNull(buildStatusSaveWontStart, "buildStatusSaveWontStart can't be null");
     
     String sql = "INSERT INTO bt_build_status (bt_build_id, bt_test_version_id, status,\n" +
-        "zluser_id)\n" +
-        " VALUES (:bt_build_id, :bt_test_version_id, :status, :zluser_id)";
+        "zluser_id, organization_id)\n" +
+        " VALUES (:bt_build_id, :bt_test_version_id, :status, :zluser_id, :organization_id)";
   
-    Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(3));
+    Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(4));
   
     params.put("bt_build_id", new SqlParameterValue(Types.INTEGER,
         buildStatusSaveWontStart.getBuildId()));
@@ -73,6 +84,9 @@ public class DaoBuildStatusProvider extends AbstractDaoProvider implements Build
   
     params.put("zluser_id", new SqlParameterValue(Types.INTEGER,
         buildStatusSaveWontStart.getUserId()));
+  
+    params.put("organization_id", new SqlParameterValue(Types.INTEGER,
+        getUserOrganizationId(buildStatusSaveWontStart.getUserId())));
   
     SqlParameterSource namedParams = new MapSqlParameterSource(params);
   
