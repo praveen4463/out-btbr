@@ -54,7 +54,8 @@ class CaptureShotHandlerImplTest {
         sessionKey,
         currentTestVersion,
         getCaptureDevice(),
-        shotCloudStore);
+        shotCloudStore,
+        new ByteArrayInputStream(new byte[1]));
     
     when(shotCloudStore.storeShot(anyString(), any(InputStream.class))).thenAnswer(i -> {
       shotsCloud.add(i.getArgument(0));
@@ -148,7 +149,8 @@ class CaptureShotHandlerImplTest {
         sessionKey,
         currentTestVersion,
         getCaptureDevice(),
-        shotCloudStore);
+        shotCloudStore,
+        new ByteArrayInputStream(new byte[1]));
   
     when(shotCloudStore.storeShot(anyString(), any(InputStream.class)))
         .thenAnswer(i -> {

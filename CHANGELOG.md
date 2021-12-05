@@ -143,3 +143,11 @@ Minor enhancements
 ### Enhancements
 
 1. Added up team sharing. Changed queries accordingly.
+
+## v0.2.20
+
+Minor enhancements
+
+### Enhancements
+
+1. Bringing back the previous shot capture, more shots per sec.
