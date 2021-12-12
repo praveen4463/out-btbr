@@ -7,6 +7,7 @@ import com.zylitics.btbr.http.*;
 import com.zylitics.btbr.http.ResponseStatus;
 import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
+import com.zylitics.btbr.model.BuildSourceType;
 import com.zylitics.btbr.model.TestVersion;
 import com.zylitics.btbr.runner.provider.*;
 import com.zylitics.btbr.service.AuthService;
@@ -270,13 +271,19 @@ public class RunnerController {
         driver,
         buildDir,
         buildRunStatus);
-    // Note: in unit test, I can catch the current thread on buildRunHandler.handle method, store
-    // it, send a stop, and check it's name change to verify.
-    String mainThreadName = BUILD_MAIN_THREAD_STARTS_WITH + build.getBuildId();
-    Thread buildThread = new Thread(buildRunHandler::handle, mainThreadName);
-    buildThread.start();
-    LOG.info("A new thread {} is assigned to run the build {} further, response will now return",
-        mainThreadName, build.getBuildId());
+    
+    if (build.getSourceType() == BuildSourceType.CI) {
+      buildRunHandler.handle();
+    } else {
+      // Note: in unit test, I can catch the current thread on buildRunHandler.handle method, store
+      // it, send a stop, and check it's name change to verify.
+      String mainThreadName = BUILD_MAIN_THREAD_STARTS_WITH + build.getBuildId();
+      Thread buildThread = new Thread(buildRunHandler::handle, mainThreadName);
+      buildThread.setUncaughtExceptionHandler((t, e) -> LOG.error(e.getMessage(), e));
+      buildThread.start();
+      LOG.info("A new thread {} is assigned to run the build {} further, response will now return",
+          mainThreadName, build.getBuildId());
+    }
     return ResponseEntity.status(HttpStatus.OK).body(new ResponseBuildRun()
         .setSessionId(driver.getSessionId().toString())
         .setStatus(ResponseStatus.RUNNING.name()).setHttpStatusCode(HttpStatus.OK.value()));

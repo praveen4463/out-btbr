@@ -240,7 +240,6 @@ public class BuildRunHandler {
   }
   
   void handle() {
-    Thread.currentThread().setUncaughtExceptionHandler((t, e) -> LOG.error(e.getMessage(), e));
     boolean stopOccurred = false;
     LOG.debug("Build should start shortly");
     try {
@@ -603,9 +602,23 @@ public class BuildRunHandler {
     
     // mark current build as completed
     buildRunStatus.put(build.getBuildId(), BuildRunStatus.COMPLETED);
-    
+  
     // update VM
     LOG.debug("updating the VM");
+    if (build.getSourceType() == BuildSourceType.CI) {
+      // when we're running from CI/CD, a response needs to be returned after everything is done but
+      // before vm is shutdown. Assign a thread for vm shutdown while the main thread returns a response
+      // to caller.
+      String mainThreadName = "vm_shutdown_thread_" + build.getBuildId();
+      Thread vmThread = new Thread(this::updateVM, mainThreadName);
+      vmThread.setUncaughtExceptionHandler((t, e) -> LOG.error(e.getMessage(), e));
+      vmThread.start();
+    } else {
+      updateVM();
+    }
+  }
+  
+  private void updateVM() {
     vmUpdateHandler.update(build);
   }
   
