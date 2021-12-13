@@ -151,3 +151,11 @@ Minor enhancements
 ### Enhancements
 
 1. Bringing back the previous shot capture, more shots per sec.
+
+## v0.2.21
+
+Minor enhancements
+
+### Enhancements
+
+1. Supported CI/CD.

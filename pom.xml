@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.zylitics</groupId>
   <artifactId>zl-btbr</artifactId>
-  <version>0.2.20</version>
+  <version>0.2.21</version>
   <name>zl-btbr</name>
   <url>http://maven.apache.org</url>
   <properties>
