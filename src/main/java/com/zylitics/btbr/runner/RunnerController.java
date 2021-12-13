@@ -249,8 +249,9 @@ public class RunnerController {
     // no test versions with the build. Driver session can start without it as well but we should
     // validate that (and other possible things) before doing so.
     RemoteWebDriver driver = sessionProvider.get().createSession();
+    String sessionId = driver.getSessionId().toString();
   
-    LOG.debug("A new session {} is created", driver.getSessionId().toString());
+    LOG.debug("A new session {} is created", sessionId);
   
     // start a new thread to run the build asynchronously because the current request will now
     // return.
@@ -285,7 +286,7 @@ public class RunnerController {
           mainThreadName, build.getBuildId());
     }
     return ResponseEntity.status(HttpStatus.OK).body(new ResponseBuildRun()
-        .setSessionId(driver.getSessionId().toString())
+        .setSessionId(sessionId)
         .setStatus(ResponseStatus.RUNNING.name()).setHttpStatusCode(HttpStatus.OK.value()));
   }
   
