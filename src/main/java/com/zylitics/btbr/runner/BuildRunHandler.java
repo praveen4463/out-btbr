@@ -363,7 +363,7 @@ public class BuildRunHandler {
     
     // for webdriver logs, check if sufficient time has been passed since we last captured logs, if
     // so capture them again
-    if (ChronoUnit.MILLIS.between(lastLogCheckAt, clock.instant()) >=
+    if (build.isCaptureDriverLogs() && ChronoUnit.MILLIS.between(lastLogCheckAt, clock.instant()) >=
         wdProps.getWaitBetweenLogsCapture()) {
       LOG.debug("Capturing logs in onZwlProgramLineChanged");
       webdriverLogHandler.capture();
@@ -457,9 +457,11 @@ public class BuildRunHandler {
       driver.manage().window().maximize();
     }
     
-    // begin capturing shot
-    LOG.debug("Starting shots capture");
-    captureShotHandler.startShot();
+    if (build.isCaptureShots()) {
+      // begin capturing shot
+      LOG.debug("Starting shots capture");
+      captureShotHandler.startShot();
+    }
     
     // assign current instant to log capture instant, so that log capture waits for sometime
     // from now before trying capturing.
@@ -559,17 +561,21 @@ public class BuildRunHandler {
     // be marked separately just before vm is turned off or marked free.
     updateBuildOnFinish(stopOccurred);
     
-    // stop shots
-    LOG.debug("Shots are going to stop");
-    captureShotHandler.stopShot(); // takes no time
+    if (build.isCaptureShots()) {
+      // stop shots
+      LOG.debug("Shots are going to stop");
+      captureShotHandler.stopShot(); // takes no time
+  
+      // flush shots, may block long time.
+      LOG.debug("pushing shots and waiting");
+      captureShotHandler.blockUntilFinish();
+    }
     
-    // flush shots, may block long time.
-    LOG.debug("pushing shots and waiting");
-    captureShotHandler.blockUntilFinish();
-    
-    // capture logs final time before quit
-    LOG.debug("capturing logs one last time");
-    webdriverLogHandler.capture();
+    if (build.isCaptureDriverLogs()) {
+      // capture logs final time before quit
+      LOG.debug("capturing logs one last time");
+      webdriverLogHandler.capture();
+    }
     
     // cleanup everything before quit
     LOG.debug("browser cleanup and quit");

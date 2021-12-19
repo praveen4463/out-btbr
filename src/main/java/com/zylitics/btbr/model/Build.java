@@ -31,6 +31,12 @@ public class Build {
   
   private boolean abortOnFailure;
   
+  private int retryFailedTestsUpto;
+  
+  private boolean captureShots;
+  
+  private boolean captureDriverLogs;
+  
   private boolean aetKeepSingleWindow;
   
   private boolean aetUpdateUrlBlank;
@@ -132,6 +138,33 @@ public class Build {
   
   public Build setAbortOnFailure(boolean abortOnFailure) {
     this.abortOnFailure = abortOnFailure;
+    return this;
+  }
+  
+  public int getRetryFailedTestsUpto() {
+    return retryFailedTestsUpto;
+  }
+  
+  public Build setRetryFailedTestsUpto(int retryFailedTestsUpto) {
+    this.retryFailedTestsUpto = retryFailedTestsUpto;
+    return this;
+  }
+  
+  public boolean isCaptureShots() {
+    return captureShots;
+  }
+  
+  public Build setCaptureShots(boolean captureShots) {
+    this.captureShots = captureShots;
+    return this;
+  }
+  
+  public boolean isCaptureDriverLogs() {
+    return captureDriverLogs;
+  }
+  
+  public Build setCaptureDriverLogs(boolean captureDriverLogs) {
+    this.captureDriverLogs = captureDriverLogs;
     return this;
   }
   

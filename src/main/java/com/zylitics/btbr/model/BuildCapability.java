@@ -2,8 +2,6 @@ package com.zylitics.btbr.model;
 
 public class BuildCapability {
   
-  private boolean shotTakeTestShot;
-  
   private String wdBrowserName;
   
   private String wdBrowserVersion;
@@ -49,17 +47,6 @@ public class BuildCapability {
   private String wdFirefoxLogLevel;
   
   private boolean wdBrwStartMaximize;
-  
-  // not in use currently but keeping
-  @SuppressWarnings("unused")
-  public boolean isShotTakeTestShot() {
-    return shotTakeTestShot;
-  }
-  
-  public BuildCapability setShotTakeTestShot(boolean shotTakeTestShot) {
-    this.shotTakeTestShot = shotTakeTestShot;
-    return this;
-  }
   
   public String getWdBrowserName() {
     return wdBrowserName;
@@ -273,8 +260,7 @@ public class BuildCapability {
   @Override
   public String toString() {
     return "BuildCapability{" +
-        "shotTakeTestShot=" + shotTakeTestShot +
-        ", wdBrowserName='" + wdBrowserName + '\'' +
+        "wdBrowserName='" + wdBrowserName + '\'' +
         ", wdBrowserVersion='" + wdBrowserVersion + '\'' +
         ", wdPlatformName='" + wdPlatformName + '\'' +
         ", wdAcceptInsecureCerts=" + wdAcceptInsecureCerts +

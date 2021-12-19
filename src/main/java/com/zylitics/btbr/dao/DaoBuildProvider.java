@@ -44,6 +44,9 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bu.final_status" +
         ", bu.shot_bucket_session_storage" +
         ", bu.abort_on_failure" +
+        ", bu.retryFailedTestsUpto" +
+        ", bu.capture_shots" +
+        ", bu.capture_driver_logs" +
         ", bu.aet_keep_single_window" +
         ", bu.aet_update_url_blank" +
         ", bu.aet_reset_timeouts" +
@@ -51,7 +54,6 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bu.source_type" +
         ", bu.bt_build_request_id" +
         ", project.zluser_id" +
-        ", bc.shot_take_test_shot" +
         ", bc.wd_browser_name" +
         ", bc.wd_browser_version" +
         ", bc.wd_platform_name" +
@@ -98,6 +100,9 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
                 ? TestStatus.valueOf(rs.getString("final_status")) : null)
             .setShotBucketSessionStorage(rs.getString("shot_bucket_session_storage"))
             .setAbortOnFailure(rs.getBoolean("abort_on_failure"))
+            .setRetryFailedTestsUpto(rs.getInt("retryFailedTestsUpto"))
+            .setCaptureShots(rs.getBoolean("capture_shots"))
+            .setCaptureDriverLogs(rs.getBoolean("capture_driver_logs"))
             .setAetKeepSingleWindow(rs.getBoolean("aet_keep_single_window"))
             .setAetUpdateUrlBlank(rs.getBoolean("aet_update_url_blank"))
             .setAetResetTimeouts(rs.getBoolean("aet_reset_timeouts"))
@@ -106,7 +111,6 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
             .setBuildRequestId(rs.getLong("bt_build_request_id"))
             .setUserId(rs.getInt("zluser_id"))
             .setBuildCapability(new BuildCapability()
-                .setShotTakeTestShot(rs.getBoolean("shot_take_test_shot"))
                 .setWdBrowserName(rs.getString("wd_browser_name"))
                 .setWdBrowserVersion(rs.getString("wd_browser_version"))
                 .setWdPlatformName(rs.getString("wd_platform_name"))
