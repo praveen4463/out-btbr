@@ -2,6 +2,7 @@ package com.zylitics.btbr.webdriver.session;
 
 import com.google.common.base.Preconditions;
 import com.zylitics.btbr.config.APICoreProperties;
+import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.runner.provider.BrowserProvider;
 import org.openqa.selenium.ie.*;
@@ -12,9 +13,9 @@ import java.time.Duration;
 
 public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
   
-  public IEDriverSessionProvider(APICoreProperties.Webdriver wdProps
+  public IEDriverSessionProvider(Build build, APICoreProperties.Webdriver wdProps
       , BuildCapability buildCapability, Path buildDir, BrowserProvider browserProvider) {
-    super(wdProps, buildCapability, buildDir, browserProvider);
+    super(build, wdProps, buildCapability, buildDir, browserProvider);
   }
   
   @Override
@@ -24,19 +25,25 @@ public class IEDriverSessionProvider extends AbstractDriverSessionProvider {
         System.getProperty(InternetExplorerDriverService.IE_DRIVER_EXE_PROPERTY),
             "ie driver exe path must be set as system property");
   
-    InternetExplorerDriverService.Builder driverServiceBuilder = new InternetExplorerDriverService.Builder()
-        .usingAnyFreePort()
-        .withLogFile(getDriverLogFile());
-    InternetExplorerDriverLogLevel logLevel = null;
-    if (buildCapability.getWdIeLogLevel() != null) {
-      for (InternetExplorerDriverLogLevel b : InternetExplorerDriverLogLevel.values()) {
-        if (buildCapability.getWdIeLogLevel().equalsIgnoreCase(b.toString())) {
-          logLevel = b;
-          break;
+    InternetExplorerDriverService.Builder driverServiceBuilder =
+        new InternetExplorerDriverService.Builder()
+            .usingAnyFreePort()
+            .withLogFile(getDriverLogFile());
+    if (build.isCaptureDriverLogs()) {
+      InternetExplorerDriverLogLevel logLevel = null;
+      if (buildCapability.getWdIeLogLevel() != null) {
+        for (InternetExplorerDriverLogLevel b : InternetExplorerDriverLogLevel.values()) {
+          if (buildCapability.getWdIeLogLevel().equalsIgnoreCase(b.toString())) {
+            logLevel = b;
+            break;
+          }
         }
       }
+      driverServiceBuilder.withLogLevel(logLevel);
+    } else {
+      driverServiceBuilder.withSilent(true);
     }
-    driverServiceBuilder.withLogLevel(logLevel);
+    
 
     // IE driver has lot of custom capabilities available as ie options, their description could
     // be found from the changelog

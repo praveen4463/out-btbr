@@ -238,7 +238,7 @@ public class RunnerController {
     
     // start driver session
     Optional<AbstractDriverSessionProvider> sessionProvider =
-        configuration.getSessionProviderByBrowser(apiCoreProperties.getWebdriver(),
+        configuration.getSessionProviderByBrowser(build, apiCoreProperties.getWebdriver(),
             buildCapability, buildDir, browserProvider);
     if (!sessionProvider.isPresent()) {
       return processErrResponse(new IllegalArgumentException("No session provider found for the" +

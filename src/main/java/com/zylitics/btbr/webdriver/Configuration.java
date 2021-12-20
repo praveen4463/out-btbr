@@ -1,6 +1,7 @@
 package com.zylitics.btbr.webdriver;
 
 import com.zylitics.btbr.config.APICoreProperties;
+import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.runner.provider.BrowserProvider;
 import com.zylitics.btbr.webdriver.session.AbstractDriverSessionProvider;
@@ -18,20 +19,24 @@ public class Configuration {
   public static final String SYS_DEF_TEMP_DIR = System.getProperty("java.io.tmpdir");
   
   public Optional<AbstractDriverSessionProvider> getSessionProviderByBrowser(
-      APICoreProperties.Webdriver wdProps, BuildCapability buildCapability, Path buildDir,
+      Build build,
+      APICoreProperties.Webdriver wdProps,
+      BuildCapability buildCapability,
+      Path buildDir,
       BrowserProvider browserProvider) {
     AbstractDriverSessionProvider provider = null;
     switch (buildCapability.getWdBrowserName()) {
       case BrowserType.CHROME:
-        provider = new ChromeDriverSessionProvider(wdProps, buildCapability, buildDir,
+        provider = new ChromeDriverSessionProvider(build, wdProps, buildCapability, buildDir,
             browserProvider);
         break;
       case BrowserType.FIREFOX:
-        provider = new FirefoxDriverSessionProvider(wdProps, buildCapability, buildDir,
+        provider = new FirefoxDriverSessionProvider(build, wdProps, buildCapability, buildDir,
             browserProvider);
         break;
       case "IE": // our value for IE in db is IE
-        provider = new IEDriverSessionProvider(wdProps, buildCapability, buildDir, browserProvider);
+        provider = new IEDriverSessionProvider(build, wdProps, buildCapability, buildDir,
+            browserProvider);
         break;
     }
     return Optional.ofNullable(provider);

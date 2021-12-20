@@ -2,6 +2,7 @@ package com.zylitics.btbr.webdriver.session;
 
 import com.google.common.base.Preconditions;
 import com.zylitics.btbr.config.APICoreProperties;
+import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.runner.provider.BrowserProvider;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -14,9 +15,9 @@ import java.nio.file.Path;
 
 public class FirefoxDriverSessionProvider extends AbstractDriverSessionProvider {
   
-  public FirefoxDriverSessionProvider(APICoreProperties.Webdriver wdProps
+  public FirefoxDriverSessionProvider(Build build, APICoreProperties.Webdriver wdProps
       , BuildCapability buildCapability, Path buildDir, BrowserProvider browserProvider) {
-    super(wdProps, buildCapability, buildDir, browserProvider);
+    super(build, wdProps, buildCapability, buildDir, browserProvider);
   }
   
   @Override
@@ -36,11 +37,16 @@ public class FirefoxDriverSessionProvider extends AbstractDriverSessionProvider 
     if (browserBinary != null) {
       firefox.setBinary(browserBinary);
     }
-    FirefoxDriverLogLevel logLevel =
-        FirefoxDriverLogLevel.fromString(buildCapability.getWdFirefoxLogLevel());
-    if (logLevel != null) {
-      firefox.setLogLevel(logLevel);
+    if (build.isCaptureDriverLogs()) {
+      FirefoxDriverLogLevel logLevel =
+          FirefoxDriverLogLevel.fromString(buildCapability.getWdFirefoxLogLevel());
+      if (logLevel != null) {
+        firefox.setLogLevel(logLevel);
+      }
+    } else {
+      firefox.setLogLevel(FirefoxDriverLogLevel.FATAL);
     }
+    
     // add more browser specific arguments
     
     return new FirefoxDriver(driverService, firefox);

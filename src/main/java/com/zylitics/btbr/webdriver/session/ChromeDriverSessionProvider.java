@@ -2,6 +2,7 @@ package com.zylitics.btbr.webdriver.session;
 
 import com.google.common.base.Preconditions;
 import com.zylitics.btbr.config.APICoreProperties;
+import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.runner.provider.BrowserProvider;
 import com.zylitics.btbr.util.CollectionUtil;
@@ -20,9 +21,9 @@ import java.util.logging.Level;
 
 public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
   
-  public ChromeDriverSessionProvider(APICoreProperties.Webdriver wdProps
+  public ChromeDriverSessionProvider(Build build, APICoreProperties.Webdriver wdProps
       , BuildCapability buildCapability, Path buildDir, BrowserProvider browserProvider) {
-    super(wdProps, buildCapability, buildDir, browserProvider);
+    super(build, wdProps, buildCapability, buildDir, browserProvider);
   }
   
   @Override
@@ -37,7 +38,7 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
         .withLogFile(getDriverLogFile())
         .withAppendLog(true)
         .withVerbose(buildCapability.isWdChromeVerboseLogging())
-        .withSilent(buildCapability.isWdChromeSilentOutput())
+        .withSilent(!build.isCaptureDriverLogs() || buildCapability.isWdChromeSilentOutput())
         .build();
   
     ChromeOptions chrome = new ChromeOptions();

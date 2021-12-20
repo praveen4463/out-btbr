@@ -3,6 +3,7 @@ package com.zylitics.btbr.webdriver.session;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.zylitics.btbr.config.APICoreProperties;
+import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.btbr.runner.provider.BrowserProvider;
 import com.zylitics.btbr.util.IOUtil;
@@ -37,6 +38,8 @@ public abstract class AbstractDriverSessionProvider {
   private static final String BROWSER_DRIVER_EXE_PATH_TEMPLATE_WIN =
       "C:\\ProgramData\\webdrivers\\BROWSER_NAME\\DRIVER_VERSION\\DRIVER_EXE";
   
+  final Build build;
+  
   final APICoreProperties.Webdriver wdProps;
   
   final BuildCapability buildCapability;
@@ -50,8 +53,9 @@ public abstract class AbstractDriverSessionProvider {
   
   private final BrowserProvider browserProvider;
   
-  public AbstractDriverSessionProvider(APICoreProperties.Webdriver wdProps
+  public AbstractDriverSessionProvider(Build build, APICoreProperties.Webdriver wdProps
       , BuildCapability buildCapability, Path buildDir, BrowserProvider browserProvider) {
+    this.build = build;
     this.wdProps = wdProps;
     this.buildCapability = buildCapability;
     commonCapabilities = getCommonCapabilities();
