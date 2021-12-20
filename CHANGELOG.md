@@ -159,3 +159,11 @@ Minor enhancements
 ### Enhancements
 
 1. Supported CI/CD.
+
+## v0.2.22
+
+Minor enhancements
+
+### Enhancements
+
+1. Supported shots and logs preferences.
