@@ -134,7 +134,11 @@ public class LocalAssetsToCloudHandler {
   
   private void storeBySize(BlobInfo blobInfo, Path file) {
     try {
-      if (Files.size(file) > 1000_000) { storeLarge(blobInfo, file); }
+      long size = Files.size(file);
+      if (size == 0) {
+        return;
+      }
+      if (size > 1000_000) { storeLarge(blobInfo, file); }
       else { storeSmall(blobInfo, file); }
       LOG.debug("Stored blob " + blobInfo + " from " + file);
     } catch (IOException io) {
