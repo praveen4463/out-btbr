@@ -167,3 +167,14 @@ Minor enhancements
 ### Enhancements
 
 1. Supported shots and logs preferences.
+
+## v0.2.23
+
+Bug fixes
+
+### BugFixes
+
+1. Fixed a bug in chrome driver. We were still giving log related properties even when we were asked
+not to log. Now no log properties will be set unless logs are enabled.
+2. Firefox driver was failing to reach `about:blank` sporadically. Now it has been changed to `data:,`
+just for firefox.
