@@ -17,6 +17,7 @@ import com.zylitics.zwl.api.ZwlApi;
 import com.zylitics.zwl.api.ZwlWdTestProperties;
 import com.zylitics.zwl.exception.ZwlLangException;
 import org.openqa.selenium.html5.WebStorage;
+import org.openqa.selenium.remote.BrowserType;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -373,49 +374,58 @@ public class BuildRunHandler {
   }
   
   private void sanitizeBetweenTests() {
-    if (build.isAetKeepSingleWindow()) {
-      LOG.debug("Cleaning up opened windows, maximizing browser..");
-      // delete any open windows and leave just one with about:blank, delete all cookies before
-      // reading new test
-      List<String> winHandles = new ArrayList<>(driver.getWindowHandles());
-      LOG.debug("Found total windows {}, will close extra windows and keep single",
-          winHandles.size());
-      if (winHandles.size() > 1) {
-        for (int i = 0; i < winHandles.size(); i++) {
-          driver.switchTo().window(winHandles.get(i));
-          if (i < winHandles.size() - 1) {
-            driver.close();
+    try {
+      if (build.isAetKeepSingleWindow()) {
+        LOG.debug("Cleaning up opened windows, maximizing browser..");
+        // delete any open windows and leave just one with about:blank, delete all cookies before
+        // reading new test
+        List<String> winHandles = new ArrayList<>(driver.getWindowHandles());
+        LOG.debug("Found total windows {}, will close extra windows and keep single",
+            winHandles.size());
+        if (winHandles.size() > 1) {
+          for (int i = 0; i < winHandles.size(); i++) {
+            driver.switchTo().window(winHandles.get(i));
+            if (i < winHandles.size() - 1) {
+              driver.close();
+            }
           }
         }
+        // maximizing and resetting url takes affect only when keep single window is true.
+        if (buildCapability.isWdBrwStartMaximize()) {
+          LOG.debug("Maximizing the window");
+          driver.manage().window().maximize();
+        }
+        if (build.isAetUpdateUrlBlank()) {
+          LOG.debug("Setting up blank url to window");
+          driver.get(buildCapability.getWdBrowserName().equals(BrowserType.FIREFOX)
+              ? "data:,"
+              : "about:blank");
+          // "about local scheme" can be given to 'get' per webdriver spec
+        }
       }
-      // maximizing and resetting url takes affect only when keep single window is true.
-      if (buildCapability.isWdBrwStartMaximize()) {
-        LOG.debug("Maximizing the window");
-        driver.manage().window().maximize();
+      if (build.isAetDeleteAllCookies()) {
+        LOG.debug("Deleting all cookies");
+        driver.manage().deleteAllCookies(); // delete all cookies
       }
-      if (build.isAetUpdateUrlBlank()) {
-        LOG.debug("Setting up blank url to window");
-        driver.get("about:blank"); // "about local scheme" can be given to 'get' per webdriver spec
+      if (build.isAetResetTimeouts()) {
+        LOG.debug("Resetting timeouts");
+        // reset build capability timeouts to the original values
+        buildCapability.setWdTimeoutsElementAccess(storedElementAccessTimeout);
+        buildCapability.setWdTimeoutsPageLoad(storedPageLoadTimeout);
+        buildCapability.setWdTimeoutsScript(storedScriptTimeout);
+        // reset driver timeouts to their default
+        Configuration configuration = new Configuration();
+        driver.manage().timeouts().pageLoadTimeout(
+            configuration.getTimeouts(wdProps, buildCapability, TimeoutType.PAGE_LOAD),
+            TimeUnit.MILLISECONDS);
+        driver.manage().timeouts().setScriptTimeout(
+            configuration.getTimeouts(wdProps, buildCapability, TimeoutType.JAVASCRIPT),
+            TimeUnit.MILLISECONDS);
       }
-    }
-    if (build.isAetDeleteAllCookies()) {
-      LOG.debug("Deleting all cookies");
-      driver.manage().deleteAllCookies(); // delete all cookies
-    }
-    if (build.isAetResetTimeouts()) {
-      LOG.debug("Resetting timeouts");
-      // reset build capability timeouts to the original values
-      buildCapability.setWdTimeoutsElementAccess(storedElementAccessTimeout);
-      buildCapability.setWdTimeoutsPageLoad(storedPageLoadTimeout);
-      buildCapability.setWdTimeoutsScript(storedScriptTimeout);
-      // reset driver timeouts to their default
-      Configuration configuration = new Configuration();
-      driver.manage().timeouts().pageLoadTimeout(
-          configuration.getTimeouts(wdProps, buildCapability, TimeoutType.PAGE_LOAD),
-          TimeUnit.MILLISECONDS);
-      driver.manage().timeouts().setScriptTimeout(
-          configuration.getTimeouts(wdProps, buildCapability, TimeoutType.JAVASCRIPT),
-          TimeUnit.MILLISECONDS);
+    } catch (Throwable t) {
+      // even if something happens, don't propagate and let some future test fail to better inform
+      // use some reason.
+      LOG.error(t.getMessage(), t);
     }
   }
   
@@ -628,6 +638,8 @@ public class BuildRunHandler {
     vmUpdateHandler.update(build);
   }
   
+  // TODO: fix these throw exceptions. We can't throw anything as completing this step is vital. The
+  //  machine and build otherwise remain forever running and locked.
   private void updateBuildOnFinish(boolean stopOccurred) {
     LOG.debug("updateBuildOnFinish was invoked");
     boolean allSuccess = testVersionsStatus.values().stream()

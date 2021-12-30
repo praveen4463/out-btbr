@@ -33,13 +33,17 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
     Preconditions.checkNotNull(System.getProperty(ChromeDriverService.CHROME_DRIVER_EXE_PROPERTY),
         "chrome driver exe path must be set as system property");
     
-    ChromeDriverService driverService = new ChromeDriverService.Builder()
-        .usingAnyFreePort()
-        .withLogFile(getDriverLogFile())
-        .withAppendLog(true)
-        .withVerbose(buildCapability.isWdChromeVerboseLogging())
-        .withSilent(!build.isCaptureDriverLogs() || buildCapability.isWdChromeSilentOutput())
-        .build();
+    ChromeDriverService.Builder driverServiceBuilder = new ChromeDriverService.Builder()
+        .usingAnyFreePort();
+    if (build.isCaptureDriverLogs()) {
+      driverServiceBuilder
+          .withLogFile(getDriverLogFile())
+          .withAppendLog(true)
+          .withVerbose(buildCapability.isWdChromeVerboseLogging())
+          .withSilent(buildCapability.isWdChromeSilentOutput());
+    } else {
+      driverServiceBuilder.withSilent(true);
+    }
   
     ChromeOptions chrome = new ChromeOptions();
     chrome.merge(commonCapabilities);
@@ -54,7 +58,8 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
     // add more browser specific arguments
     
     // add performance logging if asked to
-    if (buildCapability.isWdChromeEnableNetwork() || buildCapability.isWdChromeEnablePage()) {
+    if (build.isCaptureDriverLogs() &&
+        (buildCapability.isWdChromeEnableNetwork() || buildCapability.isWdChromeEnablePage())) {
       LoggingPreferences loggingPreferences =
           (LoggingPreferences) chrome.getCapability(CapabilityType.LOGGING_PREFS);
       loggingPreferences.enable(LogType.PERFORMANCE, Level.ALL);
@@ -64,7 +69,7 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
       chrome.setExperimentalOption("perfLoggingPrefs", perfLogPrefs);
     }
     
-    return new ChromeDriver(driverService, chrome);
+    return new ChromeDriver(driverServiceBuilder.build(), chrome);
   }
   
   @Override
