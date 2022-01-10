@@ -503,6 +503,10 @@ public class BuildRunHandlerTest {
     return mock(VMUpdateHandler.class);
   }
   
+  private BuildCompletionEmailHandler getBuildCompletionEmailHandler() {
+    return mock(BuildCompletionEmailHandler.class);
+  }
+  
   private WebdriverLogHandler getWebdriverLogHandler() {
     return mock(WebdriverLogHandler.class);
   }
@@ -584,6 +588,7 @@ public class BuildRunHandlerTest {
     private WebdriverLogHandler webdriverLogHandler = null;
     private LocalAssetsToCloudHandler localAssetsToCloudHandler = null;
     private VMUpdateHandler vmUpdateHandler = null;
+    private BuildCompletionEmailHandler buildCompletionEmailHandler = null;
     private Map<Integer, BuildRunStatus> buildRunStatus = null;
   
     Builder withBuildId(int buildId) {
@@ -733,6 +738,9 @@ public class BuildRunHandlerTest {
       if (vmUpdateHandler == null) {
         vmUpdateHandler = getVMDeleteHandler();
       }
+      if (buildCompletionEmailHandler == null) {
+        buildCompletionEmailHandler = getBuildCompletionEmailHandler();
+      }
       if (buildRunStatus == null) {
         buildRunStatus = new HashMap<>();
         buildRunStatus.put(buildId, BuildRunStatus.RUNNING);
@@ -741,7 +749,8 @@ public class BuildRunHandlerTest {
       return new BuildRunHandler(getAPICoreProperties(updateLineMillis, captureLogsMillis),
           getStorage(), buildProvider, buildRequestProvider, buildStatusProvider,
           getImmutableMapProvider(), quotaProvider, buildOutputProvider, testVersionProvider,
-          getShotMetadataProvider(), build, testVersions, captureShotHandlerFactory, vmUpdateHandler,
+          getShotMetadataProvider(), build, testVersions, captureShotHandlerFactory,
+          vmUpdateHandler, buildCompletionEmailHandler,
           webdriverLogHandler, localAssetsToCloudHandler, driver, getBuildDir(),
           clock, buildRunStatus, getZwlApiSupplier(zwlApi));
     }

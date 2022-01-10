@@ -1,6 +1,7 @@
 ---
 api-core:
   project-id: zl-win-nodes
+  front-end-base-url: https://app.outomated.com
   cloud-kms:
     key-ring: zl-apps-auth-secret
     key: default-prod
@@ -80,4 +81,13 @@ api-core:
     driver-logs-file: driver.log
     wait-between-logs-capture: 10000
     element-shot-dir: element-shot
+  email:
+    support-email: support@outomated.com
+    email-sender-name: Outomated Alerts
+    email-build-success-tmp-id: d-e452d1e146b64d898a8fc188209c26c1
+    email-build-failed-tmp-id: d-af42ea498ffc4377ac42a9de480b33f2
+    email-pref-page: /settings/email-pref
+    builds-page: /builds
+  services:
+    sendgrid-api-key-secret-cloud-file: sendgrid-primary-mail-sender.encrypted
 ---

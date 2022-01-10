@@ -1,5 +1,6 @@
 ---
 api-core:
+  front-end-base-url: http://localhost:3000
   webdriver:
     server-logs-bucket: zl-server-logs-dev
     elem-shots-bucket: zl-elem-shots-dev

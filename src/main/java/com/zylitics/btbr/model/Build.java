@@ -10,6 +10,8 @@ public class Build {
   
   private String buildKey;
   
+  private String buildName;
+  
   private BuildCapability buildCapability;
   
   private int buildVMId;
@@ -37,6 +39,8 @@ public class Build {
   
   private boolean captureDriverLogs;
   
+  private boolean notifyOnCompletion;
+  
   private boolean aetKeepSingleWindow;
   
   private boolean aetUpdateUrlBlank;
@@ -46,6 +50,10 @@ public class Build {
   private boolean aetDeleteAllCookies;
   
   private int userId;
+  
+  private int projectId;
+  
+  private int organizationId;
   
   private BuildSourceType sourceType;
   
@@ -66,6 +74,15 @@ public class Build {
   
   public Build setBuildKey(String buildKey) {
     this.buildKey = buildKey;
+    return this;
+  }
+  
+  public String getBuildName() {
+    return buildName;
+  }
+  
+  public Build setBuildName(String buildName) {
+    this.buildName = buildName;
     return this;
   }
   
@@ -168,6 +185,15 @@ public class Build {
     return this;
   }
   
+  public boolean isNotifyOnCompletion() {
+    return notifyOnCompletion;
+  }
+  
+  public Build setNotifyOnCompletion(boolean notifyOnCompletion) {
+    this.notifyOnCompletion = notifyOnCompletion;
+    return this;
+  }
+  
   public boolean isAetKeepSingleWindow() {
     return aetKeepSingleWindow;
   }
@@ -210,6 +236,24 @@ public class Build {
   
   public Build setUserId(int userId) {
     this.userId = userId;
+    return this;
+  }
+  
+  public int getProjectId() {
+    return projectId;
+  }
+  
+  public Build setProjectId(int projectId) {
+    this.projectId = projectId;
+    return this;
+  }
+  
+  public int getOrganizationId() {
+    return organizationId;
+  }
+  
+  public Build setOrganizationId(int organizationId) {
+    this.organizationId = organizationId;
     return this;
   }
   

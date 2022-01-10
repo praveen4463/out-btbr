@@ -37,6 +37,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
     
     String sql = "SELECT" +
         " bu.build_key" +
+        ", bu.name build_name" +
         ", bu.bt_build_vm_id" +
         ", bu.server_screen_size" +
         ", bu.server_timezone_with_dst" +
@@ -47,6 +48,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bu.retryFailedTestsUpto" +
         ", bu.capture_shots" +
         ", bu.capture_driver_logs" +
+        ", bu.notify_on_completion" +
         ", bu.aet_keep_single_window" +
         ", bu.aet_update_url_blank" +
         ", bu.aet_reset_timeouts" +
@@ -54,6 +56,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bu.source_type" +
         ", bu.bt_build_request_id" +
         ", project.zluser_id" +
+        ", project.bt_project_id" +
+        ", project.organization_id" +
         ", bc.wd_browser_name" +
         ", bc.wd_browser_version" +
         ", bc.wd_platform_name" +
@@ -90,6 +94,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         new Build()
             .setBuildId(buildId)
             .setBuildKey(rs.getString("build_key"))
+            .setBuildName(rs.getString("build_name"))
             .setBuildVMId(rs.getInt("bt_build_vm_id"))
             .setServerScreenSize(rs.getString("server_screen_size"))
             .setServerTimezone(rs.getString("server_timezone_with_dst"))
@@ -103,6 +108,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
             .setRetryFailedTestsUpto(rs.getInt("retryFailedTestsUpto"))
             .setCaptureShots(rs.getBoolean("capture_shots"))
             .setCaptureDriverLogs(rs.getBoolean("capture_driver_logs"))
+            .setNotifyOnCompletion(rs.getBoolean("notify_on_completion"))
             .setAetKeepSingleWindow(rs.getBoolean("aet_keep_single_window"))
             .setAetUpdateUrlBlank(rs.getBoolean("aet_update_url_blank"))
             .setAetResetTimeouts(rs.getBoolean("aet_reset_timeouts"))
@@ -110,6 +116,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
             .setSourceType(BuildSourceType.valueOf(rs.getString("source_type")))
             .setBuildRequestId(rs.getLong("bt_build_request_id"))
             .setUserId(rs.getInt("zluser_id"))
+            .setProjectId(rs.getInt("bt_project_id"))
+            .setOrganizationId(rs.getInt("organization_id"))
             .setBuildCapability(new BuildCapability()
                 .setWdBrowserName(rs.getString("wd_browser_name"))
                 .setWdBrowserVersion(rs.getString("wd_browser_version"))

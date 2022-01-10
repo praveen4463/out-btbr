@@ -71,6 +71,7 @@ public class RunnerController {
   
   // handlers
   private final VMUpdateHandler vmUpdateHandler;
+  private final BuildCompletionEmailHandler buildCompletionEmailHandler;
   
   // services
   private final AuthService authService;
@@ -94,6 +95,7 @@ public class RunnerController {
                           CaptureShotHandler.Factory captureShotHandlerFactory,
                           ShotMetadataProvider.Factory shotMetadataProviderFactory,
                           VMUpdateHandler vmUpdateHandler,
+                          BuildCompletionEmailHandler buildCompletionEmailHandler,
                           AuthService authService) {
     this(apiCoreProperties,
         secretsManager,
@@ -111,6 +113,7 @@ public class RunnerController {
         shotMetadataProviderFactory,
         new BuildRunHandler.Factory(),
         vmUpdateHandler,
+        buildCompletionEmailHandler,
         new IOWrapper(),
         new Configuration(),
         authService);
@@ -132,6 +135,7 @@ public class RunnerController {
                    ShotMetadataProvider.Factory shotMetadataProviderFactory,
                    BuildRunHandler.Factory buildRunHandlerFactory,
                    VMUpdateHandler vmUpdateHandler,
+                   BuildCompletionEmailHandler buildCompletionEmailHandler,
                    IOWrapper ioWrapper,
                    Configuration configuration,
                    AuthService authService) {
@@ -151,6 +155,7 @@ public class RunnerController {
     this.shotMetadataProviderFactory = shotMetadataProviderFactory;
     this.buildRunHandlerFactory = buildRunHandlerFactory;
     this.vmUpdateHandler = vmUpdateHandler;
+    this.buildCompletionEmailHandler = buildCompletionEmailHandler;
     this.ioWrapper = ioWrapper;
     this.configuration = configuration;
     this.authService = authService;
@@ -266,6 +271,7 @@ public class RunnerController {
         testVersionProvider,
         shotMetadataProviderFactory.create(apiCoreProperties, restHighLevelClient),
         vmUpdateHandler,
+        buildCompletionEmailHandler,
         build,
         testVersions.get(),
         captureShotHandlerFactory,

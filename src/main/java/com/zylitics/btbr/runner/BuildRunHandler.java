@@ -56,6 +56,7 @@ public class BuildRunHandler {
   // handlers
   private final CaptureShotHandler captureShotHandler;
   private final VMUpdateHandler vmUpdateHandler;
+  private final BuildCompletionEmailHandler buildCompletionEmailHandler;
   private final WebdriverLogHandler webdriverLogHandler;
   private final LocalAssetsToCloudHandler localAssetsToCloudHandler;
   
@@ -114,6 +115,7 @@ public class BuildRunHandler {
                           TestVersionProvider testVersionProvider,
                           ShotMetadataProvider shotMetadataProvider,
                           VMUpdateHandler vmUpdateHandler,
+                          BuildCompletionEmailHandler buildCompletionEmailHandler,
                           Build build,
                           List<TestVersion> testVersions,
                           CaptureShotHandler.Factory captureShotHandlerFactory,
@@ -134,6 +136,7 @@ public class BuildRunHandler {
         testVersions,
         captureShotHandlerFactory,
         vmUpdateHandler,
+        buildCompletionEmailHandler,
         new WebdriverLogHandler(driver, apiCoreProperties.getWebdriver(),
             build.getBuildCapability(), buildDir),
         new LocalAssetsToCloudHandler(apiCoreProperties.getWebdriver(), storage, buildDir),
@@ -158,6 +161,7 @@ public class BuildRunHandler {
                   List<TestVersion> testVersions,
                   CaptureShotHandler.Factory captureShotHandlerFactory,
                   VMUpdateHandler vmUpdateHandler,
+                  BuildCompletionEmailHandler buildCompletionEmailHandler,
                   WebdriverLogHandler webdriverLogHandler,
                   LocalAssetsToCloudHandler localAssetsToCloudHandler,
                   RemoteWebDriver driver,
@@ -183,6 +187,7 @@ public class BuildRunHandler {
         driver.getSessionId().toString(),
         currentTestVersion);
     this.vmUpdateHandler = vmUpdateHandler;
+    this.buildCompletionEmailHandler = buildCompletionEmailHandler;
     this.webdriverLogHandler = webdriverLogHandler;
     this.localAssetsToCloudHandler = localAssetsToCloudHandler;
     this.driver = driver;
@@ -611,6 +616,32 @@ public class BuildRunHandler {
     LOG.debug("storing capture logs to cloud");
     localAssetsToCloudHandler.store();
     
+    try {
+      // send build completion emails
+      if (build.isNotifyOnCompletion()) {
+        Collection<TestStatus> testStatuses = testVersionsStatus.values();
+        boolean allSuccess = testStatuses.stream()
+            .allMatch(e -> e == TestStatus.SUCCESS);
+        
+        boolean allVersionsRan = testVersionsStatus.keySet().containsAll(testVersions.stream()
+            .map(TestVersion::getTestVersionId).collect(Collectors.toList()));
+        
+        long totalSuccess = testStatuses.stream()
+            .filter(e -> e == TestStatus.SUCCESS).count();
+        
+        long totalFailures = testStatuses.stream()
+            .filter(e -> e == TestStatus.ERROR).count();
+    
+        LOG.debug("sending build completion emails");
+        buildCompletionEmailHandler.handle(build,
+            allSuccess && allVersionsRan,
+            totalSuccess,
+            totalFailures);
+      }
+    } catch (Throwable t) {
+      LOG.error(t.getMessage(), t);
+    }
+    
     // all done, we can mark all build tasks completed
     updateOnAllTaskDone();
   
@@ -810,6 +841,7 @@ public class BuildRunHandler {
                            TestVersionProvider testVersionProvider,
                            ShotMetadataProvider shotMetadataProvider,
                            VMUpdateHandler vmUpdateHandler,
+                           BuildCompletionEmailHandler buildCompletionEmailHandler,
                            Build build,
                            List<TestVersion> testVersions,
                            CaptureShotHandler.Factory captureShotHandlerFactory,
@@ -827,6 +859,7 @@ public class BuildRunHandler {
           testVersionProvider,
           shotMetadataProvider,
           vmUpdateHandler,
+          buildCompletionEmailHandler,
           build,
           testVersions,
           captureShotHandlerFactory,

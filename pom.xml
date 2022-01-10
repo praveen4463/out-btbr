@@ -15,6 +15,7 @@
     <selenium.version>4.0.0-alpha-5</selenium.version>
     <stackdriver-logback.version>0.120.4-alpha</stackdriver-logback.version>
     <zwl.version>0.6.3</zwl.version>
+    <sendgrid.version>4.7.1</sendgrid.version>
     <reactor-extra.version>3.4.4</reactor-extra.version>
 
     <skipTest>false</skipTest>
@@ -113,6 +114,11 @@
     <dependency>
       <groupId>org.hibernate.validator</groupId>
       <artifactId>hibernate-validator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sendgrid</groupId>
+      <artifactId>sendgrid-java</artifactId>
+      <version>${sendgrid.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

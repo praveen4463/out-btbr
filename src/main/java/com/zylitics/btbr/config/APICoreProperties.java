@@ -38,6 +38,19 @@ public class APICoreProperties {
     }
   }
   
+  @NotBlank
+  private String frontEndBaseUrl;
+  
+  public String getFrontEndBaseUrl() {
+    return frontEndBaseUrl;
+  }
+  
+  public void setFrontEndBaseUrl(String frontEndBaseUrl) {
+    if (this.frontEndBaseUrl == null) {
+      this.frontEndBaseUrl = frontEndBaseUrl;
+    }
+  }
+  
   @Valid
   private final DataSource dataSource = new DataSource();
   
@@ -67,6 +80,16 @@ public class APICoreProperties {
   private final Webdriver webdriver = new Webdriver();
   
   public Webdriver getWebdriver() { return webdriver; }
+  
+  @Valid
+  private final Services services = new Services();
+  
+  public Services getServices() { return services; }
+  
+  @Valid
+  private final Email email = new Email();
+  
+  public Email getEmail() { return email; }
   
   public static class DataSource {
     
@@ -797,6 +820,103 @@ public class APICoreProperties {
     public void setElementShotDir(String elementShotDir) {
       if (this.elementShotDir == null) {
         this.elementShotDir = elementShotDir;
+      }
+    }
+  }
+  
+  public static class Services {
+  
+    @NotBlank
+    private String sendgridApiKeySecretCloudFile;
+  
+    public String getSendgridApiKeySecretCloudFile() {
+      return sendgridApiKeySecretCloudFile;
+    }
+  
+    public void setSendgridApiKeySecretCloudFile(String sendgridApiKeySecretCloudFile) {
+      if (this.sendgridApiKeySecretCloudFile == null) {
+        this.sendgridApiKeySecretCloudFile = sendgridApiKeySecretCloudFile;
+      }
+    }
+  }
+  
+  public static class Email {
+  
+    @NotBlank
+    private String supportEmail;
+  
+    @NotBlank
+    private String emailSenderName;
+  
+    @NotBlank
+    private String emailBuildSuccessTmpId;
+  
+    @NotBlank
+    private String emailBuildFailedTmpId;
+  
+    @NotBlank
+    private String emailPrefPage;
+  
+    @NotBlank
+    private String buildsPage;
+  
+    public String getSupportEmail() {
+      return supportEmail;
+    }
+  
+    public void setSupportEmail(String supportEmail) {
+      if (this.supportEmail == null) {
+        this.supportEmail = supportEmail;
+      }
+    }
+  
+    public String getEmailSenderName() {
+      return emailSenderName;
+    }
+  
+    public void setEmailSenderName(String emailSenderName) {
+      if (this.emailSenderName == null) {
+        this.emailSenderName = emailSenderName;
+      }
+    }
+  
+    public String getEmailBuildSuccessTmpId() {
+      return emailBuildSuccessTmpId;
+    }
+  
+    public void setEmailBuildSuccessTmpId(String emailBuildSuccessTmpId) {
+      if (this.emailBuildSuccessTmpId == null) {
+        this.emailBuildSuccessTmpId = emailBuildSuccessTmpId;
+      }
+    }
+  
+    public String getEmailBuildFailedTmpId() {
+      return emailBuildFailedTmpId;
+    }
+  
+    public void setEmailBuildFailedTmpId(String emailBuildFailedTmpId) {
+      if (this.emailBuildFailedTmpId == null) {
+        this.emailBuildFailedTmpId = emailBuildFailedTmpId;
+      }
+    }
+  
+    public String getEmailPrefPage() {
+      return emailPrefPage;
+    }
+  
+    public void setEmailPrefPage(String emailPrefPage) {
+      if (this.emailPrefPage == null) {
+        this.emailPrefPage = emailPrefPage;
+      }
+    }
+  
+    public String getBuildsPage() {
+      return buildsPage;
+    }
+  
+    public void setBuildsPage(String buildsPage) {
+      if (this.buildsPage == null) {
+        this.buildsPage = buildsPage;
       }
     }
   }
