@@ -168,28 +168,6 @@ public class Launcher {
                                     SecretsManager secretsManager) {
     return new ProductionAuthService(apiCoreProperties, secretsManager);
   }
-
-  @Bean
-  @Profile("production")
-  SecretsManager productionSecretManager(APICoreProperties apiCoreProperties, Storage storage) throws IOException {
-    return new CloudKMSSecretsManager(apiCoreProperties, storage);
-  }
-
-  @Bean
-  @Profile("e2e")
-  SecretsManager localSecretManager() {
-    return new SecretsManager() {
-      @Override
-      public String getSecretAsPlainText(String secretCloudFileName) {
-        throw new RuntimeException("We shouldn't require to decrypt secrets on local");
-      }
-
-      @Override
-      public void close() {
-        // nothing here
-      }
-    };
-  }
   
   @Bean
   @Profile("e2e")

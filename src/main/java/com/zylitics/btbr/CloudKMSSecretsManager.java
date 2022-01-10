@@ -9,9 +9,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.protobuf.ByteString;
 import com.zylitics.btbr.config.APICoreProperties;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
+// TODO: We shouldn't use secrets in local, but here due to email service and it's
+//  usage locally we've to use it.
+@Service
 class CloudKMSSecretsManager implements SecretsManager {
   
   private final APICoreProperties apiCoreProperties;
@@ -19,6 +24,7 @@ class CloudKMSSecretsManager implements SecretsManager {
   
   private final KeyManagementServiceClient client;
   
+  @Autowired
   CloudKMSSecretsManager(APICoreProperties apiCoreProperties, Storage storage)
       throws IOException {
     this(apiCoreProperties, storage, KeyManagementServiceClient.create());

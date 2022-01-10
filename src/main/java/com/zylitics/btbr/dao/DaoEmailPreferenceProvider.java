@@ -3,9 +3,11 @@ package com.zylitics.btbr.dao;
 import com.zylitics.btbr.runner.provider.EmailPreferenceProvider;
 import com.zylitics.btbr.util.CommonUtil;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public class DaoEmailPreferenceProvider extends AbstractDaoProvider
     implements EmailPreferenceProvider {
   

@@ -178,3 +178,11 @@ Bug fixes
 not to log. Now no log properties will be set unless logs are enabled.
 2. Firefox driver was failing to reach `about:blank` sporadically. Now it has been changed to `data:,`
 just for firefox.
+
+## v0.2.24
+
+Major enhancements
+
+### Enhancements
+
+1. Added support for email notification on build completion.

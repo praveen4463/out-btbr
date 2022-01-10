@@ -1,7 +1,6 @@
 package com.zylitics.btbr.service;
 
 import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.ASM;
 import com.sendgrid.helpers.mail.objects.Email;
 import com.sendgrid.helpers.mail.objects.Personalization;
 import com.zylitics.btbr.SecretsManager;
