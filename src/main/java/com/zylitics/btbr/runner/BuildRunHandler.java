@@ -275,56 +275,70 @@ public class BuildRunHandler {
     validateSingleRowDbCommit(buildProvider.updateOnStart(build.getBuildId(),
         DateTimeUtil.getCurrent(clock)));
     boolean firstTest = true;
+    int retryStep = 0;
     for (TestVersion testVersion : testVersions) {
-      LOG.debug("Starting testVersion {}", getTestVersionIdentifierShort(testVersion));
-      if (!firstTest) {
-        LOG.debug("Going to sanitize before running next test");
-        // sanitize only after the first version is completed
-        sanitizeBetweenTests();
-      }
-      // keep it after 'sanitizeBetweenTests' cause it sets new test versions that need to be
-      // set after extra windows are closed and blank url and page is shown so that shots can start
-      // new version with blank screen.
-      onTestVersionStart(testVersion);
-      if (firstTest) {
-        LOG.debug("Going to perform one time actions during testVersion(s) run");
-        // run only for the first time, keep it after 'onTestVersionStart' as this starts shot
-        // process that need test version detail.
-        onBuildStart();
-        firstTest = false;
-      }
-      String code = testVersion.getCode();
-      LOG.debug("Going to run the code {} for testVersion {}", code,
-          getTestVersionIdentifierShort(testVersion));
-      ZwlApi zwlApi = zwlApiSupplier.get(code, Collections.singletonList(storingErrorListener));
-      try {
-        // handle exceptions only while reading the code, other exceptions will be relayed to
-        // handle()
-        zwlApi.interpret(zwlWdTestProperties,
-            z -> z.setLineChangeListener((cl) -> onZwlProgramLineChanged(cl, false)));
-      } catch (StopRequestException s) {
-        throw s;
-      } catch (Throwable t) {
-        LOG.debug("An exception occurred while running testVersion {}: {}.{}",
+      while (retryStep <= build.getRetryFailedTestsUpto()) {
+        LOG.debug("Starting testVersion {}, retry #{}",
             getTestVersionIdentifierShort(testVersion),
-            t.getClass().getSimpleName(),
-            t.getMessage());
-        onTestVersionFailed(testVersion, t);
-        // try to run other versions only when the exception is a ZwlLangException, cause it's very
-        // unlikely any other test will pass when there is a problem in our application that caused
-        // an unknown exception.
-        if (t instanceof ZwlLangException && !build.isAbortOnFailure()) {
-          LOG.debug("Will continue running from next testVersion after an error in {}",
-              getTestVersionIdentifierShort(testVersion));
-          // when we continue, log the exception.
-          LOG.error(t.getMessage(), t);
-          continue;
+            retryStep);
+        
+        if (!firstTest) {
+          LOG.debug("Going to sanitize before running next test");
+          // sanitize only after the first version is completed
+          sanitizeBetweenTests();
         }
-        LOG.debug("Will not continue to next testVersion, throwing exception");
-        throw t; // handle() will catch it
+        // keep it after 'sanitizeBetweenTests' cause it sets new test versions that need to be
+        // set after extra windows are closed and blank url and page is shown so that shots can start
+        // new version with blank screen.
+        onTestVersionStart(testVersion, retryStep);
+        if (firstTest) {
+          LOG.debug("Going to perform one time actions during testVersion(s) run");
+          // run only for the first time, keep it after 'onTestVersionStart' as this starts shot
+          // process that need test version detail.
+          onBuildStart();
+          firstTest = false;
+        }
+        String code = testVersion.getCode();
+        LOG.debug("Going to run the code {} for testVersion {}, retry #{}",
+            code,
+            getTestVersionIdentifierShort(testVersion),
+            retryStep);
+        ZwlApi zwlApi = zwlApiSupplier.get(code, Collections.singletonList(storingErrorListener));
+        try {
+          // handle exceptions only while reading the code, other exceptions will be relayed to
+          // handle()
+          zwlApi.interpret(zwlWdTestProperties,
+              z -> z.setLineChangeListener((cl) -> onZwlProgramLineChanged(cl, false)));
+        } catch (StopRequestException s) {
+          throw s;
+        } catch (Throwable t) {
+          LOG.debug("An exception occurred while running testVersion {}: {}.{}, retry #{}",
+              getTestVersionIdentifierShort(testVersion),
+              t.getClass().getSimpleName(),
+              t.getMessage(),
+              retryStep);
+          
+          // Make sure onFailed always see the current state of retry step, i.e don't increment it
+          // before this.
+          onTestVersionFailed(testVersion, t, retryStep);
+          
+          // try to run other versions only when the exception is a ZwlLangException, cause it's very
+          // unlikely any other test will pass when there is a problem in our application that caused
+          // an unknown exception.
+          if (t instanceof ZwlLangException && !build.isAbortOnFailure()) {
+            LOG.debug("Will continue running from next testVersion after an error in {}",
+                getTestVersionIdentifierShort(testVersion));
+            // when we continue, log the exception.
+            LOG.error(t.getMessage(), t);
+            retryStep++;
+            continue;
+          }
+          LOG.debug("Will not continue to next testVersion, throwing exception");
+          throw t; // handle() will catch it
+        }
+        LOG.debug("testVersion {} was successful", getTestVersionIdentifierShort(testVersion));
+        onTestVersionSuccess(testVersion);
       }
-      LOG.debug("testVersion {} was successful", getTestVersionIdentifierShort(testVersion));
-      onTestVersionSuccess(testVersion);
     }
     // once build is completed, even with errors, handle() will take care of it.
   }
@@ -436,14 +450,17 @@ public class BuildRunHandler {
   
   // Order is precise, db interactions are on top so that if it fails, we don't mark the version
   // Running
-  private void onTestVersionStart(TestVersion testVersion) {
-    LOG.debug("onTestVersionStart invoked for testVersion {}",
-        getTestVersionIdentifierShort(testVersion));
+  private void onTestVersionStart(TestVersion testVersion, int retryStep) {
+    LOG.debug("onTestVersionStart invoked for testVersion {}, retry #{}",
+        getTestVersionIdentifierShort(testVersion),
+        retryStep);
     
-    validateSingleRowDbCommit(buildStatusProvider.saveOnStart(
-        new BuildStatusSaveOnStart(build.getBuildId(), testVersion.getTestVersionId(),
-            TestStatus.RUNNING, DateTimeUtil.getCurrent(clock), build.getUserId())));
-  
+    if (retryStep < 1) {
+      validateSingleRowDbCommit(buildStatusProvider.saveOnStart(
+          new BuildStatusSaveOnStart(build.getBuildId(), testVersion.getTestVersionId(),
+              TestStatus.RUNNING, DateTimeUtil.getCurrent(clock), build.getUserId())));
+    }
+    
     // set the line to 0 when a new version starts, we do this after test is sanitize and just
     // one window is there with blank url, thus it's safe to change the version. It's ok if a few
     // shots go with line 0 as the test has not really yet started, once it has started line would
@@ -453,14 +470,22 @@ public class BuildRunHandler {
   
     testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.RUNNING);
     
-    printStream.println("Executing test " + getTestVersionIdentifierLong(testVersion));
-  
-    // assign an instant back in time so that first time line update go without any wait
-    lastBuildStatusLineUpdateAt = clock.instant()
-        .minusMillis(apiCoreProperties.getRunner().getUpdateLineBuildStatusAfter());
+    if (retryStep < 1) {
+      printStream.println("Executing test " + getTestVersionIdentifierLong(testVersion));
+    } else {
+      printStream.println("Retry #" + retryStep + " post failure, test " +
+          getTestVersionIdentifierLong(testVersion));
+    }
+
+    // Not required when retrying cause we're already on the same test showing it running
+    if (retryStep < 1) {
+      // assign an instant back in time so that first time line update go without any wait
+      lastBuildStatusLineUpdateAt = clock.instant()
+          .minusMillis(apiCoreProperties.getRunner().getUpdateLineBuildStatusAfter());
+    }
     
-    LOG.debug("onTestVersionStart completed for testVersion {}",
-        getTestVersionIdentifierShort(testVersion));
+    LOG.debug("onTestVersionStart completed for testVersion {}, retry #{}",
+        getTestVersionIdentifierShort(testVersion), retryStep);
   }
   
   // do things that require only one time execution/invocation on build start
@@ -483,20 +508,14 @@ public class BuildRunHandler {
     lastLogCheckAt = clock.instant();
   }
   
-  private void onTestVersionFailed(TestVersion testVersion, Throwable t) {
-    LOG.debug("onTestVersionFailed invoked for testVersion {}, exception {}",
+  private void onTestVersionFailed(TestVersion testVersion, Throwable t, int retryStep) {
+    LOG.debug("onTestVersionFailed invoked for testVersion {}, exception {}, retry #{}",
         getTestVersionIdentifierShort(testVersion),
-        t.getMessage());
+        t.getMessage(),
+        retryStep);
     // we do this to make sure the version we're marking error was first marked running and
     // actually had an entry in BuildStatus
     validateTestVersionRunning(testVersion.getTestVersionId());
-  
-    // once a version's execution is done, push a message, don't use printStream as we need to send
-    // another argument.
-    String outputMsg = "Exception occurred during execution of test " +
-        getTestVersionIdentifierLong(testVersion);
-    sendOutput(outputMsg, true); // don't add exMessage as that will be pushed in build status,
-    // adding here would show that twice to user.
     
     String exMessage = exceptionTranslationProvider.get(t);
     LOG.debug("Translated error message is {}", exMessage);
@@ -510,14 +529,37 @@ public class BuildRunHandler {
       LOG.warn("Expected " + ZwlLangException.class.getSimpleName() + " but was " +
           t.getClass().getSimpleName(), t);
     }
+  
+    // once a version's execution is done, push a message, don't use printStream as we need to send
+    // another argument.
+    String outputMsg;
+    if (retryStep < 1) {
+      outputMsg = "Exception occurred during execution of test " +
+          getTestVersionIdentifierLong(testVersion);
+    } else {
+      outputMsg = String.format("Exception occurred (retry #%s) during execution of test %s",
+          retryStep, getTestVersionIdentifierLong(testVersion));
+    }
     
-    // update build status
-    updateBuildStatus(testVersion.getTestVersionId(), TestStatus.ERROR, exMessage, fromPos,
-        toPos);
+    // Add exception message to output when we're going to retry because we will push the exception
+    // to build status only when all retries are done.
+    if (build.getRetryFailedTestsUpto() > 0 && retryStep < build.getRetryFailedTestsUpto()) {
+      // just the fromPos is fine here to limit complexity in formatting.
+      outputMsg = String.format("%n%s - %s", exMessage, fromPos);
+    }
+  
+    sendOutput(outputMsg, true);
     
-    // Now mark this test version as error
-    testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.ERROR);
-    LOG.debug("current testVersionStatus is {}", testVersionsStatus);
+    // Commit final build status only when all retries are done or there is no retry
+    if (retryStep == build.getRetryFailedTestsUpto()) {
+      // update build status
+      updateBuildStatus(testVersion.getTestVersionId(), TestStatus.ERROR, exMessage, fromPos,
+          toPos);
+  
+      // Now mark this test version as error
+      testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.ERROR);
+      LOG.debug("current testVersionStatus is {}", testVersionsStatus);
+    }
   }
   
   private void onTestVersionSuccess(TestVersion testVersion) {
