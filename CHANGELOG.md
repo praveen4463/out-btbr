@@ -186,3 +186,11 @@ Major enhancements
 ### Enhancements
 
 1. Added support for email notification on build completion.
+
+## v0.2.25
+
+Major enhancements
+
+### Enhancements
+
+1. Added retry feature in tests
