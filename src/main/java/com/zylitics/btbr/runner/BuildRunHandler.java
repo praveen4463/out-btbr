@@ -275,8 +275,8 @@ public class BuildRunHandler {
     validateSingleRowDbCommit(buildProvider.updateOnStart(build.getBuildId(),
         DateTimeUtil.getCurrent(clock)));
     boolean firstTest = true;
-    int retryStep = 0;
     for (TestVersion testVersion : testVersions) {
+      int retryStep = 0;
       while (retryStep <= build.getRetryFailedTestsUpto()) {
         LOG.debug("Starting testVersion {}, retry #{}",
             getTestVersionIdentifierShort(testVersion),
@@ -338,6 +338,7 @@ public class BuildRunHandler {
         }
         LOG.debug("testVersion {} was successful", getTestVersionIdentifierShort(testVersion));
         onTestVersionSuccess(testVersion);
+        break;
       }
     }
     // once build is completed, even with errors, handle() will take care of it.
@@ -545,7 +546,7 @@ public class BuildRunHandler {
     // to build status only when all retries are done.
     if (build.getRetryFailedTestsUpto() > 0 && retryStep < build.getRetryFailedTestsUpto()) {
       // just the fromPos is fine here to limit complexity in formatting.
-      outputMsg = String.format("%n%s - %s", exMessage, fromPos);
+      outputMsg += String.format("%n%s - %s", exMessage, fromPos);
     }
   
     sendOutput(outputMsg, true);
