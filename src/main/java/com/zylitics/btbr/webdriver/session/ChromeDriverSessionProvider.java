@@ -58,8 +58,8 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
     if (optionalMobileDeviceDims.isPresent()) {
       List<String> mobileDeviceDims = optionalMobileDeviceDims.get();
       Map<String, Object> deviceMetrics = new HashMap<>(CollectionUtil.getInitialCapacity(3));
-      deviceMetrics.put("width", mobileDeviceDims.get(0));
-      deviceMetrics.put("height", mobileDeviceDims.get(1));
+      deviceMetrics.put("width", Integer.parseInt(mobileDeviceDims.get(0)));
+      deviceMetrics.put("height", Integer.parseInt(mobileDeviceDims.get(1)));
       deviceMetrics.put("pixelRatio", 3.0);
       
       Map<String, Object> mobileEmulation = new HashMap<>(CollectionUtil.getInitialCapacity(2));

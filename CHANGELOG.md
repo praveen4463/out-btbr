@@ -194,3 +194,12 @@ Major enhancements
 ### Enhancements
 
 1. Added retry feature in tests
+
+## v0.3.0
+
+Major enhancements
+
+### Enhancements
+
+1. Added mobile emulation support
+2. Bumped zwl to 0.6.4
