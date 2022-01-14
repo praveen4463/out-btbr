@@ -61,6 +61,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bc.wd_browser_name" +
         ", bc.wd_browser_version" +
         ", bc.wd_platform_name" +
+        ", bc.wd_me_device_resolution" +
         ", bc.wd_accept_insecure_certs" +
         ", bc.wd_page_load_strategy" +
         ", bc.wd_set_window_rect" +
@@ -122,6 +123,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
                 .setWdBrowserName(rs.getString("wd_browser_name"))
                 .setWdBrowserVersion(rs.getString("wd_browser_version"))
                 .setWdPlatformName(rs.getString("wd_platform_name"))
+                .setWdMeDeviceResolution(rs.getString("wd_me_device_resolution"))
                 .setWdAcceptInsecureCerts(rs.getBoolean("wd_accept_insecure_certs"))
                 .setWdPageLoadStrategy(rs.getString("wd_page_load_strategy"))
                 .setWdSetWindowRect(rs.getBoolean("wd_set_window_rect"))

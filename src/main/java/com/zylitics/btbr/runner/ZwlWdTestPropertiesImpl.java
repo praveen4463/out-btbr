@@ -135,6 +135,11 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
       }
   
       @Override
+      public String getMeDeviceResolution() {
+        return buildCapability.getWdMeDeviceResolution();
+      }
+  
+      @Override
       public Integer getCustomTimeoutElementAccess() {
         return buildCapability.getWdTimeoutsElementAccess();
       }
@@ -172,5 +177,10 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
         return zwlGlobals;
       }
     };
+  }
+  
+  @Override
+  public String getVMResolution() {
+    return build.getServerScreenSize();
   }
 }

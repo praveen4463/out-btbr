@@ -16,7 +16,9 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 
 public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
@@ -51,6 +53,23 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
     if (browserBinary != null) {
       chrome.setBinary(browserBinary);
     }
+  
+    Optional<List<String>> optionalMobileDeviceDims = getMobileDeviceDimensions();
+    if (optionalMobileDeviceDims.isPresent()) {
+      List<String> mobileDeviceDims = optionalMobileDeviceDims.get();
+      Map<String, Object> deviceMetrics = new HashMap<>(CollectionUtil.getInitialCapacity(3));
+      deviceMetrics.put("width", mobileDeviceDims.get(0));
+      deviceMetrics.put("height", mobileDeviceDims.get(1));
+      deviceMetrics.put("pixelRatio", 3.0);
+      
+      Map<String, Object> mobileEmulation = new HashMap<>(CollectionUtil.getInitialCapacity(2));
+      mobileEmulation.put("deviceMetrics", deviceMetrics);
+      mobileEmulation.put("userAgent",
+          "Mozilla/5.0 (Linux; Android 4.2.1; en-us; Nexus 5 Build/JOP40D) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Mobile Safari/535.19"
+      );
+      chrome.setExperimentalOption("mobileEmulation", mobileEmulation);
+    }
+    
     // chrome.addArguments("start-maximized"); don't use this for now as other browsers don't have
     // this option, also sometimes chrome doesn't start maximized even with this argument, it's
     // safe to explicitly send maximize every time.

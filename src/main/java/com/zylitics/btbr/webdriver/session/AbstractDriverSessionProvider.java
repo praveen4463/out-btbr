@@ -1,6 +1,8 @@
 package com.zylitics.btbr.webdriver.session;
 
+import com.google.cloud.Tuple;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.Build;
@@ -17,10 +19,12 @@ import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
+import javax.swing.text.html.Option;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -177,6 +181,19 @@ public abstract class AbstractDriverSessionProvider {
     return Preconditions.checkNotNull(template, "no browser binary template")
         .replace("BROWSER_NAME", buildCapability.getWdBrowserName())
         .replace("BROWSER_VERSION", buildCapability.getWdBrowserVersion());
+  }
+  
+  Optional<List<String>> getMobileDeviceDimensions() {
+    String mobileRes = buildCapability.getWdMeDeviceResolution();
+    if (mobileRes == null) {
+      return Optional.empty();
+    }
+    List<String> dims =
+        Splitter.on('x').omitEmptyStrings().splitToList(mobileRes);
+    if (dims.size() != 2) {
+      throw new RuntimeException("Unexpected device dimensions " + mobileRes);
+    }
+    return Optional.of(dims);
   }
   
   protected abstract String getDriverExeSysProp();

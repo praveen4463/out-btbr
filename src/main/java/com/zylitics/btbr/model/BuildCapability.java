@@ -8,6 +8,8 @@ public class BuildCapability {
   
   private String wdPlatformName;
   
+  private String wdMeDeviceResolution;
+  
   private boolean wdAcceptInsecureCerts;
   
   private String wdPageLoadStrategy;
@@ -72,6 +74,15 @@ public class BuildCapability {
   
   public BuildCapability setWdPlatformName(String wdPlatformName) {
     this.wdPlatformName = wdPlatformName;
+    return this;
+  }
+  
+  public String getWdMeDeviceResolution() {
+    return wdMeDeviceResolution;
+  }
+  
+  public BuildCapability setWdMeDeviceResolution(String wdMeDeviceResolution) {
+    this.wdMeDeviceResolution = wdMeDeviceResolution;
     return this;
   }
   
