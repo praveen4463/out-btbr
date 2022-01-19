@@ -203,3 +203,12 @@ Major enhancements
 
 1. Added mobile emulation support
 2. Bumped zwl to 0.6.4
+
+## v0.3.1
+
+Minor enhancements
+
+### Enhancements
+
+1. Record url of current window upon error
+2. Take a few more screenshots upon error
