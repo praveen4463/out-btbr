@@ -351,7 +351,7 @@ public class BuildRunHandlerTest {
     inOrder.verify(buildStatusProvider).updateOnEnd(argThat(matchBuildStatusUpdateOnEnd(
         new BuildStatusUpdateOnEnd(buildId, testVersionId, TestStatus.ERROR, currentDT
             , new ExceptionTranslationProvider().get(zwEx), "0:0",
-            "0:1"))));
+            "0:1", null))));
     inOrder.verify(buildProvider).updateOnComplete(argThat(matchBuildUpdateOnComplete(
         new BuildUpdateOnComplete(buildId, currentDT, TestStatus.ERROR, "An exception"))));
     // when multiple version is run

@@ -19,9 +19,12 @@ public class BuildStatusUpdateOnEnd extends AbstractBuildStatus {
   
   private final String errorToPos;
   
+  private final String urlUponError;
+  
   public BuildStatusUpdateOnEnd(int buildId, int testVersionId, TestStatus status,
                                 OffsetDateTime endDate, @Nullable String error,
-                                @Nullable String errorFromPos, @Nullable String errorToPos) {
+                                @Nullable String errorFromPos, @Nullable String errorToPos,
+                                @Nullable String urlUponError) {
     super(buildId, testVersionId);
     Preconditions.checkNotNull(status, "status can't be null");
     Preconditions.checkNotNull(endDate, "endDate can't be null");
@@ -31,11 +34,12 @@ public class BuildStatusUpdateOnEnd extends AbstractBuildStatus {
     this.error = error;
     this.errorFromPos = errorFromPos;
     this.errorToPos = errorToPos;
+    this.urlUponError = urlUponError;
   }
   
   public BuildStatusUpdateOnEnd(int buildId, int testVersionId, TestStatus status,
                                 OffsetDateTime endDate) {
-    this(buildId, testVersionId, status, endDate, null, null, null);
+    this(buildId, testVersionId, status, endDate, null, null, null, null);
   }
   
   public TestStatus getStatus() {
@@ -58,6 +62,10 @@ public class BuildStatusUpdateOnEnd extends AbstractBuildStatus {
     return errorToPos;
   }
   
+  public String getUrlUponError() {
+    return urlUponError;
+  }
+  
   @Override
   public String toString() {
     return "BuildStatusUpdateOnEnd{" +
@@ -66,6 +74,7 @@ public class BuildStatusUpdateOnEnd extends AbstractBuildStatus {
         ", error='" + error + '\'' +
         ", errorFromPos='" + errorFromPos + '\'' +
         ", errorToPos='" + errorToPos + '\'' +
+        ", urlUponError='" + urlUponError + '\'' +
         "} " + super.toString();
   }
   
@@ -79,11 +88,13 @@ public class BuildStatusUpdateOnEnd extends AbstractBuildStatus {
         endDate.equals(that.endDate) &&
         Objects.equals(error, that.error) &&
         Objects.equals(errorFromPos, that.errorFromPos) &&
-        Objects.equals(errorToPos, that.errorToPos);
+        Objects.equals(errorToPos, that.errorToPos) &&
+        Objects.equals(urlUponError, that.urlUponError);
   }
   
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), status, endDate, error, errorFromPos, errorToPos);
+    return Objects.hash(super.hashCode(), status, endDate, error, errorFromPos, errorToPos,
+        urlUponError);
   }
 }

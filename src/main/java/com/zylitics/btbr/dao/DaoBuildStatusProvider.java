@@ -123,6 +123,7 @@ public class DaoBuildStatusProvider extends AbstractDaoProvider implements Build
     String sql = "UPDATE bt_build_status SET status = :status" +
         ", end_date = :end_date, error = :error" +
         ", error_from_pos = :error_from_pos, error_to_pos = :error_to_pos" +
+        ", url_upon_error = :url_upon_error" +
         " WHERE bt_build_id = :bt_build_id and bt_test_version_id = :bt_test_version_id";
   
     Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(5));
@@ -140,6 +141,9 @@ public class DaoBuildStatusProvider extends AbstractDaoProvider implements Build
   
     params.put("error_to_pos", new SqlParameterValue(Types.OTHER,
         buildStatusUpdateOnEnd.getErrorToPos()));
+  
+    params.put("url_upon_error", new SqlParameterValue(Types.OTHER,
+        buildStatusUpdateOnEnd.getUrlUponError()));
   
     params.put("bt_build_id", new SqlParameterValue(Types.INTEGER,
         buildStatusUpdateOnEnd.getBuildId()));

@@ -553,9 +553,20 @@ public class BuildRunHandler {
     
     // Commit final build status only when all retries are done or there is no retry
     if (retryStep == build.getRetryFailedTestsUpto()) {
+      String currentUrl = driver.getCurrentUrl();
       // update build status
       updateBuildStatus(testVersion.getTestVersionId(), TestStatus.ERROR, exMessage, fromPos,
-          toPos);
+          toPos, currentUrl);
+      
+      // capture a few more screenshots before going ahead. We do this by just waiting if shots are
+      // already being captured.
+      if (build.isCaptureShots()) {
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          // ignore
+        }
+      }
   
       // Now mark this test version as error
       testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.ERROR);
@@ -816,16 +827,17 @@ public class BuildRunHandler {
   }
   
   private void updateBuildStatus(int testVersionId, TestStatus status, @Nullable String error,
-                                 @Nullable String errorFromPos, @Nullable String errorToPos) {
+                                 @Nullable String errorFromPos, @Nullable String errorToPos,
+                                 @Nullable String urlUponError) {
     LOG.debug("Updating buildStatus for testVersionId {} to status {}, error {}", testVersionId,
         status, error);
     validateSingleRowDbCommit(buildStatusProvider.updateOnEnd(new BuildStatusUpdateOnEnd(
         build.getBuildId(), testVersionId, status, DateTimeUtil.getCurrent(clock), error,
-        errorFromPos, errorToPos)));
+        errorFromPos, errorToPos, urlUponError)));
   }
   
   private void updateBuildStatus(int testVersionId, TestStatus status) {
-    updateBuildStatus(testVersionId, status, null, null, null);
+    updateBuildStatus(testVersionId, status, null, null, null, null);
   }
   
   private void sendOutput(String message) {
