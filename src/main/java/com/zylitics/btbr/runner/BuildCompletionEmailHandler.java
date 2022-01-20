@@ -66,7 +66,7 @@ public class BuildCompletionEmailHandler {
       buildIdentifier += " " + build.getBuildName();
     }
     
-    String linkToBuild = String.format("%s/%s?project=%s",
+    String linkToBuild = String.format("%s/%s?project=%s&simple_view=1",
         apiCoreProperties.getFrontEndBaseUrl() + emailProps.getBuildsPage(),
         build.getBuildId(),
         build.getProjectId());

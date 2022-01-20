@@ -220,3 +220,11 @@ Bug fixes
 ### BugFixes
 
 1. Upon error, get the current url only if the error is a Zwl exception. 
+
+## v0.3.3
+
+Minor enhancements
+
+### Enhancements
+
+1. Updated build emails link to build to have `simple_view` in qs. 
