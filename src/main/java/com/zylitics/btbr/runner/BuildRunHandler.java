@@ -553,7 +553,16 @@ public class BuildRunHandler {
     
     // Commit final build status only when all retries are done or there is no retry
     if (retryStep == build.getRetryFailedTestsUpto()) {
-      String currentUrl = driver.getCurrentUrl();
+      String currentUrl = null;
+      try {
+        if (t instanceof ZwlLangException) {
+          // If it's some other exception, don't attempt to invoke driver cause it can let the
+          // thread wait for long time before another exception is thrown.
+          currentUrl = driver.getCurrentUrl();
+        }
+      } catch (Throwable driverEx) {
+        LOG.error("Couldn't retrieve current url", driverEx);
+      }
       // update build status
       updateBuildStatus(testVersion.getTestVersionId(), TestStatus.ERROR, exMessage, fromPos,
           toPos, currentUrl);

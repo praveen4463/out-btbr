@@ -212,3 +212,11 @@ Minor enhancements
 
 1. Record url of current window upon error
 2. Take a few more screenshots upon error
+
+## v0.3.2
+
+Bug fixes
+
+### BugFixes
+
+1. Upon error, get the current url only if the error is a Zwl exception. 
