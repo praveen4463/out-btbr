@@ -234,7 +234,10 @@ public class BuildRunHandler {
         if (path.size() != 3) {
           throw new IllegalArgumentException("Invalid test path given");
         }
-        testVersion = testVersionProvider.getTestVersion(path.get(0), path.get(1), path.get(2))
+        testVersion = testVersionProvider.getTestVersion(build.getProjectId(),
+                path.get(0),
+                path.get(1),
+                path.get(2))
             .orElseThrow(() -> new IllegalArgumentException("Given test doesn't exists"));
         explicitlyLoadedTests.put(testPath, testVersion);
       }

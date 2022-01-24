@@ -227,4 +227,12 @@ Minor enhancements
 
 ### Enhancements
 
-1. Updated build emails link to build to have `simple_view` in qs. 
+1. Updated build emails link to build to have `simple_view` in qs.
+
+## v0.3.4
+
+Bug fixes
+
+### BugFixes
+
+1. Added missing project_id condition in a sql for fetching tests used in `callTest`.

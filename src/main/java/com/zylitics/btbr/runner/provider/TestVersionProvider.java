@@ -9,5 +9,8 @@ public interface TestVersionProvider {
   
   Optional<List<TestVersion>> getTestVersions(int buildId);
   
-  Optional<TestVersion> getTestVersion(String fileName, String testName, String versionName);
+  Optional<TestVersion> getTestVersion(int projectId,
+                                       String fileName,
+                                       String testName,
+                                       String versionName);
 }

@@ -64,16 +64,19 @@ public class DaoTestVersionProvider extends AbstractDaoProvider implements TestV
   }
 
   @Override
-  public Optional<TestVersion> getTestVersion(String fileName, String testName,
+  public Optional<TestVersion> getTestVersion(int projectId,
+                                              String fileName,
+                                              String testName,
                                               String versionName) {
     String sql = "SELECT v.bt_test_version_id vid, v.name vn, v.code vc, t.bt_test_id tid, t.name tn\n" +
         ", f.bt_file_id fid, f.name fn\n" +
         "FROM bt_file AS f\n" +
         "INNER JOIN bt_test AS t ON (f.bt_file_id = t.bt_file_id)\n" +
         "INNER JOIN bt_test_version AS v ON (t.bt_test_id = v.bt_test_id)\n" +
-        "WHERE f.name = :fn and t.name = :tn and v.name = :vn";
+        "WHERE bt_project_id = :bt_project_id and f.name = :fn and t.name = :tn and v.name = :vn";
   
-    Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(3));
+    Map<String, SqlParameterValue> params = new HashMap<>(CollectionUtil.getInitialCapacity(4));
+    params.put("bt_project_id", new SqlParameterValue(Types.INTEGER, projectId));
     params.put("fn", new SqlParameterValue(Types.VARCHAR, fileName));
     params.put("tn", new SqlParameterValue(Types.VARCHAR, testName));
     params.put("vn", new SqlParameterValue(Types.VARCHAR, versionName));
