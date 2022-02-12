@@ -236,3 +236,11 @@ Bug fixes
 ### BugFixes
 
 1. Added missing project_id condition in a sql for fetching tests used in `callTest`.
+
+## v0.3.5
+
+Enhancements
+
+### Enhancements
+
+1. Bumped zwl to 0.6.5
