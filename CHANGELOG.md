@@ -252,3 +252,11 @@ Enhancements
 ### Enhancements
 
 1. Bumped zwl to 0.6.6
+
+## v0.3.7
+
+Enhancements
+
+### Enhancements
+
+1. Added error in email
