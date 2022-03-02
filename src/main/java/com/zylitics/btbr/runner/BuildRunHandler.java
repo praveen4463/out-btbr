@@ -77,6 +77,7 @@ public class BuildRunHandler {
   // -----------program state start---------------
   private final CurrentTestVersion currentTestVersion = new CurrentTestVersion();
   private final Map<Integer, TestStatus> testVersionsStatus = new HashMap<>();
+  private final List<FailedTestDetail> failedTestVersionsDetail = new ArrayList<>();
   
   /*
   it's fine to have a single storingErrorListener for all test versions, even if more than one
@@ -580,6 +581,10 @@ public class BuildRunHandler {
         }
       }
   
+      failedTestVersionsDetail.add(new FailedTestDetail()
+          .setTestVersion(testVersion)
+          .setError(exMessage)
+          .setUrl(currentUrl));
       // Now mark this test version as error
       testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.ERROR);
       LOG.debug("current testVersionStatus is {}", testVersionsStatus);
@@ -702,7 +707,8 @@ public class BuildRunHandler {
         buildCompletionEmailHandler.handle(build,
             allSuccess && allVersionsRan,
             totalSuccess,
-            totalFailures);
+            totalFailures,
+            failedTestVersionsDetail);
       }
     } catch (Throwable t) {
       LOG.error(t.getMessage(), t);

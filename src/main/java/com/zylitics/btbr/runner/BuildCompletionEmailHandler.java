@@ -6,6 +6,8 @@ import com.sendgrid.helpers.mail.objects.Email;
 import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.EmailInfo;
+import com.zylitics.btbr.model.FailedTestDetail;
+import com.zylitics.btbr.model.TestVersion;
 import com.zylitics.btbr.runner.provider.EmailPreferenceProvider;
 import com.zylitics.btbr.service.EmailService;
 import com.zylitics.btbr.service.SendTemplatedEmail;
@@ -36,7 +38,11 @@ public class BuildCompletionEmailHandler {
     this.emailPreferenceProvider = emailPreferenceProvider;
   }
   
-  void handle(Build build, boolean isSuccess, long totalPassed, long totalFailed) {
+  void handle(Build build,
+              boolean isSuccess,
+              long totalPassed,
+              long totalFailed,
+              List<FailedTestDetail> failedTestVersionsDetail) {
     APICoreProperties.Email emailProps = apiCoreProperties.getEmail();
     
     List<String> emails = isSuccess
@@ -75,17 +81,30 @@ public class BuildCompletionEmailHandler {
         apiCoreProperties.getFrontEndBaseUrl() + emailProps.getEmailPrefPage(),
         build.getProjectId());
     
-    Map<String, Object> templateData = ImmutableMap.of(
-        "build_identifier", buildIdentifier,
-        "link_to_build", linkToBuild,
-        "link_to_emails_settings_def_proj", linkToEmailSettings,
-        "passed", totalPassed,
-        "failed", totalFailed
-    );
+    StringBuilder error = new StringBuilder();
+    
+    for (FailedTestDetail failedTestDetail : failedTestVersionsDetail) {
+      TestVersion testVersion = failedTestDetail.getTestVersion();
+      error.append(
+          String.format("<p class=\"test-name\">%s > %s</p>" +
+              "<pre><div class=\"error\">%s</div></pre>",
+              testVersion.getFile().getName(),
+              testVersion.getTest().getName(),
+              failedTestDetail.getError())
+          );
+    }
+  
+    ImmutableMap.Builder<String, Object> templateDataBuilder = ImmutableMap.builder();
+    templateDataBuilder.put("build_identifier", buildIdentifier);
+    templateDataBuilder.put("link_to_build", linkToBuild);
+    templateDataBuilder.put("link_to_emails_settings_def_proj", linkToEmailSettings);
+    templateDataBuilder.put("passed", totalPassed);
+    templateDataBuilder.put("failed", totalFailed);
+    templateDataBuilder.put("error", error);
     
     SendTemplatedEmail sendTemplatedEmail = new SendTemplatedEmail(emailInfo,
         templateId,
-        templateData);
+        templateDataBuilder.build());
     
     emailService.sendAsync(sendTemplatedEmail, null,
         (v) -> LOG.error("Priority: Couldn't send a build completion email to org: " +
