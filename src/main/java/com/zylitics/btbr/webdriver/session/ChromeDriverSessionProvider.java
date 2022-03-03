@@ -75,6 +75,7 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
     // safe to explicitly send maximize every time.
     
     // add more browser specific arguments
+    chrome.addArguments("--disable-gpu");
     
     // add performance logging if asked to
     if (build.isCaptureDriverLogs() &&

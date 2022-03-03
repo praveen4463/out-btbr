@@ -260,3 +260,11 @@ Enhancements
 ### Enhancements
 
 1. Added error in email
+
+## v0.3.8
+
+Bug fixes
+
+### BugFixes
+
+1. Trying to fix chrome timeout in long-running scripts using some chrome options.
