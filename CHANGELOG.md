@@ -268,3 +268,9 @@ Bug fixes
 ### BugFixes
 
 1. Trying to fix chrome timeout in long-running scripts using some chrome options.
+
+## v0.3.9
+
+### Enhancements
+
+1. Bumped zwl to 0.6.7
