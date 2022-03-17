@@ -280,3 +280,9 @@ Bug fixes
 ### Enhancements
 
 1. Added timestamps to alert email
+
+## v0.3.11
+
+### Enhancements
+
+1. Bumped zwl to 0.6.8
