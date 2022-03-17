@@ -15,9 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class BuildCompletionEmailHandler {
@@ -85,11 +85,17 @@ public class BuildCompletionEmailHandler {
     
     for (FailedTestDetail failedTestDetail : failedTestVersionsDetail) {
       TestVersion testVersion = failedTestDetail.getTestVersion();
+      // !!For timestamp, we'll convert it to EST for now for all emails.
+      // TODO: later put a pref record in db for timezone and convert to that one.
+      String failedAt = failedTestDetail.getTimestamp().minusHours(5)
+          .format(DateTimeFormatter.ofPattern("MMM d, h:m:s a")) + " EST";
       error.append(
           String.format("<p class=\"test-name\">%s > %s</p>" +
+              "<p class=\"error-detail\">Failed at: %s</p>" +
               "<pre><div class=\"error\">%s</div></pre>",
               testVersion.getFile().getName(),
               testVersion.getTest().getName(),
+              failedAt,
               failedTestDetail.getError())
           );
     }

@@ -274,3 +274,9 @@ Bug fixes
 ### Enhancements
 
 1. Bumped zwl to 0.6.7
+
+## v0.3.10
+
+### Enhancements
+
+1. Added timestamps to alert email

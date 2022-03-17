@@ -584,7 +584,8 @@ public class BuildRunHandler {
       failedTestVersionsDetail.add(new FailedTestDetail()
           .setTestVersion(testVersion)
           .setError(exMessage)
-          .setUrl(currentUrl));
+          .setUrl(currentUrl)
+          .setTimestamp(DateTimeUtil.getCurrentUTC()));
       // Now mark this test version as error
       testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.ERROR);
       LOG.debug("current testVersionStatus is {}", testVersionsStatus);

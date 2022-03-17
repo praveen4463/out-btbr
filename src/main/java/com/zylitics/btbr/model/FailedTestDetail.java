@@ -1,5 +1,7 @@
 package com.zylitics.btbr.model;
 
+import java.time.OffsetDateTime;
+
 public class FailedTestDetail {
   
   private TestVersion testVersion;
@@ -7,6 +9,8 @@ public class FailedTestDetail {
   private String error;
   
   private String url;
+  
+  private OffsetDateTime timestamp;
   
   public TestVersion getTestVersion() {
     return testVersion;
@@ -32,6 +36,15 @@ public class FailedTestDetail {
   
   public FailedTestDetail setUrl(String url) {
     this.url = url;
+    return this;
+  }
+  
+  public OffsetDateTime getTimestamp() {
+    return timestamp;
+  }
+  
+  public FailedTestDetail setTimestamp(OffsetDateTime timestamp) {
+    this.timestamp = timestamp;
     return this;
   }
 }
