@@ -286,3 +286,9 @@ Bug fixes
 ### Enhancements
 
 1. Bumped zwl to 0.6.8
+
+## v0.3.12
+
+### Enhancements
+
+1. Bumped zwl to 0.6.9
