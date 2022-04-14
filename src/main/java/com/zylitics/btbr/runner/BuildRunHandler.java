@@ -25,8 +25,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.nio.file.Path;
-import java.time.Clock;
-import java.time.Instant;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -222,8 +221,8 @@ public class BuildRunHandler {
             , "bt_build_zwl_globals").orElse(null));
   }
   
-  // !! Make sure any exceptions thrown from here are handled in zwl, should you with to send them
-  // to use and not intend to throw a runtime exception.
+  // !! Make sure any exceptions thrown from here are handled in zwl, should you wish to send them
+  // to user and don't intend to throw a runtime exception.
   private Consumer<String> getCallTestHandler() {
     return (testPath) -> {
       Preconditions.checkArgument(!Strings.isNullOrEmpty(testPath));
@@ -585,7 +584,7 @@ public class BuildRunHandler {
           .setTestVersion(testVersion)
           .setError(exMessage)
           .setUrl(currentUrl)
-          .setTimestamp(DateTimeUtil.getCurrentUTC()));
+          .setTimestamp(ZonedDateTime.now(ZoneId.of("UTC"))));
       // Now mark this test version as error
       testVersionsStatus.put(testVersion.getTestVersionId(), TestStatus.ERROR);
       LOG.debug("current testVersionStatus is {}", testVersionsStatus);

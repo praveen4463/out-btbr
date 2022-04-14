@@ -292,3 +292,10 @@ Bug fixes
 ### Enhancements
 
 1. Bumped zwl to 0.6.9
+
+## v0.3.13
+
+### Enhancements
+
+1. Bumped zwl to 0.6.10
+2. Fixed timezone and format in Failed At date.
