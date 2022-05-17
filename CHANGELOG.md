@@ -299,3 +299,11 @@ Bug fixes
 
 1. Bumped zwl to 0.6.10
 2. Fixed timezone and format in Failed At date.
+
+## v0.3.14
+
+### Enhancements
+
+1. Bumped zwl to 0.6.11
+2. User's upload directory now is organization's
+3. Bumped up libraries

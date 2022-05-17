@@ -71,7 +71,7 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
   @Override
   public String getUserUploadsCloudPath() {
     return wdProps.getUserUploadsStorageDirTmpl().replace("USER_ID",
-        String.valueOf(build.getUserId()));
+        String.valueOf(build.getOrganizationId()));
   }
   
   @Override
