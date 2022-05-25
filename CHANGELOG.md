@@ -307,3 +307,9 @@ Bug fixes
 1. Bumped zwl to 0.6.11
 2. User's upload directory now is organization's
 3. Bumped up libraries
+
+## v0.3.15
+
+### Enhancements
+
+1. Bumped zwl to 0.6.12

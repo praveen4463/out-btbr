@@ -11,7 +11,7 @@ Deploying:
 3. Cloud deployment (replace #VERSION#):
 3.1:
 jar_ver=#VERSION# && app=zl-btbr && jar=$app-$jar_ver.jar \
-&& cd ~/documents/zylitics/$app && mvn clean package -DskipTest=true \
+&& cd ~/documents/zylitics/$app && mvn clean package -DskipTest=true -Djavacpp.platform=windows-x86_64 \
 && cd ~/documents/zylitics/all-assets/releases && rm -f $jar \
 && cp ~/documents/zylitics/$app/target/$jar . \
 && zip -j $app-$jar_ver.zip $jar && rm -f $jar \
