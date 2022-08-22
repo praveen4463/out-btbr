@@ -78,6 +78,7 @@ public abstract class AbstractDriverSessionProvider {
   // but a script can't set sys prop to a running jvm.
   protected void setDriverExe() {
     if (Platform.fromString(buildCapability.getWdPlatformName()).is(Platform.MAC)) {
+      // No action, set the driver property directly when it's a mac.
       return;
     }
     Optional<String> driverVersion = browserProvider.getDriverVersion(

@@ -212,6 +212,7 @@ public class BuildRunHandler {
         driver,
         printStream,
         getCallTestHandler(),
+        new HashMap<>(),
         immutableMapProvider.getMapFromTableByBuild(build.getBuildId()
             , "bt_build_zwl_build_variables").orElse(null),
         immutableMapProvider.getMapFromTableByBuild(build.getBuildId()
@@ -230,20 +231,30 @@ public class BuildRunHandler {
       if (explicitlyLoadedTests.containsKey(testPath)) {
         testVersion = explicitlyLoadedTests.get(testPath);
       } else {
+        String versionName;
         List<String> path = Splitter.on('/').omitEmptyStrings().trimResults().splitToList(testPath);
-        if (path.size() != 3) {
-          throw new IllegalArgumentException("Invalid test path given");
+        switch (path.size()) {
+          case 3:
+            versionName = path.get(2);
+            break;
+          case 2:
+            versionName = "v1";
+            break;
+          default:
+            throw new IllegalArgumentException("Invalid test path given");
         }
+        String fileName = path.get(0);
+        String testName = path.get(1);
         testVersion = testVersionProvider.getTestVersion(build.getProjectId(),
-                path.get(0),
-                path.get(1),
-                path.get(2))
+                fileName,
+                testName,
+                versionName)
             .orElseThrow(() -> new IllegalArgumentException("Given test doesn't exists"));
         explicitlyLoadedTests.put(testPath, testVersion);
       }
       ZwlApi zwlApi = zwlApiSupplier.get(testVersion.getCode(),
           Collections.singletonList(storingErrorListener));
-      zwlApi.interpret(zwlWdTestProperties,
+      zwlApi.interpret(zwlWdTestProperties, testPath,
           z -> z.setLineChangeListener((cl) -> onZwlProgramLineChanged(cl, true)));
     };
   }
@@ -311,6 +322,7 @@ public class BuildRunHandler {
           // handle exceptions only while reading the code, other exceptions will be relayed to
           // handle()
           zwlApi.interpret(zwlWdTestProperties,
+              getTestPathFromTestVersion(testVersion),
               z -> z.setLineChangeListener((cl) -> onZwlProgramLineChanged(cl, false)));
         } catch (StopRequestException s) {
           throw s;
@@ -345,6 +357,12 @@ public class BuildRunHandler {
       }
     }
     // once build is completed, even with errors, handle() will take care of it.
+  }
+  
+  private String getTestPathFromTestVersion(TestVersion testVersion) {
+    return String.format("%s/%s/%s", testVersion.getFile().getName(),
+        testVersion.getTest().getName(),
+        testVersion.getName());
   }
   
   // order of actions matter, they are in priority

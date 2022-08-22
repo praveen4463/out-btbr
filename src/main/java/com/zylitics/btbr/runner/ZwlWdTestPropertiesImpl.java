@@ -5,6 +5,7 @@ import com.zylitics.btbr.config.APICoreProperties;
 import com.zylitics.btbr.model.Build;
 import com.zylitics.btbr.model.BuildCapability;
 import com.zylitics.zwl.api.ZwlWdTestProperties;
+import com.zylitics.zwl.datatype.ZwlValue;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import javax.annotation.Nullable;
@@ -21,6 +22,7 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
   private final RemoteWebDriver driver;
   private final PrintStream printStream;
   private final Consumer<String> callTestHandler;
+  private final Map<String, ZwlValue> _global;
   private final Map<String, String> buildVariables;
   private final Map<String, String> zwlPreferences;
   private final Path buildDir;
@@ -32,6 +34,7 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
                                  RemoteWebDriver driver,
                                  PrintStream printStream,
                                  Consumer<String> callTestHandler,
+                                 Map<String, ZwlValue> _global,
                                  @Nullable Map<String, String> buildVariables,
                                  @Nullable Map<String, String> zwlPreferences,
                                  Path buildDir,
@@ -42,6 +45,7 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
     this.driver = driver;
     this.printStream = printStream;
     this.callTestHandler = callTestHandler;
+    this._global = _global;
     this.buildVariables = buildVariables;
     this.zwlPreferences = zwlPreferences;
     this.buildDir = buildDir;
@@ -175,6 +179,11 @@ public class ZwlWdTestPropertiesImpl implements ZwlWdTestProperties {
       @Override
       public Map<String, String> getGlobal() {
         return zwlGlobals;
+      }
+  
+      @Override
+      public Map<String, ZwlValue> get_Global() {
+        return _global;
       }
     };
   }

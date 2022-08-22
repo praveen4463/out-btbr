@@ -81,7 +81,8 @@ public class BuildRunHandlerTest {
       ZwlInterpreterVisitor visitor = i.getArgument(1);
       visitor.visit(zwlInterpreter);
       return null;
-    }).when(zwlApi).interpret(any(ZwlWdTestProperties.class), any(ZwlInterpreterVisitor.class));
+    }).when(zwlApi).interpret(any(ZwlWdTestProperties.class), any(String.class),
+        any(ZwlInterpreterVisitor.class));
     
     TestVersion testVersion1 = new TestVersion().setTestVersionId(testVersionId1).setName("v1")
         .setCode("a = 1")
@@ -334,7 +335,8 @@ public class BuildRunHandlerTest {
     ZwlApi zwlApi = mock(ZwlApi.class);
     doAnswer(i -> {
       throw zwEx;
-    }).when(zwlApi).interpret(any(ZwlWdTestProperties.class), any(ZwlInterpreterVisitor.class));
+    }).when(zwlApi).interpret(any(ZwlWdTestProperties.class), any(String.class),
+        any(ZwlInterpreterVisitor.class));
     new Builder()
         .withBuildId(buildId)
         .withBuildStatusProvider(buildStatusProvider)

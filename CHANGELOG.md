@@ -313,3 +313,12 @@ Bug fixes
 ### Enhancements
 
 1. Bumped zwl to 0.6.12
+
+## v0.3.16
+
+### Enhancements
+
+1. Bumped zwl to 0.6.13
+2. `_global` is now provided to zwl from runner.
+3. While calling a function, version name is no longer required if it's v1.
+4. Currently running Test Path is also provided from runner.
