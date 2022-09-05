@@ -322,3 +322,10 @@ Bug fixes
 2. `_global` is now provided to zwl from runner.
 3. While calling a function, version name is no longer required if it's v1.
 4. Currently running Test Path is also provided from runner.
+
+## v0.3.17
+
+### Enhancements
+
+1. Bumped zwl to 0.6.14
+2. Added support to run build from git

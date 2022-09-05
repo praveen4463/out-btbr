@@ -6,6 +6,7 @@ import com.google.cloud.storage.Storage;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.zylitics.btbr.config.APICoreProperties;
+import com.zylitics.btbr.dao.DaoTestVersionProvider;
 import com.zylitics.btbr.dao.SqlParamsBuilder;
 import com.zylitics.btbr.esdb.ShotMetadataIndexFields;
 import com.zylitics.btbr.http.RequestBuildRun;
@@ -135,7 +136,7 @@ public class InContainerE2ETest {
   private BuildProvider buildProvider;
   
   @Autowired
-  private TestVersionProvider testVersionProvider;
+  private DaoTestVersionProvider testVersionProvider;
   
   private String apiVersion;
   private int buildId;
@@ -158,6 +159,8 @@ public class InContainerE2ETest {
     are required
   - buildVm must be set on delete_from_runner=true so that we can track build finish
    */
+  // TODO: This same function can be used for testing GIT-Run as well. Modify it to verify situations
+  //  in those cases and write instructions for table data such as CI as source_type etc.
   @Test
   void straightBuildRunTest() throws Exception {
     buildId = Integer.getInteger(STRAIGHT_TEST_BUILD_ID_SYS_PROP, 0);

@@ -46,9 +46,11 @@ public class BuildCompletionEmailHandler {
               List<FailedTestDetail> failedTestVersionsDetail) {
     APICoreProperties.Email emailProps = apiCoreProperties.getEmail();
     
+    int orgId = build.getOrganization().getOrganizationId();
+    
     List<String> emails = isSuccess
-        ? emailPreferenceProvider.getEmailsForBuildSuccess(build.getOrganizationId())
-        : emailPreferenceProvider.getEmailsForBuildFailure(build.getOrganizationId());
+        ? emailPreferenceProvider.getEmailsForBuildSuccess(orgId)
+        : emailPreferenceProvider.getEmailsForBuildFailure(orgId);
     
     if (emails.size() == 0) {
       return;
@@ -115,7 +117,6 @@ public class BuildCompletionEmailHandler {
         templateDataBuilder.build());
     
     emailService.sendAsync(sendTemplatedEmail, null,
-        (v) -> LOG.error("Priority: Couldn't send a build completion email to org: " +
-            build.getOrganizationId()));
+        (v) -> LOG.error("Priority: Couldn't send a build completion email to org: " + orgId));
   }
 }

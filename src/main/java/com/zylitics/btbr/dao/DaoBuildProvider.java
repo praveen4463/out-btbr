@@ -1,9 +1,7 @@
 package com.zylitics.btbr.dao;
 
 import com.google.common.base.Preconditions;
-import com.zylitics.btbr.model.Build;
-import com.zylitics.btbr.model.BuildCapability;
-import com.zylitics.btbr.model.BuildSourceType;
+import com.zylitics.btbr.model.*;
 import com.zylitics.btbr.runner.TestStatus;
 import com.zylitics.btbr.runner.provider.BuildProvider;
 import com.zylitics.btbr.runner.provider.BuildUpdateOnComplete;
@@ -57,7 +55,9 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bu.bt_build_request_id" +
         ", project.zluser_id" +
         ", project.bt_project_id" +
-        ", project.organization_id" +
+        ", org.organization_id" +
+        ", org.git_enabled" +
+        ", org.git_provider" +
         ", bc.wd_browser_name" +
         ", bc.wd_browser_version" +
         ", bc.wd_platform_name" +
@@ -86,6 +86,7 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         " ON (bu.bt_build_id = bc.bt_build_id)" +
         " INNER JOIN bt_project AS project" +
         " ON (bu.bt_project_id = project.bt_project_id)" +
+        " JOIN organization org USING (organization_id) " +
         " WHERE bu.bt_build_id = :bt_build_id;";
     
     SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_id",
@@ -118,7 +119,10 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
             .setBuildRequestId(rs.getLong("bt_build_request_id"))
             .setUserId(rs.getInt("zluser_id"))
             .setProjectId(rs.getInt("bt_project_id"))
-            .setOrganizationId(rs.getInt("organization_id"))
+            .setOrganization(new Organization()
+                .setOrganizationId(rs.getInt("organization_id"))
+                .setGitEnabled(rs.getBoolean("git_enabled"))
+                .setGitProvider(GitProvider.valueOf(rs.getString("git_provider"))))
             .setBuildCapability(new BuildCapability()
                 .setWdBrowserName(rs.getString("wd_browser_name"))
                 .setWdBrowserVersion(rs.getString("wd_browser_version"))

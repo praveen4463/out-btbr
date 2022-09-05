@@ -14,7 +14,6 @@ import com.zylitics.btbr.runner.provider.ShotMetadataProvider;
 import com.zylitics.btbr.runner.provider.ZwlProgramOutputProvider;
 import com.zylitics.btbr.service.*;
 import com.zylitics.btbr.shot.CaptureShotHandlerImpl;
-import com.zylitics.btbr.shot.CaptureShotHandlerImplV1;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -29,7 +28,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import javax.sql.DataSource;
-import java.io.IOException;
 
 // TODO: I am not too sure what DataAccessExceptions should be re-tried, let's first watch logs and
 //  decide if retry can help recovering from them. Hikari automatically retries until connection

@@ -53,7 +53,7 @@ public class Build {
   
   private int projectId;
   
-  private int organizationId;
+  private Organization organization;
   
   private BuildSourceType sourceType;
   
@@ -248,12 +248,12 @@ public class Build {
     return this;
   }
   
-  public int getOrganizationId() {
-    return organizationId;
+  public Organization getOrganization() {
+    return organization;
   }
   
-  public Build setOrganizationId(int organizationId) {
-    this.organizationId = organizationId;
+  public Build setOrganization(Organization organization) {
+    this.organization = organization;
     return this;
   }
   

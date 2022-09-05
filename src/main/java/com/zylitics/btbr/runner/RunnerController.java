@@ -3,12 +3,10 @@ package com.zylitics.btbr.runner;
 import com.google.cloud.storage.Storage;
 import com.zylitics.btbr.SecretsManager;
 import com.zylitics.btbr.config.APICoreProperties;
+import com.zylitics.btbr.dao.DaoTestVersionProvider;
 import com.zylitics.btbr.http.*;
 import com.zylitics.btbr.http.ResponseStatus;
-import com.zylitics.btbr.model.Build;
-import com.zylitics.btbr.model.BuildCapability;
-import com.zylitics.btbr.model.BuildSourceType;
-import com.zylitics.btbr.model.TestVersion;
+import com.zylitics.btbr.model.*;
 import com.zylitics.btbr.runner.provider.*;
 import com.zylitics.btbr.service.AuthService;
 import com.zylitics.btbr.webdriver.Configuration;
@@ -59,10 +57,11 @@ public class RunnerController {
   private final BuildRequestProvider buildRequestProvider;
   private final BuildStatusProvider buildStatusProvider;
   private final ImmutableMapProvider immutableMapProvider;
-  private final TestVersionProvider testVersionProvider;
   private final BrowserProvider browserProvider;
   private final QuotaProvider quotaProvider;
   private final BuildOutputProvider buildOutputProvider;
+  private final DaoTestVersionProvider daoTestVersionProvider;
+  private final GitTestVersionProvider gitTestVersionProvider;
   
   // factories
   private final CaptureShotHandler.Factory captureShotHandlerFactory;
@@ -88,10 +87,11 @@ public class RunnerController {
                           BuildRequestProvider buildRequestProvider,
                           BuildStatusProvider buildStatusProvider,
                           ImmutableMapProvider immutableMapProvider,
-                          TestVersionProvider testVersionProvider,
                           BrowserProvider browserProvider,
                           QuotaProvider quotaProvider,
                           BuildOutputProvider buildOutputProvider,
+                          DaoTestVersionProvider daoTestVersionProvider,
+                          GitTestVersionProvider gitTestVersionProvider,
                           CaptureShotHandler.Factory captureShotHandlerFactory,
                           ShotMetadataProvider.Factory shotMetadataProviderFactory,
                           VMUpdateHandler vmUpdateHandler,
@@ -105,10 +105,11 @@ public class RunnerController {
         buildRequestProvider,
         buildStatusProvider,
         immutableMapProvider,
-        testVersionProvider,
         browserProvider,
         quotaProvider,
         buildOutputProvider,
+        daoTestVersionProvider,
+        gitTestVersionProvider,
         captureShotHandlerFactory,
         shotMetadataProviderFactory,
         new BuildRunHandler.Factory(),
@@ -127,10 +128,11 @@ public class RunnerController {
                    BuildRequestProvider buildRequestProvider,
                    BuildStatusProvider buildStatusProvider,
                    ImmutableMapProvider immutableMapProvider,
-                   TestVersionProvider testVersionProvider,
                    BrowserProvider browserProvider,
                    QuotaProvider quotaProvider,
                    BuildOutputProvider buildOutputProvider,
+                   DaoTestVersionProvider daoTestVersionProvider,
+                   GitTestVersionProvider gitTestVersionProvider,
                    CaptureShotHandler.Factory captureShotHandlerFactory,
                    ShotMetadataProvider.Factory shotMetadataProviderFactory,
                    BuildRunHandler.Factory buildRunHandlerFactory,
@@ -147,10 +149,11 @@ public class RunnerController {
     this.buildRequestProvider = buildRequestProvider;
     this.buildStatusProvider = buildStatusProvider;
     this.immutableMapProvider = immutableMapProvider;
-    this.testVersionProvider = testVersionProvider;
     this.browserProvider = browserProvider;
     this.quotaProvider = quotaProvider;
     this.buildOutputProvider = buildOutputProvider;
+    this.daoTestVersionProvider = daoTestVersionProvider;
+    this.gitTestVersionProvider = gitTestVersionProvider;
     this.captureShotHandlerFactory = captureShotHandlerFactory;
     this.shotMetadataProviderFactory = shotMetadataProviderFactory;
     this.buildRunHandlerFactory = buildRunHandlerFactory;
@@ -212,7 +215,20 @@ public class RunnerController {
     // get build capability
     BuildCapability buildCapability = build.getBuildCapability();
     LOG.debug("buildCapability is {}", buildCapability);
-    // get test version
+    
+    // Get test version
+    
+    // Decide which testVersionProvider to use. If running from git is enabled and source is
+    // not IDE, it's git provider otherwise the normal dao.
+    TestVersionProvider testVersionProvider;
+    Organization organization = build.getOrganization();
+    if (build.getSourceType() != BuildSourceType.IDE && organization.isGitEnabled()) {
+      gitTestVersionProvider.init(organization);
+      testVersionProvider = gitTestVersionProvider;
+    } else {
+      testVersionProvider = daoTestVersionProvider;
+    }
+    
     Optional<List<TestVersion>> testVersions =
         testVersionProvider.getTestVersions(build.getBuildId());
     if (!testVersions.isPresent()) {
