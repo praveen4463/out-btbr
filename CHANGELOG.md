@@ -329,3 +329,11 @@ Bug fixes
 
 1. Bumped zwl to 0.6.14
 2. Added support to run build from git
+
+## v0.3.18
+
+Bug fixes
+
+### BugFixes
+
+1. Fixed a bug while fetching build

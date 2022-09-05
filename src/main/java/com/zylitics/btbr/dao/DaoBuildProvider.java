@@ -122,7 +122,8 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
             .setOrganization(new Organization()
                 .setOrganizationId(rs.getInt("organization_id"))
                 .setGitEnabled(rs.getBoolean("git_enabled"))
-                .setGitProvider(GitProvider.valueOf(rs.getString("git_provider"))))
+                .setGitProvider(rs.getString("git_provider") != null
+                    ? GitProvider.valueOf(rs.getString("git_provider")) : null))
             .setBuildCapability(new BuildCapability()
                 .setWdBrowserName(rs.getString("wd_browser_name"))
                 .setWdBrowserVersion(rs.getString("wd_browser_version"))
