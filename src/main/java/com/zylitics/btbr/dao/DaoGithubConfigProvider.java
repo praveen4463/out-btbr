@@ -23,15 +23,15 @@ class DaoGithubConfigProvider extends AbstractDaoProvider implements GithubConfi
   }
   
   @Override
-  public Optional<GithubConfig> getGithubConfig(int organizationId) {
-    Preconditions.checkArgument(organizationId > 0, "organizationId is required");
+  public Optional<GithubConfig> getGithubConfig(int projectId) {
+    Preconditions.checkArgument(projectId > 0, "projectId is required");
     
     String sql = "SELECT api_token, repo_owner, repo_name, main_branch_name\n" +
         "FROM github_config\n" +
-        "WHERE organization_id = :organization_id;";
+        "WHERE project_id = :project_id;";
   
-    SqlParameterSource namedParams = new MapSqlParameterSource("organization_id",
-        new SqlParameterValue(Types.INTEGER, organizationId));
+    SqlParameterSource namedParams = new MapSqlParameterSource("project_id",
+        new SqlParameterValue(Types.INTEGER, projectId));
   
     List<GithubConfig> configs = jdbc.query(sql, namedParams, (rs, rowNum) ->
         new GithubConfig()

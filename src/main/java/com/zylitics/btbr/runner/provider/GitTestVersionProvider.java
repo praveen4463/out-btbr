@@ -1,7 +1,7 @@
 package com.zylitics.btbr.runner.provider;
 
 import com.zylitics.btbr.model.GitProvider;
-import com.zylitics.btbr.model.Organization;
+import com.zylitics.btbr.model.Project;
 import com.zylitics.btbr.model.TestVersion;
 import com.zylitics.btbr.service.AbstractRepoFetcher;
 import com.zylitics.btbr.service.GithubRepoFetcher;
@@ -32,15 +32,15 @@ public class GitTestVersionProvider implements TestVersionProvider {
     this.webClientBuilder = webClientBuilder;
   }
   
-  public void init(Organization organization) {
-    int organizationId = organization.getOrganizationId();
+  public void init(Project project) {
+    int projectId = project.getProjectId();
     
     AbstractRepoFetcher abstractRepoFetcher;
-    GitProvider gitProvider = organization.getGitProvider();
+    GitProvider gitProvider = project.getGitProvider();
     switch (gitProvider) {
       case GITHUB:
         abstractRepoFetcher = new GithubRepoFetcher(webClientBuilder,
-            githubConfigProvider, organizationId);
+            githubConfigProvider, projectId);
         break;
       default:
         throw new IllegalArgumentException(String.format(

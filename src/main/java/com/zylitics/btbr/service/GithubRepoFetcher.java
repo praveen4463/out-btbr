@@ -26,8 +26,8 @@ public class GithubRepoFetcher extends AbstractRepoFetcher {
   
   public GithubRepoFetcher(WebClient.Builder webClientBuilder,
                            GithubConfigProvider configProvider,
-                           int organizationId) {
-    super(webClientBuilder, organizationId);
+                           int projectId) {
+    super(webClientBuilder, projectId);
     this.configProvider = configProvider;
   
     reactor.netty.http.client.HttpClient httpClient = reactor.netty.http.client.HttpClient.create()
@@ -40,9 +40,9 @@ public class GithubRepoFetcher extends AbstractRepoFetcher {
   // https://docs.github.com/en/rest/repos/contents#download-a-repository-archive-zip
   @Override
   public String fetchRepoAndReturnLocalPath() throws IOException {
-    GithubConfig config = configProvider.getGithubConfig(organizationId)
+    GithubConfig config = configProvider.getGithubConfig(projectId)
         .orElseThrow(() ->
-            new RuntimeException("No git config is attached to org: " + organizationId));
+            new RuntimeException("No git config is attached to project: " + projectId));
     Path repoArchiveLocalPath =
         Paths.get(Configuration.SYS_DEF_TEMP_DIR, config.getRepoName(), ".zip");
     Path repoDirLocalPath =

@@ -51,7 +51,7 @@ public class Build {
   
   private int userId;
   
-  private int projectId;
+  private Project project;
   
   private Organization organization;
   
@@ -239,12 +239,12 @@ public class Build {
     return this;
   }
   
-  public int getProjectId() {
-    return projectId;
+  public Project getProject() {
+    return project;
   }
   
-  public Build setProjectId(int projectId) {
-    this.projectId = projectId;
+  public Build setProject(Project project) {
+    this.project = project;
     return this;
   }
   

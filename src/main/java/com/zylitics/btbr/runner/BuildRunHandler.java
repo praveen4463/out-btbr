@@ -245,7 +245,7 @@ public class BuildRunHandler {
         }
         String fileName = path.get(0);
         String testName = path.get(1);
-        testVersion = testVersionProvider.getTestVersion(build.getProjectId(),
+        testVersion = testVersionProvider.getTestVersion(build.getProject().getProjectId(),
                 fileName,
                 testName,
                 versionName)

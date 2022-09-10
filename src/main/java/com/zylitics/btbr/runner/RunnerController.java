@@ -221,9 +221,9 @@ public class RunnerController {
     // Decide which testVersionProvider to use. If running from git is enabled and source is
     // not IDE, it's git provider otherwise the normal dao.
     TestVersionProvider testVersionProvider;
-    Organization organization = build.getOrganization();
-    if (build.getSourceType() != BuildSourceType.IDE && organization.isGitEnabled()) {
-      gitTestVersionProvider.init(organization);
+    Project project = build.getProject();
+    if (build.getSourceType() != BuildSourceType.IDE && project.isGitEnabled()) {
+      gitTestVersionProvider.init(project);
       testVersionProvider = gitTestVersionProvider;
     } else {
       testVersionProvider = daoTestVersionProvider;

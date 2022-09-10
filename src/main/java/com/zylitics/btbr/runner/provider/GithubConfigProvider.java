@@ -6,5 +6,5 @@ import java.util.Optional;
 
 public interface GithubConfigProvider {
   
-  Optional<GithubConfig> getGithubConfig(int organizationId);
+  Optional<GithubConfig> getGithubConfig(int projectId);
 }

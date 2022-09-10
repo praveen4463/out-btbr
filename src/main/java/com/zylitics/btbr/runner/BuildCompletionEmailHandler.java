@@ -74,15 +74,17 @@ public class BuildCompletionEmailHandler {
     if (!Strings.isNullOrEmpty(build.getBuildName())) {
       buildIdentifier += " " + build.getBuildName();
     }
+  
+    int projectId = build.getProject().getProjectId();
     
     String linkToBuild = String.format("%s/%s?project=%s&simple_view=1",
         apiCoreProperties.getFrontEndBaseUrl() + emailProps.getBuildsPage(),
         build.getBuildId(),
-        build.getProjectId());
+        projectId);
     
     String linkToEmailSettings = String.format("%s?project=%s",
         apiCoreProperties.getFrontEndBaseUrl() + emailProps.getEmailPrefPage(),
-        build.getProjectId());
+        projectId);
     
     StringBuilder error = new StringBuilder();
     

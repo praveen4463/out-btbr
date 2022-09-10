@@ -55,9 +55,9 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         ", bu.bt_build_request_id" +
         ", project.zluser_id" +
         ", project.bt_project_id" +
-        ", org.organization_id" +
-        ", org.git_enabled" +
-        ", org.git_provider" +
+        ", project.git_enabled" +
+        ", project.git_provider" +
+        ", project.organization_id" +
         ", bc.wd_browser_name" +
         ", bc.wd_browser_version" +
         ", bc.wd_platform_name" +
@@ -86,7 +86,6 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
         " ON (bu.bt_build_id = bc.bt_build_id)" +
         " INNER JOIN bt_project AS project" +
         " ON (bu.bt_project_id = project.bt_project_id)" +
-        " JOIN organization org USING (organization_id) " +
         " WHERE bu.bt_build_id = :bt_build_id;";
     
     SqlParameterSource namedParams = new MapSqlParameterSource("bt_build_id",
@@ -118,12 +117,13 @@ class DaoBuildProvider extends AbstractDaoProvider implements BuildProvider {
             .setSourceType(BuildSourceType.valueOf(rs.getString("source_type")))
             .setBuildRequestId(rs.getLong("bt_build_request_id"))
             .setUserId(rs.getInt("zluser_id"))
-            .setProjectId(rs.getInt("bt_project_id"))
-            .setOrganization(new Organization()
-                .setOrganizationId(rs.getInt("organization_id"))
+            .setProject(new Project()
+                .setProjectId(rs.getInt("bt_project_id"))
                 .setGitEnabled(rs.getBoolean("git_enabled"))
                 .setGitProvider(rs.getString("git_provider") != null
                     ? GitProvider.valueOf(rs.getString("git_provider")) : null))
+            .setOrganization(new Organization()
+                .setOrganizationId(rs.getInt("organization_id")))
             .setBuildCapability(new BuildCapability()
                 .setWdBrowserName(rs.getString("wd_browser_name"))
                 .setWdBrowserVersion(rs.getString("wd_browser_version"))

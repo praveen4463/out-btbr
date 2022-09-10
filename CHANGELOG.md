@@ -337,3 +337,11 @@ Bug fixes
 ### BugFixes
 
 1. Fixed a bug while fetching build
+
+## v0.3.19
+
+Bug fixes
+
+### BugFixes
+
+1. Git was associated with an org rather than a project. Fixed that.

@@ -7,11 +7,11 @@ import java.io.IOException;
 public abstract class AbstractRepoFetcher {
   
   final WebClient.Builder webClientBuilder;
-  final int organizationId;
+  final int projectId;
   
-  AbstractRepoFetcher(WebClient.Builder webClientBuilder, int organizationId) {
+  AbstractRepoFetcher(WebClient.Builder webClientBuilder, int projectId) {
     this.webClientBuilder = webClientBuilder;
-    this.organizationId = organizationId;
+    this.projectId = projectId;
   }
   
   public abstract String fetchRepoAndReturnLocalPath() throws IOException;
