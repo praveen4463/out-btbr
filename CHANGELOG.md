@@ -345,3 +345,11 @@ Bug fixes
 ### BugFixes
 
 1. Git was associated with an org rather than a project. Fixed that.
+
+## v0.3.20
+
+Bug fixes
+
+### BugFixes
+
+1. Fixed a bug in a sql query.

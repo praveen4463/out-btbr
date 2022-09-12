@@ -28,9 +28,9 @@ class DaoGithubConfigProvider extends AbstractDaoProvider implements GithubConfi
     
     String sql = "SELECT api_token, repo_owner, repo_name, main_branch_name\n" +
         "FROM github_config\n" +
-        "WHERE project_id = :project_id;";
+        "WHERE bt_project_id = :bt_project_id;";
   
-    SqlParameterSource namedParams = new MapSqlParameterSource("project_id",
+    SqlParameterSource namedParams = new MapSqlParameterSource("bt_project_id",
         new SqlParameterValue(Types.INTEGER, projectId));
   
     List<GithubConfig> configs = jdbc.query(sql, namedParams, (rs, rowNum) ->
