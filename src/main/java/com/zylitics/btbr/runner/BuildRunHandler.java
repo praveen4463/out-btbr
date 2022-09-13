@@ -252,7 +252,9 @@ public class BuildRunHandler {
             .orElseThrow(() -> new IllegalArgumentException("Given test doesn't exists"));
         explicitlyLoadedTests.put(testPath, testVersion);
       }
-      ZwlApi zwlApi = zwlApiSupplier.get(testVersion.getCode(),
+      String code = testVersion.getCode();
+      LOG.debug("Going to run function code: {}", code);
+      ZwlApi zwlApi = zwlApiSupplier.get(code,
           Collections.singletonList(storingErrorListener));
       zwlApi.interpret(zwlWdTestProperties, testPath,
           z -> z.setLineChangeListener((cl) -> onZwlProgramLineChanged(cl, true)));

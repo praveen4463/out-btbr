@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.zylitics</groupId>
   <artifactId>zl-btbr</artifactId>
-  <version>0.3.20</version>
+  <version>0.3.21</version>
   <name>zl-btbr</name>
   <url>http://maven.apache.org</url>
   <properties>
@@ -14,7 +14,7 @@
     <google-cloud-storage.version>2.6.1</google-cloud-storage.version>
     <selenium.version>4.0.0-alpha-5</selenium.version>
     <stackdriver-logback.version>0.123.11-alpha</stackdriver-logback.version>
-    <zwl.version>0.6.14</zwl.version>
+    <zwl.version>0.6.15</zwl.version>
     <sendgrid.version>4.7.1</sendgrid.version>
     <reactor-extra.version>3.4.4</reactor-extra.version>
 

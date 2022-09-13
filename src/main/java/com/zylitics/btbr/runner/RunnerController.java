@@ -356,7 +356,7 @@ public class RunnerController {
    */
   @SuppressWarnings("unused")
   @ExceptionHandler
-  public ResponseEntity<AbstractResponse> handleExceptions(Exception ex) {
+  public ResponseEntity<AbstractResponse> handleExceptions(Throwable ex) {
     LOG.debug("An Exception handler was called");
     
     return processErrResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR);

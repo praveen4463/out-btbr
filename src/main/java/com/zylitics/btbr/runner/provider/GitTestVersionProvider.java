@@ -32,7 +32,7 @@ public class GitTestVersionProvider implements TestVersionProvider {
     this.webClientBuilder = webClientBuilder;
   }
   
-  public void init(Project project) {
+  public void init(Project project) throws IOException {
     int projectId = project.getProjectId();
     
     AbstractRepoFetcher abstractRepoFetcher;
@@ -46,12 +46,7 @@ public class GitTestVersionProvider implements TestVersionProvider {
         throw new IllegalArgumentException(String.format(
             "Git provider %s is not currently implemented", gitProvider));
     }
-    String zwlProjectDir;
-    try {
-      zwlProjectDir = abstractRepoFetcher.fetchRepoAndReturnLocalPath();
-    } catch (IOException io) {
-      throw new RuntimeException(io);
-    }
+    String zwlProjectDir = abstractRepoFetcher.fetchRepoAndReturnLocalPath();
     this.zwlFileReader = new ZWLFileReader(zwlProjectDir);
   }
   

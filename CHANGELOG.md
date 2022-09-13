@@ -353,3 +353,12 @@ Bug fixes
 ### BugFixes
 
 1. Fixed a bug in a sql query.
+
+## v0.3.21
+
+Bug fixes
+
+### BugFixes
+
+1. Bumped zwl to 0.6.15 that resolves a bug.
+2. Improved error propagation
