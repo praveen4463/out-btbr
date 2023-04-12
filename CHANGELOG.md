@@ -362,3 +362,11 @@ Bug fixes
 
 1. Bumped zwl to 0.6.15 that resolves a bug.
 2. Improved error propagation
+
+## v0.3.22
+
+Bug fixes
+
+### BugFixes
+
+1. Bumped zwl to 0.6.16 that resolves a bug.
