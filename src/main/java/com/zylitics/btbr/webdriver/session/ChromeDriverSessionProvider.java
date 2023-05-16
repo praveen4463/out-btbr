@@ -76,6 +76,7 @@ public class ChromeDriverSessionProvider extends AbstractDriverSessionProvider {
     
     // add more browser specific arguments
     chrome.addArguments("--disable-gpu");
+    chrome.addArguments("--remote-allow-origins=*");
     
     // add performance logging if asked to
     if (build.isCaptureDriverLogs() &&

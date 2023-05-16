@@ -370,3 +370,13 @@ Bug fixes
 ### BugFixes
 
 1. Bumped zwl to 0.6.16 that resolves a bug.
+
+## v0.3.23
+
+Bug fixes
+
+### BugFixes
+
+1. Bumped zwl to 0.6.17.
+2. An update to chrome webdriver requires the webdriver to allow all origins while connecting to itself
+   via websocket.
