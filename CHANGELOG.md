@@ -380,3 +380,11 @@ Bug fixes
 1. Bumped zwl to 0.6.17.
 2. An update to chrome webdriver requires the webdriver to allow all origins while connecting to itself
    via websocket.
+
+## v0.3.24
+
+Bug fixes
+
+### BugFixes
+
+1. Bumped zwl to 0.6.18 that resolves a bug.
