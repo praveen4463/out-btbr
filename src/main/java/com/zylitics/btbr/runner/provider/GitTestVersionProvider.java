@@ -6,6 +6,8 @@ import com.zylitics.btbr.model.TestVersion;
 import com.zylitics.btbr.service.AbstractRepoFetcher;
 import com.zylitics.btbr.service.GithubRepoFetcher;
 import com.zylitics.btbr.service.ZWLFileReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class GitTestVersionProvider implements TestVersionProvider {
+  
+  private static final Logger LOG = LoggerFactory.getLogger(GitTestVersionProvider.class);
   
   private final TestVersionForGitRunProvider testVersionForGitRunProvider;
   private final GithubConfigProvider githubConfigProvider;
@@ -74,21 +78,36 @@ public class GitTestVersionProvider implements TestVersionProvider {
     return optionalTestVersions;
   }
   
+  private void resetCodeIfNotExistsInGit(TestVersion testVersion) {
+    testVersion.setCode("print(\"ERROR: This test doesn't exists in git\")");
+  }
+  
+  // TODO: This method requires a lot more consideration if we going to expand the user base in future.
+  //  There may be situations when a file or test/function in the IDE isn't yet in git. We should decide
+  //  what to do then. It may not be right to throw an error because if it's a parallel build, all the
+  //  builds must run in order to produce a final result. It may not be right to run them as empty code
+  //  tests because then it will show as passed confusing someone who is still developing.
+  //  Since right now there aren't many people using the system, we will apply a solution that works for
+  //  current customers.
   private void setCodeToTestVersions(List<TestVersion> testVersions,
                                     Map<String, Map<String, String>> testToCodeByFile) {
     for (TestVersion testVersion : testVersions) {
       String fileName = testVersion.getFile().getName();
       if (!testToCodeByFile.containsKey(fileName)) {
-        throw new IllegalArgumentException(
-            String.format("File %s doesn't exist in the repo. Aborting run.", fileName));
+        // Looks like this file hasn't been pushed to git yet. Let's include it in the build anyway
+        LOG.error("File {} doesn't exist in the repo.", fileName);
+        resetCodeIfNotExistsInGit(testVersion);
+        continue;
       }
       
       String testName = testVersion.getTest().getName();
       Map<String, String> testToCode = testToCodeByFile.get(fileName);
       if (!testToCode.containsKey(testName)) {
-        throw new IllegalArgumentException(
-            String.format("Test %s doesn't exist in file %s in the repo. Aborting run.",
-                testName, fileName));
+        // Looks like this test hasn't been pushed to git yet. Let's include it in the build anyway
+        LOG.error("Test {} doesn't exist in file {} in the repo.",
+            testName, fileName);
+        resetCodeIfNotExistsInGit(testVersion);
+        continue;
       }
       
       // TODO: This could have problems with functions if they don't have any code. We should have
@@ -109,10 +128,10 @@ public class GitTestVersionProvider implements TestVersionProvider {
   }
   
   @Override
-  public Optional<TestVersion> getTestVersion(int projectId,
-                                              String fileName,
-                                              String testName,
-                                              String versionName) {
+  public Optional<TestVersion> getFunctionAsTestVersion(int projectId,
+                                                        String fileName,
+                                                        String testName,
+                                                        String versionName) {
     Objects.requireNonNull(zwlFileReader, "invoke init first");
     
     Optional<TestVersion> optionalTestVersion = testVersionForGitRunProvider
@@ -126,6 +145,14 @@ public class GitTestVersionProvider implements TestVersionProvider {
       testToCodeByFile = zwlFileReader.readFile(fileName);
     } catch (IOException io) {
       throw new RuntimeException(io);
+    }
+    
+    // If this function doesn't exist in git, let's do the same thing we do when it doesn't exist
+    // in db. This will let user know that the function hasn't yet been pushed to git because it's
+    // possible user may have pushed the test but not the associated function.
+    if (!(testToCodeByFile.containsKey(fileName)
+        && testToCodeByFile.get(fileName).containsKey(testName))) {
+      return Optional.empty();
     }
   
     setCodeToTestVersions(Collections.singletonList(testVersion), testToCodeByFile);

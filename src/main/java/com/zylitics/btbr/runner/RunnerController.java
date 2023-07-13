@@ -204,8 +204,10 @@ public class RunnerController {
         buildRunStatus.put(build.getBuildId(), BuildRunStatus.COMPLETED);
         // delete VM
         vmUpdateHandler.update(build);
+        // LOG error
+        LOG.error(build.getBuildId() + " failed to start.", t);
       }
-      // throw to return some error response
+      // Throw to return some error response
       throw t;
     }
   }

@@ -24,10 +24,10 @@ public class DaoTestVersionProvider extends AbstractTestVersionProvider
   }
 
   @Override
-  public Optional<TestVersion> getTestVersion(int projectId,
-                                              String fileName,
-                                              String testName,
-                                              String versionName) {
+  public Optional<TestVersion> getFunctionAsTestVersion(int projectId,
+                                                        String fileName,
+                                                        String testName,
+                                                        String versionName) {
     return super.getTestVersion(projectId, fileName, testName, versionName);
   }
 }

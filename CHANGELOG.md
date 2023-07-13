@@ -388,3 +388,11 @@ Bug fixes
 ### BugFixes
 
 1. Bumped zwl to 0.6.18 that resolves a bug.
+
+## v0.3.25
+
+Bug fixes
+
+### BugFixes
+
+1. Resolved bug that caused builds to fail before starting if some file/test doesn't exist in git.
